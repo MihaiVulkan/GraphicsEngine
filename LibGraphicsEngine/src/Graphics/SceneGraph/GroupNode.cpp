@@ -1,0 +1,94 @@
+#include "GroupNode.hpp"
+#include <algorithm> // std::remove()
+#include <cassert>
+
+using namespace GraphicsEngine;
+using namespace GraphicsEngine::Graphics;
+
+#include <cassert>
+
+GroupNode::GroupNode()
+	: Node()
+{}
+
+GroupNode::GroupNode(const std::string& name)
+	: Node(name)
+{}
+
+GroupNode::~GroupNode()
+{}
+
+bool_t GroupNode::HasChildren() const
+{
+	return ! mChildren.empty();
+}
+
+void GroupNode::AttachNode(Node* pNode)
+{
+	assert(pNode != nullptr);
+
+	// node to add already is attached to this parent
+	if (pNode->GetParent() == this)
+		return;
+
+	pNode->SetParent(this);
+
+	mChildren.push_back(pNode);
+}
+
+void GroupNode::DettachNode(Node* pNode)
+{
+	assert(pNode != nullptr);
+
+	// if this node is not the parent of pNaode then we exit
+	if (pNode->GetParent() != this)
+		return;
+
+	pNode->SetParent(nullptr);
+
+	// efficiant remove
+	mChildren.erase(std::remove(mChildren.begin(), mChildren.end(), pNode), mChildren.end());
+}
+
+void GroupNode::DettachAllNodes()
+{
+	for (auto& pNode : mChildren)
+	{
+		pNode->SetParent(nullptr);
+	}
+
+	mChildren.clear();
+}
+
+Node* GroupNode::GetNodeAt(uint32_t index)
+{
+	assert(index < mChildren.size());
+
+	return mChildren[index];
+}
+
+Node* GroupNode::GetNode(const std::string& name)
+{
+	assert(! name.empty());
+
+	for (auto& pNode : mChildren)
+	{
+		if (pNode->GetName() == name)
+			return pNode;
+	}
+
+	return nullptr;
+}
+
+void GroupNode::Visit(std::function<void(Node*)> callback)
+{
+	if (callback)
+		callback(this);
+
+	// something else to do
+	for (auto& pNode : mChildren)
+	{
+		if (pNode)
+			pNode->Visit(callback);
+	}
+}

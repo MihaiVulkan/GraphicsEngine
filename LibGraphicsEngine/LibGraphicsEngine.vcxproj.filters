@@ -1,0 +1,675 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Source Files\Foundation">
+      <UniqueIdentifier>{ebc1efc9-d92b-4d83-837c-cf7115762ae1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Foundation\Platform">
+      <UniqueIdentifier>{a2e97c17-11dd-454c-b8ec-41fbc11c71c8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Foundation\Platform\Win32">
+      <UniqueIdentifier>{7c475e42-dbd1-497c-9456-308f9641dea8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Foundation\MemoryManagement">
+      <UniqueIdentifier>{ce391d7d-2858-4c50-85e7-e7006f5caac0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Graphics">
+      <UniqueIdentifier>{86d2a5db-92aa-44dd-8832-28a90a9f8d1b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Graphics\Rendering">
+      <UniqueIdentifier>{e722fad4-9a16-4b53-a172-384808ee4a12}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Graphics\Rendering\Vulkan">
+      <UniqueIdentifier>{937bed4d-5db0-41cb-bcfe-bac6ac4f2275}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Applications">
+      <UniqueIdentifier>{dafb3a5e-f9e8-48ec-b663-3b7671ef1d04}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Graphics\SceneGraph">
+      <UniqueIdentifier>{3c9c9946-0485-4aab-b71c-3308b6875a0a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Graphics\Rendering\Resources">
+      <UniqueIdentifier>{bb156b13-f5a6-46cb-a01d-292d331b4c39}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Graphics\Rendering\Vulkan\Internal">
+      <UniqueIdentifier>{0db06bfc-5fbe-4415-86c2-82622c13d513}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Graphics\Camera">
+      <UniqueIdentifier>{2ba10f8c-e168-47c8-bb5c-28eec36b3a3f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Graphics\GeometricPrimitives">
+      <UniqueIdentifier>{f6649857-d542-4c77-90d5-2f23e181b4e9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Graphics\Components">
+      <UniqueIdentifier>{673486fc-3f17-48c6-aa56-9f482decfe81}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Graphics\Rendering\RenderPasses">
+      <UniqueIdentifier>{4ba7e7e0-1313-41ff-bf97-3bdc7ddc0c2e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Graphics\Rendering\PipelineStates">
+      <UniqueIdentifier>{8561c3ef-2095-4ffb-94ca-dfc1d6858ab0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Graphics\Rendering\Vulkan\Resources">
+      <UniqueIdentifier>{dc0e6018-51ae-41f0-9c86-f6ba490919d8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Input">
+      <UniqueIdentifier>{84a57afc-d9ce-47bb-a8bf-82f1e2746f70}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="framework.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\AppConfig.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GraphicsEngine.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Foundation\Platform\Win32\Win32App.hpp">
+      <Filter>Source Files\Foundation\Platform\Win32</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Foundation\Platform\Win32\Win32Platform.hpp">
+      <Filter>Source Files\Foundation\Platform\Win32</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Foundation\Platform\Win32\Win32Types.hpp">
+      <Filter>Source Files\Foundation\Platform\Win32</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Foundation\Platform\InputDef.hpp">
+      <Filter>Source Files\Foundation\Platform</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Foundation\Platform\Platform.hpp">
+      <Filter>Source Files\Foundation\Platform</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Foundation\Platform\PlatformInternal.hpp">
+      <Filter>Source Files\Foundation\Platform</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Foundation\Platform\PlatformTypes.hpp">
+      <Filter>Source Files\Foundation\Platform</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Foundation\MemoryManagement\Allocator.hpp">
+      <Filter>Source Files\Foundation\MemoryManagement</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Foundation\MemoryManagement\LiniarAllocator.hpp">
+      <Filter>Source Files\Foundation\MemoryManagement</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Foundation\MemoryManagement\MemoryBenchmark.hpp">
+      <Filter>Source Files\Foundation\MemoryManagement</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Foundation\MemoryManagement\MemoryOperations.hpp">
+      <Filter>Source Files\Foundation\MemoryManagement</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Foundation\MemoryManagement\MemoryUtility.hpp">
+      <Filter>Source Files\Foundation\MemoryManagement</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Foundation\Logger.hpp">
+      <Filter>Source Files\Foundation</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Foundation\NoCopyNoMove.hpp">
+      <Filter>Source Files\Foundation</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Foundation\RTTI.hpp">
+      <Filter>Source Files\Foundation</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Foundation\Singleton.hpp">
+      <Filter>Source Files\Foundation</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Foundation\Timer.hpp">
+      <Filter>Source Files\Foundation</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\Rendering\Renderer.hpp">
+      <Filter>Source Files\Graphics\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Foundation\FileUtils.hpp">
+      <Filter>Source Files\Foundation</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Applications\Application.hpp">
+      <Filter>Source Files\Applications</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Applications\ConsoleApplication.hpp">
+      <Filter>Source Files\Applications</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Applications\WindowApplication.hpp">
+      <Filter>Source Files\Applications</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\Rendering\RenderQueue.hpp">
+      <Filter>Source Files\Graphics\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\SceneGraph\Node.hpp">
+      <Filter>Source Files\Graphics\SceneGraph</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\SceneGraph\GroupNode.hpp">
+      <Filter>Source Files\Graphics\SceneGraph</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\SceneGraph\GeometryNode.hpp">
+      <Filter>Source Files\Graphics\SceneGraph</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\GraphicsSystem.hpp">
+      <Filter>Source Files\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\Rendering\Resources\VertexBuffer.hpp">
+      <Filter>Source Files\Graphics\Rendering\Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\Rendering\Resources\VertexFormat.hpp">
+      <Filter>Source Files\Graphics\Rendering\Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\Rendering\Vulkan\Internal\__VulkanAllocation.hpp">
+      <Filter>Source Files\Graphics\Rendering\Vulkan\Internal</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\Rendering\Vulkan\Internal\VulkanAllocator.hpp">
+      <Filter>Source Files\Graphics\Rendering\Vulkan\Internal</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\Rendering\Vulkan\Internal\VulkanBuffer.hpp">
+      <Filter>Source Files\Graphics\Rendering\Vulkan\Internal</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\Rendering\Vulkan\Internal\VulkanBufferView.hpp">
+      <Filter>Source Files\Graphics\Rendering\Vulkan\Internal</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\Rendering\Vulkan\Internal\VulkanCommandBuffer.hpp">
+      <Filter>Source Files\Graphics\Rendering\Vulkan\Internal</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\Rendering\Vulkan\Internal\VulkanCommandPool.hpp">
+      <Filter>Source Files\Graphics\Rendering\Vulkan\Internal</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\Rendering\Vulkan\Internal\VulkanComputePipeline.hpp">
+      <Filter>Source Files\Graphics\Rendering\Vulkan\Internal</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\Rendering\Vulkan\Internal\VulkanDebug.hpp">
+      <Filter>Source Files\Graphics\Rendering\Vulkan\Internal</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\Rendering\Vulkan\Internal\VulkanDescriptorPool.hpp">
+      <Filter>Source Files\Graphics\Rendering\Vulkan\Internal</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\Rendering\Vulkan\Internal\VulkanDescriptorSet.hpp">
+      <Filter>Source Files\Graphics\Rendering\Vulkan\Internal</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\Rendering\Vulkan\Internal\VulkanDescriptorSetLayout.hpp">
+      <Filter>Source Files\Graphics\Rendering\Vulkan\Internal</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\Rendering\Vulkan\Internal\VulkanDevice.hpp">
+      <Filter>Source Files\Graphics\Rendering\Vulkan\Internal</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\Rendering\Vulkan\Internal\VulkanFence.hpp">
+      <Filter>Source Files\Graphics\Rendering\Vulkan\Internal</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\Rendering\Vulkan\Internal\VulkanFrameBuffer.hpp">
+      <Filter>Source Files\Graphics\Rendering\Vulkan\Internal</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\Rendering\Vulkan\Internal\VulkanFrameBufferAttachment.hpp">
+      <Filter>Source Files\Graphics\Rendering\Vulkan\Internal</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\Rendering\Vulkan\Internal\VulkanGraphicsPipeline.hpp">
+      <Filter>Source Files\Graphics\Rendering\Vulkan\Internal</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\Rendering\Vulkan\Internal\VulkanHelpers.hpp">
+      <Filter>Source Files\Graphics\Rendering\Vulkan\Internal</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\Rendering\Vulkan\Internal\VulkanImage.hpp">
+      <Filter>Source Files\Graphics\Rendering\Vulkan\Internal</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\Rendering\Vulkan\Internal\VulkanImageView.hpp">
+      <Filter>Source Files\Graphics\Rendering\Vulkan\Internal</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\Rendering\Vulkan\Internal\VulkanInitializers.hpp">
+      <Filter>Source Files\Graphics\Rendering\Vulkan\Internal</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\Rendering\Vulkan\Internal\VulkanInstance.hpp">
+      <Filter>Source Files\Graphics\Rendering\Vulkan\Internal</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\Rendering\Vulkan\Internal\VulkanLogicalDevice.hpp">
+      <Filter>Source Files\Graphics\Rendering\Vulkan\Internal</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\Rendering\Vulkan\Internal\VulkanPassThroughAllocator.hpp">
+      <Filter>Source Files\Graphics\Rendering\Vulkan\Internal</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\Rendering\Vulkan\Internal\VulkanPhysicalDevice.hpp">
+      <Filter>Source Files\Graphics\Rendering\Vulkan\Internal</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\Rendering\Vulkan\Internal\VulkanPipelineCache.hpp">
+      <Filter>Source Files\Graphics\Rendering\Vulkan\Internal</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\Rendering\Vulkan\Internal\VulkanPipelineLayout.hpp">
+      <Filter>Source Files\Graphics\Rendering\Vulkan\Internal</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\Rendering\Vulkan\Internal\VulkanPoolAllocator.hpp">
+      <Filter>Source Files\Graphics\Rendering\Vulkan\Internal</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\Rendering\Vulkan\Internal\VulkanQueue.hpp">
+      <Filter>Source Files\Graphics\Rendering\Vulkan\Internal</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\Rendering\Vulkan\Internal\VulkanRenderPass.hpp">
+      <Filter>Source Files\Graphics\Rendering\Vulkan\Internal</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\Rendering\Vulkan\Internal\VulkanRenderPassAttachment.hpp">
+      <Filter>Source Files\Graphics\Rendering\Vulkan\Internal</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\Rendering\Vulkan\Internal\VulkanSemaphore.hpp">
+      <Filter>Source Files\Graphics\Rendering\Vulkan\Internal</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\Rendering\Vulkan\Internal\VulkanShaderModule.hpp">
+      <Filter>Source Files\Graphics\Rendering\Vulkan\Internal</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\Rendering\Vulkan\Internal\VulkanSubPass.hpp">
+      <Filter>Source Files\Graphics\Rendering\Vulkan\Internal</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\Rendering\Vulkan\Internal\VulkanSurface.hpp">
+      <Filter>Source Files\Graphics\Rendering\Vulkan\Internal</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\Rendering\Vulkan\Internal\VulkanSwapChain.hpp">
+      <Filter>Source Files\Graphics\Rendering\Vulkan\Internal</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\Rendering\Vulkan\VulkanRenderer.hpp">
+      <Filter>Source Files\Graphics\Rendering\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Foundation\HashUtils.hpp">
+      <Filter>Source Files\Foundation</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\Rendering\Resources\IndexBuffer.hpp">
+      <Filter>Source Files\Graphics\Rendering\Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Foundation\TypeDefs.hpp">
+      <Filter>Source Files\Foundation</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\Rendering\Resources\Shader.hpp">
+      <Filter>Source Files\Graphics\Rendering\Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\Camera\Camera.hpp">
+      <Filter>Source Files\Graphics\Camera</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\Camera\FPSCamera.hpp">
+      <Filter>Source Files\Graphics\Camera</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\SceneGraph\CameraNode.hpp">
+      <Filter>Source Files\Graphics\SceneGraph</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\Rendering\Resources\Material.hpp">
+      <Filter>Source Files\Graphics\Rendering\Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\Rendering\Resources\Texture.hpp">
+      <Filter>Source Files\Graphics\Rendering\Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\Rendering\Vulkan\Internal\VulkanSampler.hpp">
+      <Filter>Source Files\Graphics\Rendering\Vulkan\Internal</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\GeometricPrimitives\GeometricPrimitive.hpp">
+      <Filter>Source Files\Graphics\GeometricPrimitives</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\Components\NodeComponent.hpp">
+      <Filter>Source Files\Graphics\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\Components\MaterialComponent.hpp">
+      <Filter>Source Files\Graphics\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\Rendering\RenderPasses\DefaultRenderPass.hpp">
+      <Filter>Source Files\Graphics\Rendering\RenderPasses</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\Rendering\PipelineStates\AlphaState.hpp">
+      <Filter>Source Files\Graphics\Rendering\PipelineStates</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\Rendering\PipelineStates\PipelineState.hpp">
+      <Filter>Source Files\Graphics\Rendering\PipelineStates</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\Rendering\PipelineStates\DepthState.hpp">
+      <Filter>Source Files\Graphics\Rendering\PipelineStates</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\Rendering\Vulkan\Internal\VulkanCommon.hpp">
+      <Filter>Source Files\Graphics\Rendering\Vulkan\Internal</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\Rendering\RenderPasses\RenderPass.hpp">
+      <Filter>Source Files\Graphics\Rendering\RenderPasses</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\Rendering\Resources\UniformBuffer.hpp">
+      <Filter>Source Files\Graphics\Rendering\Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\Rendering\Vulkan\VulkanUtils.hpp">
+      <Filter>Source Files\Graphics\Rendering\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\Rendering\Resources\Buffer.hpp">
+      <Filter>Source Files\Graphics\Rendering\Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\Rendering\Resources\Resource.hpp">
+      <Filter>Source Files\Graphics\Rendering\Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\Rendering\Vulkan\Resources\VulkanIndexBuffer.hpp">
+      <Filter>Source Files\Graphics\Rendering\Vulkan\Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\Rendering\Vulkan\Resources\VulkanMaterial.hpp">
+      <Filter>Source Files\Graphics\Rendering\Vulkan\Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\Rendering\Vulkan\Resources\VulkanShader.hpp">
+      <Filter>Source Files\Graphics\Rendering\Vulkan\Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\Rendering\Vulkan\Resources\VulkanTexture.hpp">
+      <Filter>Source Files\Graphics\Rendering\Vulkan\Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\Rendering\Vulkan\Resources\VulkanUniformBuffer.hpp">
+      <Filter>Source Files\Graphics\Rendering\Vulkan\Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\Rendering\Vulkan\Resources\VulkanVertexBuffer.hpp">
+      <Filter>Source Files\Graphics\Rendering\Vulkan\Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\Rendering\Vulkan\Resources\VulkanVertexFormat.hpp">
+      <Filter>Source Files\Graphics\Rendering\Vulkan\Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\Rendering\Vulkan\Resources\VulkanResource.hpp">
+      <Filter>Source Files\Graphics\Rendering\Vulkan\Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Input\InputSystem.hpp">
+      <Filter>Source Files\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="src\System.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\Rendering\Resources\RenderTarget.hpp">
+      <Filter>Source Files\Graphics\Rendering\Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\Rendering\Resources\RenderFrameBuffer.hpp">
+      <Filter>Source Files\Graphics\Rendering\Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\Rendering\Vulkan\Resources\VulkanRenderFrameBuffer.hpp">
+      <Filter>Source Files\Graphics\Rendering\Vulkan\Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\Rendering\Vulkan\Resources\VulkanRenderTarget.hpp">
+      <Filter>Source Files\Graphics\Rendering\Vulkan\Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\Rendering\Vulkan\Internal\VulkanQueryPool.hpp">
+      <Filter>Source Files\Graphics\Rendering\Vulkan\Internal</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\Engine.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GraphicsEngine.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Foundation\Platform\Win32\Win32App.cpp">
+      <Filter>Source Files\Foundation\Platform\Win32</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Foundation\Platform\Win32\Win32Platform.cpp">
+      <Filter>Source Files\Foundation\Platform\Win32</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Foundation\Platform\Platform.cpp">
+      <Filter>Source Files\Foundation\Platform</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Foundation\MemoryManagement\LiniarAllocator.cpp">
+      <Filter>Source Files\Foundation\MemoryManagement</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Foundation\MemoryManagement\MemoryBenchmark.cpp">
+      <Filter>Source Files\Foundation\MemoryManagement</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Foundation\MemoryManagement\MemoryUtility.cpp">
+      <Filter>Source Files\Foundation\MemoryManagement</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Foundation\Timer.cpp">
+      <Filter>Source Files\Foundation</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Rendering\Renderer.cpp">
+      <Filter>Source Files\Graphics\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Foundation\MemoryManagement\MemoryOperations.cpp">
+      <Filter>Source Files\Foundation\MemoryManagement</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Foundation\FileUtils.cpp">
+      <Filter>Source Files\Foundation</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Applications\Application.cpp">
+      <Filter>Source Files\Applications</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Applications\ConsoleApplication.cpp">
+      <Filter>Source Files\Applications</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Applications\WindowApplication.cpp">
+      <Filter>Source Files\Applications</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Rendering\RenderQueue.cpp">
+      <Filter>Source Files\Graphics\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\SceneGraph\Node.cpp">
+      <Filter>Source Files\Graphics\SceneGraph</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\SceneGraph\GroupNode.cpp">
+      <Filter>Source Files\Graphics\SceneGraph</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\SceneGraph\GeometryNode.cpp">
+      <Filter>Source Files\Graphics\SceneGraph</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\GraphicsSystem.cpp">
+      <Filter>Source Files\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Rendering\Resources\VertexBuffer.cpp">
+      <Filter>Source Files\Graphics\Rendering\Resources</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Rendering\Resources\VertexFormat.cpp">
+      <Filter>Source Files\Graphics\Rendering\Resources</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Rendering\Vulkan\Internal\__VulkanAllocation.cpp">
+      <Filter>Source Files\Graphics\Rendering\Vulkan\Internal</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Rendering\Vulkan\Internal\VulkanAllocator.cpp">
+      <Filter>Source Files\Graphics\Rendering\Vulkan\Internal</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Rendering\Vulkan\Internal\VulkanBuffer.cpp">
+      <Filter>Source Files\Graphics\Rendering\Vulkan\Internal</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Rendering\Vulkan\Internal\VulkanBufferView.cpp">
+      <Filter>Source Files\Graphics\Rendering\Vulkan\Internal</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Rendering\Vulkan\Internal\VulkanCommandBuffer.cpp">
+      <Filter>Source Files\Graphics\Rendering\Vulkan\Internal</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Rendering\Vulkan\Internal\VulkanCommandPool.cpp">
+      <Filter>Source Files\Graphics\Rendering\Vulkan\Internal</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Rendering\Vulkan\Internal\VulkanComputePipeline.cpp">
+      <Filter>Source Files\Graphics\Rendering\Vulkan\Internal</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Rendering\Vulkan\Internal\VulkanDebug.cpp">
+      <Filter>Source Files\Graphics\Rendering\Vulkan\Internal</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Rendering\Vulkan\Internal\VulkanDescriptorPool.cpp">
+      <Filter>Source Files\Graphics\Rendering\Vulkan\Internal</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Rendering\Vulkan\Internal\VulkanDescriptorSet.cpp">
+      <Filter>Source Files\Graphics\Rendering\Vulkan\Internal</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Rendering\Vulkan\Internal\VulkanDescriptorSetLayout.cpp">
+      <Filter>Source Files\Graphics\Rendering\Vulkan\Internal</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Rendering\Vulkan\Internal\VulkanDevice.cpp">
+      <Filter>Source Files\Graphics\Rendering\Vulkan\Internal</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Rendering\Vulkan\Internal\VulkanFence.cpp">
+      <Filter>Source Files\Graphics\Rendering\Vulkan\Internal</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Rendering\Vulkan\Internal\VulkanFrameBuffer.cpp">
+      <Filter>Source Files\Graphics\Rendering\Vulkan\Internal</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Rendering\Vulkan\Internal\VulkanFrameBufferAttachment.cpp">
+      <Filter>Source Files\Graphics\Rendering\Vulkan\Internal</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Rendering\Vulkan\Internal\VulkanGraphicsPipeline.cpp">
+      <Filter>Source Files\Graphics\Rendering\Vulkan\Internal</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Rendering\Vulkan\Internal\VulkanHelpers.cpp">
+      <Filter>Source Files\Graphics\Rendering\Vulkan\Internal</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Rendering\Vulkan\Internal\VulkanImage.cpp">
+      <Filter>Source Files\Graphics\Rendering\Vulkan\Internal</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Rendering\Vulkan\Internal\VulkanImageView.cpp">
+      <Filter>Source Files\Graphics\Rendering\Vulkan\Internal</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Rendering\Vulkan\Internal\VulkanInitializers.cpp">
+      <Filter>Source Files\Graphics\Rendering\Vulkan\Internal</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Rendering\Vulkan\Internal\VulkanInstance.cpp">
+      <Filter>Source Files\Graphics\Rendering\Vulkan\Internal</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Rendering\Vulkan\Internal\VulkanLogicalDevice.cpp">
+      <Filter>Source Files\Graphics\Rendering\Vulkan\Internal</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Rendering\Vulkan\Internal\VulkanPassThroughAllocator.cpp">
+      <Filter>Source Files\Graphics\Rendering\Vulkan\Internal</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Rendering\Vulkan\Internal\VulkanPhysicalDevice.cpp">
+      <Filter>Source Files\Graphics\Rendering\Vulkan\Internal</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Rendering\Vulkan\Internal\VulkanPipelineCache.cpp">
+      <Filter>Source Files\Graphics\Rendering\Vulkan\Internal</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Rendering\Vulkan\Internal\VulkanPipelineLayout.cpp">
+      <Filter>Source Files\Graphics\Rendering\Vulkan\Internal</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Rendering\Vulkan\Internal\VulkanPoolAllocator.cpp">
+      <Filter>Source Files\Graphics\Rendering\Vulkan\Internal</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Rendering\Vulkan\Internal\VulkanQueue.cpp">
+      <Filter>Source Files\Graphics\Rendering\Vulkan\Internal</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Rendering\Vulkan\Internal\VulkanRenderPass.cpp">
+      <Filter>Source Files\Graphics\Rendering\Vulkan\Internal</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Rendering\Vulkan\Internal\VulkanRenderPassAttachment.cpp">
+      <Filter>Source Files\Graphics\Rendering\Vulkan\Internal</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Rendering\Vulkan\Internal\VulkanSemaphore.cpp">
+      <Filter>Source Files\Graphics\Rendering\Vulkan\Internal</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Rendering\Vulkan\Internal\VulkanShaderModule.cpp">
+      <Filter>Source Files\Graphics\Rendering\Vulkan\Internal</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Rendering\Vulkan\Internal\VulkanSubPass.cpp">
+      <Filter>Source Files\Graphics\Rendering\Vulkan\Internal</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Rendering\Vulkan\Internal\VulkanSurface.cpp">
+      <Filter>Source Files\Graphics\Rendering\Vulkan\Internal</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Rendering\Vulkan\Internal\VulkanSwapChain.cpp">
+      <Filter>Source Files\Graphics\Rendering\Vulkan\Internal</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Rendering\Vulkan\VulkanRenderer.cpp">
+      <Filter>Source Files\Graphics\Rendering\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Rendering\Resources\IndexBuffer.cpp">
+      <Filter>Source Files\Graphics\Rendering\Resources</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Rendering\Resources\Shader.cpp">
+      <Filter>Source Files\Graphics\Rendering\Resources</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Camera\Camera.cpp">
+      <Filter>Source Files\Graphics\Camera</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Camera\FPSCamera.cpp">
+      <Filter>Source Files\Graphics\Camera</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\SceneGraph\CameraNode.cpp">
+      <Filter>Source Files\Graphics\SceneGraph</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Rendering\Resources\Material.cpp">
+      <Filter>Source Files\Graphics\Rendering\Resources</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Rendering\Resources\Texture.cpp">
+      <Filter>Source Files\Graphics\Rendering\Resources</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Rendering\Vulkan\Internal\VulkanSampler.cpp">
+      <Filter>Source Files\Graphics\Rendering\Vulkan\Internal</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\GeometricPrimitives\GeometricPrimitive.cpp">
+      <Filter>Source Files\Graphics\GeometricPrimitives</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Components\NodeComponent.cpp">
+      <Filter>Source Files\Graphics\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Components\MaterialComponent.cpp">
+      <Filter>Source Files\Graphics\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Rendering\RenderPasses\DefaultRenderPass.cpp">
+      <Filter>Source Files\Graphics\Rendering\RenderPasses</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Rendering\PipelineStates\AlphaState.cpp">
+      <Filter>Source Files\Graphics\Rendering\PipelineStates</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Rendering\PipelineStates\PipelineState.cpp">
+      <Filter>Source Files\Graphics\Rendering\PipelineStates</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Rendering\PipelineStates\DepthState.cpp">
+      <Filter>Source Files\Graphics\Rendering\PipelineStates</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Rendering\RenderPasses\RenderPass.cpp">
+      <Filter>Source Files\Graphics\Rendering\RenderPasses</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Rendering\Resources\UniformBuffer.cpp">
+      <Filter>Source Files\Graphics\Rendering\Resources</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Rendering\Vulkan\VulkanUtils.cpp">
+      <Filter>Source Files\Graphics\Rendering\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Rendering\Resources\Buffer.cpp">
+      <Filter>Source Files\Graphics\Rendering\Resources</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Rendering\Resources\Resource.cpp">
+      <Filter>Source Files\Graphics\Rendering\Resources</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Rendering\Vulkan\Resources\VulkanIndexBuffer.cpp">
+      <Filter>Source Files\Graphics\Rendering\Vulkan\Resources</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Rendering\Vulkan\Resources\VulkanMaterial.cpp">
+      <Filter>Source Files\Graphics\Rendering\Vulkan\Resources</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Rendering\Vulkan\Resources\VulkanShader.cpp">
+      <Filter>Source Files\Graphics\Rendering\Vulkan\Resources</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Rendering\Vulkan\Resources\VulkanTexture.cpp">
+      <Filter>Source Files\Graphics\Rendering\Vulkan\Resources</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Rendering\Vulkan\Resources\VulkanUniformBuffer.cpp">
+      <Filter>Source Files\Graphics\Rendering\Vulkan\Resources</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Rendering\Vulkan\Resources\VulkanVertexBuffer.cpp">
+      <Filter>Source Files\Graphics\Rendering\Vulkan\Resources</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Rendering\Vulkan\Resources\VulkanVertexFormat.cpp">
+      <Filter>Source Files\Graphics\Rendering\Vulkan\Resources</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Rendering\Vulkan\Resources\VulkanResource.cpp">
+      <Filter>Source Files\Graphics\Rendering\Vulkan\Resources</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Input\InputSystem.cpp">
+      <Filter>Source Files\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="src\System.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Rendering\Resources\RenderTarget.cpp">
+      <Filter>Source Files\Graphics\Rendering\Resources</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Rendering\Resources\RenderFrameBuffer.cpp">
+      <Filter>Source Files\Graphics\Rendering\Resources</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Rendering\Vulkan\Resources\VulkanRenderFrameBuffer.cpp">
+      <Filter>Source Files\Graphics\Rendering\Vulkan\Resources</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Rendering\Vulkan\Resources\VulkanRenderTarget.cpp">
+      <Filter>Source Files\Graphics\Rendering\Vulkan\Resources</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Rendering\Vulkan\Internal\VulkanQueryPool.cpp">
+      <Filter>Source Files\Graphics\Rendering\Vulkan\Internal</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

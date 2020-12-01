@@ -1,0 +1,24 @@
+#### Graphics Engine ####
+
+Graphics Engine is a small projected aimed for Vulkan learning purposes.
+
+Current status:
+- Vulkan backend is almost ready
+- support for resources like: buffers, textures, framebuffers, rendertarget, simple material, shaders
+- there is no scene culling yet, the the scene code is there (bare minimum)
+- no support for object transforms yet
+
+- triangle example application
+
+End goal:
+A small graphics engine that supports these features:
+- graphics API/backends: Vulkan, OpenGL, OpenGLES, Direct3D 11.
+- scene construction
+- scene based culling
+- decent material support
+- effects: simple lighting, shadows, fog, post-processing
+- UI support
+= simple physics support
+- own math library support (maybe)
+- have several test/example applications
+- platforms: Desktop, Mobile via Win32, WInRT, UWP, Linux, MacOS, Android

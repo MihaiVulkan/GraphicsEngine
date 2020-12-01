@@ -1,0 +1,236 @@
+TODO
+
+- add non-copy-non-move to all required classes
+
+- work on SceneGraph
+
+- work on RenderQueue
+
+- add spec info to wrappers
+
+- Rendering wrappers
+
+- Improve renderer code
+
+- add support for queries (query pool)
+
+- Resource Manager
+- Scene Management
+
+- Config/Settings wrapper
+
+
+/////////////////////////////////////
+Ideas on the GraphicsFramework:
+
+- Object ownership, memory management: good idea to create a ref counted interface used by all objects
+
+- Custom memory allocator/management?
+
+- Separate platforms: different config for each platforms
+
+- Heavily usage of inheritance
+
+- Logging must be good - cross-platforms
+
+- Resource access - cross platform: files, 3d objects, images, audio files
+
+- RAII, RTTI
+
+
+===========================================================================
+
+Config: Engine Config, Game/App Config
+
+
+
+=================================================================================
+
+Main Components:
+
+Renderers: Vulkan, OpenGL, Direct3D11
+Graphics Objects/Resources: Device, Surface, SwapChain, Context, Pipelines, CommandLists, Framebuffers, Buffers, Shaders, RenderTargets, Images, Views, Models, Meshes, Materials
+Scene: Camera, Renderable, Entity, Node, Movable
+Resources/Assets: shader code, images, models, audio 
+Logging
+Input: keyboard, mouse, gamepad
+Filesystem: text files, binary files
+OS/Platform specific: Device, Window, Events, Input
+
+Hierarchy:
+
+
+
+
+
+### GAME ENGINE ARCHITECTURE (RUNTIME) ###
+
+# LAYERS #
+GAME/APPLICATION SPECIFICS
+HIGH-LEVEL SCENE COMPONENTS
+HIGHER LEVEL SYSTEMS
+FOUNDATION SYSTEMS
+CORE SYSTEMS
+PLATFORM INDEPENDENCE LAYER
+3rd PARTY SDKs/LIBs
+OS
+DRIVERS
+HARDWARE
+
+
+-----------------------------------------------
+GAME/APPLICATION SPECIFICS
+-----------------------------------------------
+HIGH-LEVEL SCENE COMPONENTS -> water system, terrain system, foliage system, weather/sky system, car system, etc.
+-----------------------------------------------
+HIGHER LEVEL SYSTEMS -> SceneGraph/Culling, RenderGraph, SkeletalAnimation, Components, Behaviors, Visual Effects,
+ FrontEnd, Gameplay System, 
+
+SceneGraph/Culling -> Scene Graph & Nodes management, Culling, LOD System
+SceneGraph -> QuadTree, OctTree, BSP, kd-Tree
+
+Scene Node -> Camera, Geometry, Light, Group, Text, etc.
+Gemetry Node -> occluder, opaque, translucent, screen, shadow caster, etc.
+Camera -> FPS, Free, cinematic, etc.
+Light Node -> directional, ambiental, spot, etc.
+
+Culling -> Occlusion & PVS(Potentially visible set)
+
+LOD System -> DLOD, CLOD, Terrain systems, projected, radial grids, etc.
+
+
+RenderGraph -> pass, attachment, etc.
+
+Components -> Node, Movable, Rotation, SkinnedMesh, Audio, etc.
+(can be attached to Nodes?)
+
+Visual Effects -> light mapping, dynamic shadows, post processing, decals & particle systems, env mapping,
+HDR lighting, PRT lighiting, subsurfacescattering effects, etc.
+
+FrontEnd -> GUI, In-Game cinematics, Full Motion Video, In-Game Menus, etc. 
+
+Gameplay System -> High level Flow system, scripting system, world loading/streaming
+
+-----------------------------------------------
+FOUNDATION SYSTEMS -> Resources, Rendering, Collision&Physics, Animations, Audio, HID, Online Multiplier, 
+Profiling&Debuging, Event/Messaging system
+
+Resources -> Resource Manager, Game assets, etc.
+Game assets -> 3D Model, Texture, Shader, Material, Font, Skeleton, Colission, Physics Params, Game world/map, Media files,
+
+Rendering -> Low-Level Renderer, Materials&Shaders, Static&Dynamic Lighting management, Cameras, Text&Fonts, Primitive Submission, Viewport&Virtual scenes,
+Texture&Surface Mangement, Debug Drawing, Graphics Device Interface, etc. 
+
+Low-Level Renderer -> State management, RenderPass management, FBO, Render Queue
+State management -> render , depth, alpha, cull face
+RenderPass management -> standard, shadow, offscreen, deferred, composite, etc.
+
+Collision&Physics -> Forces&Constraints, Ray/Shape casting, Rigid bodies, Shapes/Collidables, Phantoms, Physics/Collision world, etc.
+Animations -> animations management
+Audio -> DSP/Effects, 3d audio model, Audio playback/management
+HID(Human Interface Devices) -> HUD system, input management: mouse, keyboard, joystick, touchdisplay, VR set, etc.
+Online Multiplier -> match-making& game amangement, object auth policy, game state repl.
+Profiling&Debuging -> In-Game debug menus or console, memory performance stats, recoding & playback for debug, etc. 
+-----------------------------------------------
+CORE SYSTEMS -> Module StartUp/Shutdown, Assertions, Memory Custom Allocators, Math lib, String utils/Hashed strings,
+Parsers, Profiling, Logging, Localization services, Movie Player, Engine Configs, Random Number Generators, Curves & Surfaces Lib,
+RTTI/Reflection & Serialization, Object Handles/Unique Ids, Async File I/O, Unit Testing, etc.
+-----------------------------------------------
+PLATFORM INDEPENDENCE LAYER -> Platform Detection, Primitive Data Types, Collections/Containers, File System wrappers,
+Networking libs/wrapper, Hi-Res Timer, Concurrency/Threading lib/wrapper, 2D/3D Graphics API wrappers, Collision/Physics wrappers, 
+Audio wrappers, Input wrappers, Types, etc.
+-----------------------------------------------
+3rd PARTY SDKs/LIBs -> 2D/3D API libs, 3D frameworks, 3D Model Import libs, 3D Math libs, GUI frameworks, Physics libs,
+ Animation libs, Audio libs, AI libs, C++ libs, Window/Input libs, Image libs, etc.
+
+2D/3D API libs -> OpenGL family, Vulkan, Direct2D/3D (DirectX) family, Metal
+
+OpenGL family -> OpenGL Desktop(PC), OpenGL ES series (mobile), WebGL (browser) - cross OS
+Direct2D/3D family -> Direct3D 9, Direct3D 11, Direct3D 12 (Windows OS only)
+Vulkan - both desktop and mobile (embedded) - cross OS
+Metal - Apple API/lib, both desktop and mobile(embedded) - cross MacOS and iOS
+
+3D Frameworks -> ANGLE, Qt, BGFX, OpenSceneGraph, etc.
+3D Model Import libs -> Assimp, other included in 3DsStudio Max, 3ds Maia, Blender, etc.
+3D Math libs -> GeometricTool(WildMagic math), MathLib3D, glm, GLmath, etc.
+GUI frameworks -> Qt, wxWidgets, Sciter, GTK+, gtkmm, CEGUI, Dear ImGui, Azul, AnTweakBar(old)
+Physics libs -> Havok, PhysX, ODE, etc.
+Animation libs -> Granny 3D, etc.
+Audio libs -> Superpowered Audio SDK, Aquilla, Aubio, OpenAL, etc.
+AI libs -> Kynapse, etc.
+C++ libs -> STL, Boost, Folly(Facebook), etc.
+Window/Input libs -> SDL, GLFW, SMFL, freeglut, etc.
+Image libs -> soil, devil, gli, etc.
+
+-----------------------------------------------
+OS -> Windows, Linux, MacOS, Mobile OS
+
+Windows -> Win32, UWP (Win10), WinRT (no longer used)
+Linux -> Ubuntu, Debian, Fedora, ArchLinux, Manjaro, etc. (too many :))
+MacOSX -> Catalina, Mojave, HighSierra, ELCapitan, etc.
+Mobile OS -> Android series, iOS series, other embedded OSs
+-----------------------------------------------
+DRIVERS -> Audio, Video, Input, System, etc.
+-----------------------------------------------
+HARDWARE -> PC, Consoles, Mobile, VR/AR, etc.
+
+PC -> Intel, AMD based
+Consoles -> PlayStation series, Xbox series, etc.
+Mobile -> Smartphones, Tablets, Smartwatches, PDAs, etc.
+VR/AR -> OculusRift, HTCVive, PlayStation VR, etc.
+
+Smartphones -> Google Android phones, Apple iOS phones, etc.
+Tablets -> Apple iPad series, Samsunt Galaxy Tab series, Microsoft Surface Pro series, etc.
+Smartwatches -> Apple watch series, Fitbit series, etc.
+
+*All devices can be categorized as: low-end, mid-end, high-end
+
+Notable Game engines: UnrealEngine, Unity, Godot, OGRE, Forge, Fillament, CryEngine, Anvil, etc.
+
+
+My engine to be based on the: Entity-Component System
+http://entity-systems.wikidot.com/
+
+
+# Useful resources:
+http://entity-systems.wikidot.com/
+
+https://docs.unrealengine.com/en-US/API/Runtime/Engine/index.html
+https://docs.unrealengine.com/en-US/Programming/Rendering/index.html
+https://docs.unrealengine.com/en-US/Programming/UnrealArchitecture/Objects/Optimizations/index.html
+
+
+https://github.com/Themaister/Granite/blob/master/renderer/
+
+https://github.com/DustinHLand/vkDOOM3/tree/master/neo/renderer/Vulkan
+https://github.com/lostrootpass/doom3/tree/master/neo/renderer
+
+
+
+https://github.com/khalladay/VkMaterialSystem/blob/material-instances/VkMaterialSystem/vkh.cpp
+
+https://doc.qt.io/qt-5/qtgui-hellovulkanwindow-example.html
+
+https://github.com/achlubek/venginenative/tree/master/VEngine
+
+https://matthewwellings.com/blog/the-new-vulkan-coordinate-system/
+
+https://github.com/playmer/YTE/tree/develop/Source/YTE/Graphics
+
+https://docs.microsoft.com/en-us/windows/win32/api/d3d11/nn-d3d11-id3d11device
+
+http://diligentgraphics.com/diligent-engine/architecture/
+https://github.com/DiligentGraphics/DiligentCore/blob/master/Common/interface/RefCountedObjectImpl.h
+https://github.com/DiligentGraphics/DiligentCore/blob/master/Common/interface/RefCntAutoPtr.h
+https://github.com/DiligentGraphics/DiligentCore/blob/master/Common/interface/LockHelper.h
+
+https://github.com/DiligentGraphics/DiligentCore/tree/master/Graphics/GraphicsEngine/interface
+
+https://ogrecave.github.io/ogre/api/latest/namespaces.html
+https://www.ogre3d.org/docs/manual18/manual_toc.html#SEC_Contents
+https://github.com/OGRECave/ogre
+
+https://github.com/godotengine/godot
+
+https://github.com/hhsaez/crimild
+https://github.com/hhsaez/crimild/blob/master/core/src/Simulation/Simulation.hpp
