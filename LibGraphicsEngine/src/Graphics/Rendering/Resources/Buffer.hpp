@@ -13,9 +13,18 @@ namespace GraphicsEngine
 			GE_RTTI(GraphicsEngine::Graphics::Buffer)
 
 		public:
+			enum class BufferUsage : uint8_t
+			{
+				GE_BU_STATIC = 0,
+				GE_BU_DYNAMIC,
+				GE_BU_COUNT
+			};
+
 			Buffer();
-			explicit Buffer(void* pData, uint32_t size);
+			explicit Buffer(BufferUsage usage, void* pData, uint32_t size);
 			virtual ~Buffer();
+
+			const Buffer::BufferUsage& GetBufferUsage() const;
 
 			void* GetData() const;
 			const uint32_t& GetSize() const;
@@ -26,7 +35,8 @@ namespace GraphicsEngine
 
 			void SetData(void* pData, uint32_t size);
 
-			void* mpData;
+			BufferUsage mUsage;
+			char_t* mpData; //better to have a buffer of known type, char_t size is always 1 byte!
 			uint32_t mSize;
 		};
 	}

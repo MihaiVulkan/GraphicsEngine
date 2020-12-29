@@ -1,6 +1,6 @@
 #include "VulkanUniformBuffer.hpp"
+#include "Graphics/Rendering/Vulkan/Common/VulkanCommon.hpp"
 #include "Graphics/Rendering/Vulkan/VulkanRenderer.hpp"
-#include "Graphics/Rendering/Vulkan/Internal/VulkanCommon.hpp"
 #include "Graphics/Rendering/Vulkan/Internal/VulkanDevice.hpp"
 #include "Graphics/Rendering/Vulkan/Internal/VulkanBuffer.hpp"
 #include "Graphics/Rendering/Vulkan/Internal/VulkanInitializers.hpp"
@@ -44,8 +44,13 @@ void GADRUniformBuffer::Create(Renderer* pRenderer)
 	assert(pDevice != nullptr);
 
 	// uniform buffer
-	mpVulkanBuffer = GE_ALLOC(VulkanBuffer)(pDevice, VkMemoryPropertyFlagBits::VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VkMemoryPropertyFlagBits::VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-		VkBufferUsageFlagBits::VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, static_cast<VkDeviceSize>(mpUniformBuffer->GetSize()));
+	mpVulkanBuffer = GE_ALLOC(VulkanBuffer)
+	(
+		pDevice,
+		VkMemoryPropertyFlagBits::VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VkMemoryPropertyFlagBits::VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+		VkBufferUsageFlagBits::VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+		static_cast<VkDeviceSize>(mpUniformBuffer->GetSize())
+	);
 	assert(mpVulkanBuffer != nullptr);
 
 	// Store information in the uniform's descriptor that is used by the descriptor set
@@ -79,15 +84,16 @@ void GADRUniformBuffer::UpdateData(UniformBuffer* pUniformBuffer)
 	mpVulkanBuffer->UnMap();
 }
 
-void GADRUniformBuffer::Bind() const
+void GADRUniformBuffer::OnBind()
 {
-	if (mpVulkanBuffer)
-	{
-		//TODO
-	}
+	UpdateData(mpUniformBuffer);
 }
 
-/// TODO
+void GADRUniformBuffer::OnUnBind()
+{
+
+}
+
 VulkanBuffer* GADRUniformBuffer::GetVKBuffer() const
 {
 	return mpVulkanBuffer;

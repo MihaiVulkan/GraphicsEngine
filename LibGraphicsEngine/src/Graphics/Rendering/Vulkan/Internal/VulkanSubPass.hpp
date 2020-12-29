@@ -1,28 +1,30 @@
-#ifndef GRAPHICS_RENDERING_VULKAN_SUBPASS_HPP
-#define GRAPHICS_RENDERING_VULKAN_SUBPASS_HPP
+#ifndef GRAPHICS_RENDERING_VULKAN_INTERNAL_VULKAN_SUB_PASS_HPP
+#define GRAPHICS_RENDERING_VULKAN_INTERNAL_VULKAN_SUB_PASS_HPP
 
-#include "Foundation/TypeDefs.hpp"
-#include "vulkan/vulkan.h"
+#include "Graphics/Rendering/Vulkan/Common/VulkanObject.hpp"
 #include <vector>
 
 namespace GraphicsEngine
 {
 	namespace Graphics
 	{
-		class VulkanSubPass
+		/*
+		*   *Wrapper for VkSubpassDescription + id *
+	 
+			A subpass represents a phase of rendering that reads and writes a subset of the attachments in a render pass. Rendering commands are recorded
+			into a particular subpass of a render pass instance.
+
+			A subpass description describes the subset of attachments that is involved in the execution of a subpass. Each subpass can read from some
+			attachments as input attachments, write to some as color attachments or depth/stencil attachments, perform shader resolve operations to
+			color_attachments or depth/stencil_attachments, and perform multisample resolve operations to resolve attachments. A subpass description
+			can also include a set of preserve attachments, which are attachments that are not read or written by the subpass but whose contents must
+			be preserved throughout the subpass.
+		*/
+		class VulkanSubPass : public VulkanObject
 		{
+			GE_RTTI(GraphicsEngine::Graphics::VulkanSubPass)
+
 		public:
-
-			/*
-				A subpass represents a phase of rendering that reads and writes a subset of the attachments in a render pass. Rendering commands are recorded
-				into a particular subpass of a render pass instance.
-
-				A subpass description describes the subset of attachments that is involved in the execution of a subpass. Each subpass can read from some 
-				attachments as input attachments, write to some as color attachments or depth/stencil attachments, perform shader resolve operations to 
-				color_attachments or depth/stencil_attachments, and perform multisample resolve operations to resolve attachments. A subpass description 
-				can also include a set of preserve attachments, which are attachments that are not read or written by the subpass but whose contents must
-				be preserved throughout the subpass.
-			*/
 			VulkanSubPass();
 			explicit VulkanSubPass(const std::vector<VkAttachmentReference>& colorReferences, const VkAttachmentReference& depthStencilReference,
 				const std::vector<VkAttachmentReference>& inputReferences, VkPipelineBindPoint pipelineBindPoint, uint32_t id);
@@ -39,4 +41,4 @@ namespace GraphicsEngine
 	}
 }
 
-#endif // GRAPHICS_RENDERING_VULKAN_SUBPASS_HPP
+#endif // GRAPHICS_RENDERING_VULKAN_INTERNAL_VULKAN_SUB_PASS_HPP

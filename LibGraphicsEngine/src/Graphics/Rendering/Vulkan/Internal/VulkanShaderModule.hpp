@@ -1,15 +1,14 @@
-#ifndef GRAPHICS_RENDERING_VULKAN_SHADERMODULE_HPP
-#define GRAPHICS_RENDERING_VULKAN_SHADERMODULE_HPP
+#ifndef GRAPHICS_RENDERING_VULKAN_INTERNAL_VULKAN_SHADER_MODULE_HPP
+#define GRAPHICS_RENDERING_VULKAN_INTERNAL_VULKAN_SHADER_MODULE_HPP
 
-#include "Foundation/TypeDefs.hpp"
-#include "vulkan/vulkan.h"
+#include "AppConfig.hpp"
+#include "Graphics/Rendering/Vulkan/Common/VulkanObject.hpp"
 #include <vector>
-
-#define USE_GLSLANG
+#include <string>
 
 #ifdef USE_GLSLANG
 #include "glslang/SPIRV/GlslangToSpv.h"
-#endif
+#endif // USE_GLSLANG
 
 
 namespace GraphicsEngine
@@ -25,31 +24,33 @@ namespace GraphicsEngine
 			an entry point as part of pipeline creation. The stages of a pipeline can use shaders that come from different modules. 
 			The shader code defining a shader module must be in the SPIR-V format, as described by the Vulkan Environment for SPIR-V appendix.
 		*/
-		class VulkanShaderModule
+		class VulkanShaderModule : public VulkanObject
 		{
+			GE_RTTI(GraphicsEngine::Graphics::VulkanShaderModule)
+
 		public:
 			VulkanShaderModule();
-			explicit VulkanShaderModule(VulkanDevice* pDevice, VkShaderStageFlagBits shaderType, const char_t* pPath);
+			explicit VulkanShaderModule(VulkanDevice* pDevice, VkShaderStageFlagBits shaderStage, const std::string& sourcePath);
 			virtual ~VulkanShaderModule();
 
 			const VkShaderModule& GetHandle() const;
-			VkShaderStageFlagBits GetShaderType() const;
+			VkShaderStageFlagBits GetShaderStage() const;
 
 		private:
-			void Create(const char_t* pPath);
+			void Create(const std::string& sourcePath);
 			void Destroy();
 
 #ifdef USE_GLSLANG
-			bool_t GLSLtoSPV(VkShaderStageFlagBits shaderType, const char_t* pShader, std::vector<uint32_t>& spirvVec);
+			bool_t GLSLtoSPV(const std::string& sourcePath, VkShaderStageFlagBits shaderStage, const std::string& shaderSourceCode, std::vector<uint32_t>& SPIRVVecOut);
 			void InitResources(TBuiltInResource& Resources);
-			EShLanguage FindLanguage(const VkShaderStageFlagBits shaderType);
-#endif 
+			EShLanguage FindLanguage(const VkShaderStageFlagBits shaderStage);
+#endif // USE_GLSLANG
 			VulkanDevice* mpDevice;
 
 			VkShaderModule mHandle;
-			VkShaderStageFlagBits mShaderType;
+			VkShaderStageFlagBits mShaderStage;
 		};
 	}
 }
 
-#endif // GRAPHICS_RENDERING_VULKAN_SHADERMODULE_HPP
+#endif // GRAPHICS_RENDERING_VULKAN_INTERNAL_VULKAN_SHADER_MODULE_HPP

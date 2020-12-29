@@ -1,5 +1,7 @@
 #include "VulkanImage.hpp"
 #include "VulkanDevice.hpp"
+#include "VulkanQueue.hpp"
+#include "VulkanCommandPool.hpp"
 #include "VulkanCommandBuffer.hpp"
 #include "VulkanPassThroughAllocator.hpp"
 #include "VulkanInitializers.hpp"
@@ -56,7 +58,7 @@ void VulkanImage::Create(const VkImageCreateInfo& imageCreateInfo, VkMemoryPrope
 	assert(mpDevice->GetMemoryTypeFromProperties(memReqs.memoryTypeBits, memoryPropertyFlags, typeIndex) == true);
 
 	// Alloc
-	mpDevice->GetAllocator()->Alloc(mAllocation, memoryPropertyFlags, typeIndex, memReqs.size);
+	mpDevice->GetAllocator()->Alloc(memoryPropertyFlags, typeIndex, memReqs.size, mAllocation);
 
 	VK_CHECK_RESULT(Bind(mAllocation.offset));
 
@@ -65,6 +67,8 @@ void VulkanImage::Create(const VkImageCreateInfo& imageCreateInfo, VkMemoryPrope
 
 void VulkanImage::Destroy()
 {
+	assert(mpDevice != nullptr);
+
 	mDefaultDescriptorInfo = {};
 
 	// Free
@@ -86,15 +90,19 @@ void VulkanImage::Destroy()
 
 VkResult VulkanImage::Bind(VkDeviceSize offset)
 {
+	assert(mpDevice != nullptr);
+
 	return vkBindImageMemory(mpDevice->GetDeviceHandle(), mHandle, mAllocation.handle, offset);
 }
 
 void VulkanImage::CopyTo(VulkanImage* pDestImage, VkImageLayout srcLayout, VkImageLayout destLayout, VulkanQueue* pQueue, VkImageCopy* pCopyRegion)
 {
+	assert(mpDevice != nullptr);
 	assert(pDestImage != nullptr);
 	assert(pQueue != nullptr);
 
-	VulkanCommandBuffer copyCommandBuffer(mpDevice, VkCommandBufferLevel::VK_COMMAND_BUFFER_LEVEL_PRIMARY, true);
+	VulkanCommandPool copyCommandPool(mpDevice, pQueue->GetFamilyIndex());
+	VulkanCommandBuffer copyCommandBuffer(mpDevice, copyCommandPool.GetHandle(), VkCommandBufferLevel::VK_COMMAND_BUFFER_LEVEL_PRIMARY, true);
 
 	VkImageCopy imageCopy{};
 	if (pCopyRegion == nullptr)
@@ -120,7 +128,9 @@ void VulkanImage::CopyTo(VulkanImage* pDestImage, VkImageLayout srcLayout, VkIma
 
 void VulkanImage::SetDecriptorInfo(VkSampler samplerHandle, VkImageView imageViewHandle, VkImageLayout imageLayout)
 {
-	mDefaultDescriptorInfo = VulkanInitializers::DescriptorImageInfo(samplerHandle, imageViewHandle, imageLayout);
+	mDefaultDescriptorInfo.sampler = samplerHandle;
+	mDefaultDescriptorInfo.imageView = imageViewHandle;
+	mDefaultDescriptorInfo.imageLayout = imageLayout;
 }
 
 const VkImage& VulkanImage::GetHandle() const
@@ -132,7 +142,6 @@ const VulkanImage::Data& VulkanImage::GetData() const
 {
 	return mImageData;
 }
-
 
 const VkDescriptorImageInfo& VulkanImage::GetDescriptorInfo() const
 {

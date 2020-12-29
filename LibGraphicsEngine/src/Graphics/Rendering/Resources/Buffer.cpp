@@ -8,12 +8,14 @@ using namespace GraphicsEngine::Graphics;
 
 
 Buffer::Buffer()
-	: mpData(nullptr)
+	: mUsage(BufferUsage::GE_BU_COUNT)
+	, mpData(nullptr)
 	, mSize(0)
 {}
 
-Buffer::Buffer(void* pData, uint32_t size)
-	: mpData(nullptr)
+Buffer::Buffer(BufferUsage usage, void* pData, uint32_t size)
+	: mUsage(usage)
+	, mpData(nullptr)
 	, mSize(size)
 {
 	Create(pData);
@@ -37,6 +39,12 @@ void Buffer::Destroy()
 		mpData = nullptr;
 	}
 	mSize = 0;
+	mUsage = BufferUsage::GE_BU_COUNT;
+}
+
+const Buffer::BufferUsage& Buffer::GetBufferUsage() const
+{
+	return mUsage;
 }
 
 void* Buffer::GetData() const
@@ -52,6 +60,7 @@ void Buffer::SetData(void* pData, uint32_t size)
 		mSize = size;
 
 		mpData = GE_ALLOC_ARRAY(char_t, mSize);
+		assert(mpData != nullptr);
 
 		::memcpy(mpData, pData, mSize);
 	}

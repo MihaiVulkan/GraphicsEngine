@@ -1,6 +1,6 @@
 #include "VulkanSwapChain.hpp"
 #include "VulkanDevice.hpp"
-#include "VulkanFrameBufferAttachment.hpp"
+#include "VulkanSwapChainBuffer.hpp"
 #include "VulkanInitializers.hpp"
 #include "VulkanHelpers.hpp"
 #include "Foundation/Platform/Platform.hpp"
@@ -13,13 +13,16 @@ using namespace GraphicsEngine::Graphics;
 VulkanSwapChain::VulkanSwapChain()
 	: mpDevice(nullptr)
 	, mHandle(VK_NULL_HANDLE)
-	, mSwapChainImageCount(0)
+	, mOldHandle(VK_NULL_HANDLE)
+	, mpDepthStencilBuffer(nullptr)
 {}
 
 VulkanSwapChain::VulkanSwapChain(VulkanDevice* pDevice)
 	: mpDevice(pDevice)
 	, mHandle(VK_NULL_HANDLE)
-	, mSwapChainImageCount(0)
+	, mOldHandle(VK_NULL_HANDLE)
+	, mpDepthStencilBuffer(nullptr)
+
 {
 	Create();
 }
@@ -31,9 +34,14 @@ VulkanSwapChain::~VulkanSwapChain()
 
 void VulkanSwapChain::Create()
 {
-	assert(mpDevice != nullptr);
+	CreateSwapChain();
 
-	VkSwapchainKHR oldSwapchainHandle = mHandle;
+	CreateSwapChainBuffers();
+}
+
+void VulkanSwapChain::CreateSwapChain()
+{
+	assert(mpDevice != nullptr);
 
 	auto& surfacePresentModes = mpDevice->GetSurfacePresentModes();
 
@@ -75,8 +83,6 @@ void VulkanSwapChain::Create()
 		//TODO
 		// If the surface size is defined, the swap chain size must match
 		swapchainExtent = surfaceCapabilities.currentExtent;
-		//	mWindowPtr->width = surfCaps.currentExtent.width;
-		//	mWindowPtr->height = surfCaps.currentExtent.height;
 	}
 
 	// Determine the number of images
@@ -117,11 +123,14 @@ void VulkanSwapChain::Create()
 		};
 	}
 
+	// cache the old handle
+	mOldHandle = mHandle;
+
 	VkSwapchainCreateInfoKHR swapchainCreateInfo =
 		VulkanInitializers::SwapchainCreateInfoKHR(mpDevice->GetSurfaceHandle(), desiredNumberOfSwapchainImages, mpDevice->GetSurfaceFormat().format, mpDevice->GetSurfaceFormat().colorSpace,
 			swapchainExtent, 1, VkImageUsageFlagBits::VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, VkSharingMode::VK_SHARING_MODE_EXCLUSIVE,
 			0, nullptr, (VkSurfaceTransformFlagBitsKHR)preTransform, compositeAlpha, swapchainPresentMode,
-			VK_TRUE, oldSwapchainHandle);
+			VK_TRUE, mOldHandle);
 
 	// Enable transfer source on swap chain images if supported
 	if (surfaceCapabilities.supportedUsageFlags & VkImageUsageFlagBits::VK_IMAGE_USAGE_TRANSFER_SRC_BIT)
@@ -143,46 +152,59 @@ void VulkanSwapChain::Create()
 		swapchainCreateInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
 	}
 
+	// create a new handle
 	VK_CHECK_RESULT(vkCreateSwapchainKHR(mpDevice->GetDeviceHandle(), &swapchainCreateInfo, nullptr, &mHandle));
+}
 
-	// If an existing swap chain is re-created, destroy the old swap chain
-	// This also cleans up all the presentable images
-	if (oldSwapchainHandle != VK_NULL_HANDLE)
+void VulkanSwapChain::CreateSwapChainBuffers()
+{
+	assert(mpDevice != nullptr);
+
+	////// COLOR IMAGE
+
+	// Get swap chain color image count
+	uint32_t imageCount = 0;
+	VK_CHECK_RESULT(vkGetSwapchainImagesKHR(mpDevice->GetDeviceHandle(), mHandle, &imageCount, nullptr));
+
+	// Get the swap chain color/presentable images
+	std::vector<VkImage> swapChainImages(imageCount);
+	VK_CHECK_RESULT(vkGetSwapchainImagesKHR(mpDevice->GetDeviceHandle(), mHandle, &imageCount, swapChainImages.data()));
+
+	mSwapChainColorBuffers.resize(imageCount);
+
+	for (uint32_t i = 0; i < mSwapChainColorBuffers.size(); ++i)
 	{
-		for (auto& buffer : mSwapChainBuffers)
-		{
-			GE_FREE(buffer);
-		}
-		vkDestroySwapchainKHR(mpDevice->GetDeviceHandle(), oldSwapchainHandle, nullptr);
+		mSwapChainColorBuffers[i] = GE_ALLOC(VulkanSwapChainBuffer)
+		(
+			mpDevice,
+			swapChainImages[i], mpDevice->GetSurfaceFormat().format,
+			VulkanSwapChainBuffer::BufferType::GE_BT_COLOR
+		);
+		assert(mSwapChainColorBuffers[i] != nullptr);
 	}
 
-	// Get swap chain image count
-	VK_CHECK_RESULT(vkGetSwapchainImagesKHR(mpDevice->GetDeviceHandle(), mHandle, &mSwapChainImageCount, nullptr));
+	//////// DEPTH IMAGE
+	// TODO - for depth stencil we use only 1 image
 
-	// Get the swap chain images
-	std::vector<VkImage> swapChainImages;
-	swapChainImages.resize(mSwapChainImageCount);
-	VK_CHECK_RESULT(vkGetSwapchainImagesKHR(mpDevice->GetDeviceHandle(), mHandle, &mSwapChainImageCount, swapChainImages.data()));
+	auto& surfaceCapabilities = mpDevice->GetSurfaceCapabilities();
 
-	mSwapChainBuffers.resize(mSwapChainImageCount);
-
-	for (uint32_t i = 0; i < mSwapChainBuffers.size(); ++i)
-	{
-		mSwapChainBuffers[i] = GE_ALLOC(VulkanFrameBufferAttachment)(mpDevice, swapChainImages[i], mpDevice->GetSurfaceFormat().format, VulkanFrameBufferAttachment::Type::COLOR);
-	}
+	mpDepthStencilBuffer = GE_ALLOC(VulkanSwapChainBuffer)
+	(
+		mpDevice,
+		mpDevice->GetDepthStencilFormat(),
+		VkImageUsageFlagBits::VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VkImageUsageFlagBits::VK_IMAGE_USAGE_TRANSFER_SRC_BIT,
+		surfaceCapabilities.currentExtent.width, surfaceCapabilities.currentExtent.height,
+		VulkanSwapChainBuffer::BufferType::GE_BT_DEPTH_STENCIL
+	);
+	assert(mpDepthStencilBuffer != nullptr);
 }
 
 void VulkanSwapChain::Destroy()
 {
-	for (auto& buffer : mSwapChainBuffers)
-	{
-		GE_FREE(buffer);
-	}
+	assert(mpDevice != nullptr);
 
-	if (mSwapChainImageCount > 0)
-	{
-		mSwapChainImageCount = 0;
-	}
+	DestroySwapChainBuffers();
+	DestroyOldSwapChain();
 
 	if (mHandle)
 	{
@@ -196,15 +218,48 @@ void VulkanSwapChain::Destroy()
 	}
 }
 
+void VulkanSwapChain::DestroyOldSwapChain()
+{
+	assert(mpDevice != nullptr);
+
+	// Destroy the old swap chain
+	// This also cleans up all the presentable images
+	if (mOldHandle)
+	{
+		vkDestroySwapchainKHR(mpDevice->GetDeviceHandle(), mOldHandle, nullptr);
+		mOldHandle = VK_NULL_HANDLE;
+	}
+}
+
+void VulkanSwapChain::DestroySwapChainBuffers()
+{
+	if (mSwapChainColorBuffers.empty() == false)
+	{
+		for (auto& image : mSwapChainColorBuffers)
+		{
+			GE_FREE(image);
+		}
+	}
+
+	GE_FREE(mpDepthStencilBuffer);
+}
+
 VkResult VulkanSwapChain::AcquireNextImage(uint32_t* pImageIndex, VkSemaphore presentCompleteSemaphoreHandle) const
 {
+	assert(mpDevice != nullptr);
+
 	return vkAcquireNextImageKHR(mpDevice->GetDeviceHandle(), mHandle, UINT64_MAX, presentCompleteSemaphoreHandle, VK_NULL_HANDLE, pImageIndex);
 }
 
 void VulkanSwapChain::Reset()
 {
+	assert(mpDevice != nullptr);
+
 	// on reset the window size is changed, so we must update surface capabilities which include surface extent
 	mpDevice->UpdateSurfaceCapabilities();
+
+	DestroySwapChainBuffers();
+	DestroyOldSwapChain();
 
 	Create();
 }
@@ -214,13 +269,17 @@ const VkSwapchainKHR& VulkanSwapChain::GetHandle() const
 	return mHandle;
 }
 
-uint32_t VulkanSwapChain::GetSwapChainImageCount() const
+const std::vector<VulkanSwapChainBuffer*>& VulkanSwapChain::GetSwapChainColorBuffers() const
 {
-	return mSwapChainImageCount;
+	return mSwapChainColorBuffers;
 }
 
-const std::vector<VulkanFrameBufferAttachment*>& VulkanSwapChain::GetSwapChainBuffers() const
+uint32_t VulkanSwapChain::GetSwapChainColorBufferCount() const
 {
-	return mSwapChainBuffers;
+	return static_cast<uint32_t>(mSwapChainColorBuffers.size());
 }
 
+VulkanSwapChainBuffer* VulkanSwapChain::GetSwapChainDepthStencilBuffer() const
+{
+	return mpDepthStencilBuffer;
+}

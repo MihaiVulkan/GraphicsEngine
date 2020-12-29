@@ -17,11 +17,6 @@ VulkanDescriptorSetLayout::VulkanDescriptorSetLayout(VulkanDevice* pDevice, cons
 	: mpDevice(pDevice)
 	, mHandle(VK_NULL_HANDLE)
 {
-	/*mBindings.resize(bindings.size());
-	for (size_t i = 0; i < mBindings.size(); ++i)
-	{
-		mBindings[i] = bindings[i];
-	}*/
 	mBindings = bindings;
 
 	VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo =
@@ -44,6 +39,8 @@ void VulkanDescriptorSetLayout::Create(const VkDescriptorSetLayoutCreateInfo& de
 
 void VulkanDescriptorSetLayout::Destroy()
 {
+	assert(mpDevice != nullptr);
+
 	mBindings.clear();
 
 	if (mHandle)

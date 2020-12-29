@@ -24,11 +24,14 @@ namespace GraphicsEngine
 			void DettachAllNodes();
 
 			Node* GetNodeAt(uint32_t index);
-			Node* GetNode(const std::string& name);
+			Node* GetNode(const std::string& nodeName);
 
 			virtual void Visit(std::function<void(Node*)> callback) override;
 
 		private:
+			void Create();
+			void Destroy();
+
 			std::vector<Node*> mChildren;
 		};
 	}

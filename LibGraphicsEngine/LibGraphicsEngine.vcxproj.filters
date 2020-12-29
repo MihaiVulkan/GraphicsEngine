@@ -67,6 +67,15 @@
     <Filter Include="Source Files\Input">
       <UniqueIdentifier>{84a57afc-d9ce-47bb-a8bf-82f1e2746f70}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Graphics\Rendering\Vulkan\Common">
+      <UniqueIdentifier>{3aeab332-e54f-4f08-82fa-28cd4a48cdc3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Graphics\ShaderTools">
+      <UniqueIdentifier>{8e522da8-08a5-438e-b75d-ecdb28ae47fd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Graphics\ShaderTools\GLSL">
+      <UniqueIdentifier>{0b7efec8-a0fd-496b-9e05-6f7e5ab1bb84}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="framework.h">
@@ -126,9 +135,6 @@
     <ClInclude Include="src\Foundation\RTTI.hpp">
       <Filter>Source Files\Foundation</Filter>
     </ClInclude>
-    <ClInclude Include="src\Foundation\Singleton.hpp">
-      <Filter>Source Files\Foundation</Filter>
-    </ClInclude>
     <ClInclude Include="src\Foundation\Timer.hpp">
       <Filter>Source Files\Foundation</Filter>
     </ClInclude>
@@ -168,9 +174,6 @@
     <ClInclude Include="src\Graphics\Rendering\Resources\VertexFormat.hpp">
       <Filter>Source Files\Graphics\Rendering\Resources</Filter>
     </ClInclude>
-    <ClInclude Include="src\Graphics\Rendering\Vulkan\Internal\__VulkanAllocation.hpp">
-      <Filter>Source Files\Graphics\Rendering\Vulkan\Internal</Filter>
-    </ClInclude>
     <ClInclude Include="src\Graphics\Rendering\Vulkan\Internal\VulkanAllocator.hpp">
       <Filter>Source Files\Graphics\Rendering\Vulkan\Internal</Filter>
     </ClInclude>
@@ -208,9 +211,6 @@
       <Filter>Source Files\Graphics\Rendering\Vulkan\Internal</Filter>
     </ClInclude>
     <ClInclude Include="src\Graphics\Rendering\Vulkan\Internal\VulkanFrameBuffer.hpp">
-      <Filter>Source Files\Graphics\Rendering\Vulkan\Internal</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Graphics\Rendering\Vulkan\Internal\VulkanFrameBufferAttachment.hpp">
       <Filter>Source Files\Graphics\Rendering\Vulkan\Internal</Filter>
     </ClInclude>
     <ClInclude Include="src\Graphics\Rendering\Vulkan\Internal\VulkanGraphicsPipeline.hpp">
@@ -318,26 +318,14 @@
     <ClInclude Include="src\Graphics\Rendering\RenderPasses\DefaultRenderPass.hpp">
       <Filter>Source Files\Graphics\Rendering\RenderPasses</Filter>
     </ClInclude>
-    <ClInclude Include="src\Graphics\Rendering\PipelineStates\AlphaState.hpp">
-      <Filter>Source Files\Graphics\Rendering\PipelineStates</Filter>
-    </ClInclude>
     <ClInclude Include="src\Graphics\Rendering\PipelineStates\PipelineState.hpp">
       <Filter>Source Files\Graphics\Rendering\PipelineStates</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Graphics\Rendering\PipelineStates\DepthState.hpp">
-      <Filter>Source Files\Graphics\Rendering\PipelineStates</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Graphics\Rendering\Vulkan\Internal\VulkanCommon.hpp">
-      <Filter>Source Files\Graphics\Rendering\Vulkan\Internal</Filter>
     </ClInclude>
     <ClInclude Include="src\Graphics\Rendering\RenderPasses\RenderPass.hpp">
       <Filter>Source Files\Graphics\Rendering\RenderPasses</Filter>
     </ClInclude>
     <ClInclude Include="src\Graphics\Rendering\Resources\UniformBuffer.hpp">
       <Filter>Source Files\Graphics\Rendering\Resources</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Graphics\Rendering\Vulkan\VulkanUtils.hpp">
-      <Filter>Source Files\Graphics\Rendering\Vulkan</Filter>
     </ClInclude>
     <ClInclude Include="src\Graphics\Rendering\Resources\Buffer.hpp">
       <Filter>Source Files\Graphics\Rendering\Resources</Filter>
@@ -390,12 +378,57 @@
     <ClInclude Include="src\Graphics\Rendering\Vulkan\Internal\VulkanQueryPool.hpp">
       <Filter>Source Files\Graphics\Rendering\Vulkan\Internal</Filter>
     </ClInclude>
+    <ClInclude Include="src\Foundation\DynamicSingleton.hpp">
+      <Filter>Source Files\Foundation</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Foundation\FixedSingleton.hpp">
+      <Filter>Source Files\Foundation</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\Rendering\PipelineStates\DepthStencilState.hpp">
+      <Filter>Source Files\Graphics\Rendering\PipelineStates</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\Rendering\PipelineStates\ColorBlendState.hpp">
+      <Filter>Source Files\Graphics\Rendering\PipelineStates</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\Rendering\PipelineStates\CullFaceState.hpp">
+      <Filter>Source Files\Graphics\Rendering\PipelineStates</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\Rendering\PipelineStates\DynamicState.hpp">
+      <Filter>Source Files\Graphics\Rendering\PipelineStates</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Foundation\Object.hpp">
+      <Filter>Source Files\Foundation</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\Rendering\Vulkan\Common\VulkanCommon.hpp">
+      <Filter>Source Files\Graphics\Rendering\Vulkan\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\Rendering\Vulkan\Common\VulkanObject.hpp">
+      <Filter>Source Files\Graphics\Rendering\Vulkan\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\Rendering\Vulkan\Common\VulkanUtils.hpp">
+      <Filter>Source Files\Graphics\Rendering\Vulkan\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\Components\VisualComponent.hpp">
+      <Filter>Source Files\Graphics\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\Rendering\Vulkan\Internal\VulkanSwapChainBuffer.hpp">
+      <Filter>Source Files\Graphics\Rendering\Vulkan\Internal</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\ShaderTools\GLSL\GLSLShaderParser.hpp">
+      <Filter>Source Files\Graphics\ShaderTools\GLSL</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GraphicsEngineInternal.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\ShaderTools\GLSL\GLSLShaderTypes.hpp">
+      <Filter>Source Files\Graphics\ShaderTools\GLSL</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Foundation\Variant.hpp">
+      <Filter>Source Files\Foundation</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Engine.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\GraphicsEngine.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Foundation\Platform\Win32\Win32App.cpp">
@@ -458,9 +491,6 @@
     <ClCompile Include="src\Graphics\Rendering\Resources\VertexFormat.cpp">
       <Filter>Source Files\Graphics\Rendering\Resources</Filter>
     </ClCompile>
-    <ClCompile Include="src\Graphics\Rendering\Vulkan\Internal\__VulkanAllocation.cpp">
-      <Filter>Source Files\Graphics\Rendering\Vulkan\Internal</Filter>
-    </ClCompile>
     <ClCompile Include="src\Graphics\Rendering\Vulkan\Internal\VulkanAllocator.cpp">
       <Filter>Source Files\Graphics\Rendering\Vulkan\Internal</Filter>
     </ClCompile>
@@ -498,9 +528,6 @@
       <Filter>Source Files\Graphics\Rendering\Vulkan\Internal</Filter>
     </ClCompile>
     <ClCompile Include="src\Graphics\Rendering\Vulkan\Internal\VulkanFrameBuffer.cpp">
-      <Filter>Source Files\Graphics\Rendering\Vulkan\Internal</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Graphics\Rendering\Vulkan\Internal\VulkanFrameBufferAttachment.cpp">
       <Filter>Source Files\Graphics\Rendering\Vulkan\Internal</Filter>
     </ClCompile>
     <ClCompile Include="src\Graphics\Rendering\Vulkan\Internal\VulkanGraphicsPipeline.cpp">
@@ -602,13 +629,7 @@
     <ClCompile Include="src\Graphics\Rendering\RenderPasses\DefaultRenderPass.cpp">
       <Filter>Source Files\Graphics\Rendering\RenderPasses</Filter>
     </ClCompile>
-    <ClCompile Include="src\Graphics\Rendering\PipelineStates\AlphaState.cpp">
-      <Filter>Source Files\Graphics\Rendering\PipelineStates</Filter>
-    </ClCompile>
     <ClCompile Include="src\Graphics\Rendering\PipelineStates\PipelineState.cpp">
-      <Filter>Source Files\Graphics\Rendering\PipelineStates</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Graphics\Rendering\PipelineStates\DepthState.cpp">
       <Filter>Source Files\Graphics\Rendering\PipelineStates</Filter>
     </ClCompile>
     <ClCompile Include="src\Graphics\Rendering\RenderPasses\RenderPass.cpp">
@@ -616,9 +637,6 @@
     </ClCompile>
     <ClCompile Include="src\Graphics\Rendering\Resources\UniformBuffer.cpp">
       <Filter>Source Files\Graphics\Rendering\Resources</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Graphics\Rendering\Vulkan\VulkanUtils.cpp">
-      <Filter>Source Files\Graphics\Rendering\Vulkan</Filter>
     </ClCompile>
     <ClCompile Include="src\Graphics\Rendering\Resources\Buffer.cpp">
       <Filter>Source Files\Graphics\Rendering\Resources</Filter>
@@ -670,6 +688,42 @@
     </ClCompile>
     <ClCompile Include="src\Graphics\Rendering\Vulkan\Internal\VulkanQueryPool.cpp">
       <Filter>Source Files\Graphics\Rendering\Vulkan\Internal</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Rendering\PipelineStates\DepthStencilState.cpp">
+      <Filter>Source Files\Graphics\Rendering\PipelineStates</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Rendering\PipelineStates\ColorBlendState.cpp">
+      <Filter>Source Files\Graphics\Rendering\PipelineStates</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Rendering\PipelineStates\CullFaceState.cpp">
+      <Filter>Source Files\Graphics\Rendering\PipelineStates</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Rendering\PipelineStates\DynamicState.cpp">
+      <Filter>Source Files\Graphics\Rendering\PipelineStates</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Foundation\Object.cpp">
+      <Filter>Source Files\Foundation</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Rendering\Vulkan\Common\VulkanObject.cpp">
+      <Filter>Source Files\Graphics\Rendering\Vulkan\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Rendering\Vulkan\Common\VulkanUtils.cpp">
+      <Filter>Source Files\Graphics\Rendering\Vulkan\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Components\VisualComponent.cpp">
+      <Filter>Source Files\Graphics\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Rendering\Vulkan\Internal\VulkanSwapChainBuffer.cpp">
+      <Filter>Source Files\Graphics\Rendering\Vulkan\Internal</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\ShaderTools\GLSL\GLSLShaderParser.cpp">
+      <Filter>Source Files\Graphics\ShaderTools\GLSL</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GraphicsEngineInternal.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Foundation\Variant.cpp">
+      <Filter>Source Files\Foundation</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

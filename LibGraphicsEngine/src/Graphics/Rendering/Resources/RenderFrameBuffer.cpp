@@ -8,14 +8,14 @@ RenderFrameBuffer::RenderFrameBuffer()
 	: mWidth(0)
 	, mHeight(0)
 	, mClearColor{}
-	, mClearFlag(ClearFlag::CF_COUNT)
+	, mClearFlag(ClearFlag::GE_CF_COUNT)
 {}
 
 RenderFrameBuffer::RenderFrameBuffer(uint32_t width, uint32_t height)
 	: mWidth(width)
 	, mHeight(height)
 	, mClearColor{}
-	, mClearFlag(ClearFlag::CF_COUNT)
+	, mClearFlag(ClearFlag::GE_CF_COUNT)
 {
 	Create();
 }
@@ -37,7 +37,7 @@ void RenderFrameBuffer::Destroy()
 	mWidth = 0;
 	mHeight = 0;
 	mClearColor = {};
-	mClearFlag = ClearFlag::CF_COUNT;
+	mClearFlag = ClearFlag::GE_CF_COUNT;
 
 	mRenderTargetMap.clear();
 }

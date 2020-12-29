@@ -1,8 +1,7 @@
-#ifndef GRAPHICS_RENDERING_VULKAN_SURFACE_HPP
-#define GRAPHICS_RENDERING_VULKAN_SURFACE_HPP
+#ifndef GRAPHICS_RENDERING_VULKAN_INTERNAL_VULKAN_SURFACE_HPP
+#define GRAPHICS_RENDERING_VULKAN_INTERNAL_VULKAN_SURFACE_HPP
 
-#include "Foundation/TypeDefs.hpp"
-#include "vulkan/vulkan.h"
+#include "Graphics/Rendering/Vulkan/Common/VulkanObject.hpp"
 #include <vector>
 
 namespace GraphicsEngine
@@ -20,8 +19,10 @@ namespace GraphicsEngine
 
 		*/
 
-		class VulkanSurface
+		class VulkanSurface : public VulkanObject
 		{
+			GE_RTTI(GraphicsEngine::Graphics::VulkanSurface)
+
 		public:
 			VulkanSurface();
 			explicit VulkanSurface(VulkanDevice* pDevice);
@@ -40,4 +41,4 @@ namespace GraphicsEngine
 	}
 }
 
-#endif // GRAPHICS_RENDERING_VULKAN_SURFACE_HPP
+#endif // GRAPHICS_RENDERING_VULKAN_INTERNAL_VULKAN_SURFACE_HPP

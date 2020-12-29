@@ -1,5 +1,5 @@
-#ifndef GRAPHICS_RENDERING_VULKAN_RESOURCES_TEXTURE_HPP
-#define GRAPHICS_RENDERING_VULKAN_RESOURCES_TEXTURE_HPP
+#ifndef GRAPHICS_RENDERING_VULKAN_RESOURCES_VULKAN_TEXTURE_HPP
+#define GRAPHICS_RENDERING_VULKAN_RESOURCES_VULKAN_TEXTURE_HPP
 
 #include "VulkanResource.hpp"
 #include "Graphics/Rendering/Resources/Texture.hpp"
@@ -29,7 +29,7 @@ namespace GraphicsEngine
 			void Create(Renderer* pRenderer);
 			void Destroy();
 
-			VkImageType TypeToVulkanType(const Texture::Type& type) const;
+			VkImageType TypeToVulkanType(const Texture::TextureType& type) const;
 			VkFormat FormatToVulkanFormat(const Texture::Format& format) const;
 			VkSamplerAddressMode WrapModeToVulkanWrapMode(const Texture::WrapMode& wrapMode) const;
 			VkFilter FilterModeToVulkanFilterMode(const Texture::FilterMode& filterMode) const;
@@ -43,4 +43,4 @@ namespace GraphicsEngine
 	}
 }
 
-#endif // GRAPHICS_RENDERING_VULKAN_RESOURCES_TEXTURE_HPP
+#endif // GRAPHICS_RENDERING_VULKAN_RESOURCES_VULKAN_TEXTURE_HPP

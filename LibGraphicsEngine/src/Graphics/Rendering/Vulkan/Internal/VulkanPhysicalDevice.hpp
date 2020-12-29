@@ -1,10 +1,11 @@
-#ifndef GRAPHICS_RENDERING_VULKAN_PHYSICAL_DEVICE_HPP
-#define GRAPHICS_RENDERING_VULKAN_PHYSICAL_DEVICE_HPP
+#ifndef GRAPHICS_RENDERING_VULKAN_INTERNAL_VULKAN_PHYSICAL_DEVICE_HPP
+#define GRAPHICS_RENDERING_VULKAN_INTERNAL_VULKAN_PHYSICAL_DEVICE_HPP
 
-#include "Foundation/TypeDefs.hpp"
-#include "vulkan/vulkan.h"
+#include "Graphics/Rendering/Vulkan/Common/VulkanObject.hpp"
 #include <vector>
 #include <string>
+
+#define DEPTH_STENCIL_FORMAT_COUNT 5
 
 namespace GraphicsEngine
 {
@@ -44,8 +45,10 @@ namespace GraphicsEngine
 			created from a subset of the physical devices in a device group by passing the physical devices through VkDeviceGroupDeviceCreateInfo.
 			For two physical devices to be in the same device group, they must support identical extensions, features, and properties.
 		*/
-		class VulkanPhysicalDevice
+		class VulkanPhysicalDevice : public VulkanObject
 		{
+			GE_RTTI(GraphicsEngine::Graphics::VulkanPhysicalDevice)
+
 		public:
 			VulkanPhysicalDevice();
 			explicit VulkanPhysicalDevice(VulkanDevice* pDevice, VkPhysicalDeviceType type = VkPhysicalDeviceType::VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU);
@@ -54,7 +57,7 @@ namespace GraphicsEngine
 			bool_t GetMemoryType(uint32_t typeBits, VkMemoryPropertyFlags requirementsMask, uint32_t& typeIndex);
 
 			void SelectSurfaceFormat(VkSurfaceFormatKHR& outSurfaceFormat);
-			VkFormat SelectDepthFormat();
+			VkFormat SelectDepthStencilFormat();
 
 			// on surface extent change - window resize
 			void UpdateSurfaceCapabilities();
@@ -80,7 +83,7 @@ namespace GraphicsEngine
 			void SelectPhysicalDevice();
 			void Init();
 			void Terminate();  
-			VkFormat SelectSupportedFormat(const std::vector<VkFormat>& formats, VkImageTiling tiling, VkFormatFeatureFlags features);
+			VkFormat SelectSupportedFormat(const std::array<VkFormat, DEPTH_STENCIL_FORMAT_COUNT>& formats, VkImageTiling tiling, VkFormatFeatureFlags features);
 
 			VulkanDevice* mpDevice;
 
@@ -111,4 +114,4 @@ namespace GraphicsEngine
 	}
 }
 
-#endif // GRAPHICS_RENDERING_VULKAN_PHYSICAL_DEVICE_HPP
+#endif // GRAPHICS_RENDERING_VULKAN_INTERNAL_VULKAN_PHYSICAL_DEVICE_HPP

@@ -14,7 +14,7 @@ namespace GraphicsEngine
 		explicit ConsoleApplication(const std::string& name);
 		virtual ~ConsoleApplication();
 
-		virtual void Init(const std::string& name, uint32_t width, uint32_t height) override;
+		virtual void Init(const std::string& name, uint32_t width = 0, uint32_t height = 0) override;
 		virtual void Terminate() override;
 
 		virtual void Run() override;

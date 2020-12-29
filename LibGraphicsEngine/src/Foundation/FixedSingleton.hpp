@@ -1,5 +1,5 @@
-#ifndef FOUNDATION_SINGLETON_HPP
-#define FOUNDATION_SINGLETON_HPP
+#ifndef FOUNDATION_FIXED_SINGLETON_HPP
+#define FOUNDATION_FIXED_SINGLETON_HPP
 
 #include "MemoryManagement/MemoryOperations.hpp"
 
@@ -8,34 +8,26 @@
 
 namespace GraphicsEngine
 {
-	/* Singleton life time exquals the application lifetime
+	/* Singleton life time equals the application lifetime
 	   At application shutdown the resources will be freed by the OS 
+
+	   Stack memory used to store the owned object.
 	*/
 	template<class T>
-	class Singleton
+	class FixedSingleton
 	{
 	public:
-		static T* GetInstance()
+		static T GetInstance()
 		{
 			// the static instance is created only once
-			static T* mInstance = nullptr;
-
-			if (mInstance == nullptr)
-			{
-				mInstance = GE_ALLOC(T);
-			}
+			static T mInstance;
 
 			return mInstance;
 		}
 
-		/*static void Terminate()
-		{
-			GE_FREE(mInstance);
-		}*/
-
 	protected:
-		Singleton();
-		virtual ~Singleton();
+		FixedSingleton();
+		virtual ~FixedSingleton();
 
 	};
 
@@ -43,10 +35,10 @@ namespace GraphicsEngine
 	//////////////// IMPLEMENTATION ////////////
 
 	template<class T>
-	Singleton<T>::Singleton() = default;
+	FixedSingleton<T>::FixedSingleton() = default;
 
 	template<class T>
-	Singleton<T>::~Singleton() = default;
+	FixedSingleton<T>::~FixedSingleton() = default;
 
 }
 

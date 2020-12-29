@@ -1,8 +1,7 @@
-#ifndef GRAPHICS_RENDERING_VULKAN_SEMAPHORE_HPP
-#define GRAPHICS_RENDERING_VULKAN_SEMAPHORE_HPP
+#ifndef GRAPHICS_RENDERING_VULKAN_INTERNAL_VULKAN_SEMAPHORE_HPP
+#define GRAPHICS_RENDERING_VULKAN_INTERNAL_VULKAN_SEMAPHORE_HPP
 
-#include "Foundation/TypeDefs.hpp"
-#include "vulkan/vulkan.h"
+#include "Graphics/Rendering/Vulkan/Common/VulkanObject.hpp"
 
 namespace GraphicsEngine
 {
@@ -32,8 +31,10 @@ namespace GraphicsEngine
 			provided below. These mechanisms indirectly enable applications to share semaphore state between two or more semaphores and 
 			other synchronization primitives across process and API boundaries.
 		*/
-		class VulkanSemaphore
+		class VulkanSemaphore : public VulkanObject
 		{
+			GE_RTTI(GraphicsEngine::Graphics::VulkanSemaphore)
+
 		public:
 			VulkanSemaphore();
 			explicit VulkanSemaphore(VulkanDevice* pDevice, VkSemaphoreCreateFlags flags = 0);
@@ -52,4 +53,4 @@ namespace GraphicsEngine
 	}
 }
 
-#endif // GRAPHICS_RENDERING_VULKAN_SEMAPHORE_HPP
+#endif // GRAPHICS_RENDERING_VULKAN_INTERNAL_VULKAN_SEMAPHORE_HPP

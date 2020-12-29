@@ -200,8 +200,8 @@ void VulkanInstance::Create(const char_t* pTitle)
 	}
 
 	VkApplicationInfo applicationInfo = VulkanInitializers::ApplicationInfo(pTitle, 1, pTitle, 1, vkTargettedInstanceVersion);
-
 	VkInstanceCreateInfo instanceCreateInfo = VulkanInitializers::InstanceCreateInfo(&applicationInfo);
+
 	if (neededInstanceLayers.size() > 0)
 	{
 		instanceCreateInfo.enabledLayerCount = static_cast<uint32_t>(neededInstanceLayers.size());

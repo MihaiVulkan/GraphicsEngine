@@ -188,6 +188,8 @@ namespace GraphicsEngine
 		{
 			size_t size = ::strlen(pStr);
 			char_t* pDupStr = GE_ALLOC_ARRAY(char_t, size + 1);
+			assert(pDupStr != nullptr);
+
 			::strcpy_s(pDupStr, size + 1, pStr);
 			pDupStr[size] = '\0';
 
@@ -426,7 +428,9 @@ namespace GraphicsEngine
 		}
 
 		void SetCursorMode_Platform(GE_Window* window, int32_t mode)
-		{}
+		{
+			//TODO
+		}
 
 		void ShowCursor_Platform()
 		{
@@ -771,7 +775,7 @@ namespace GraphicsEngine
 			PollEvents_Platform(pWindow);
 		}
 
-		void WaitEventsTimeout_Platform(GE_Window* pWindow, bfloat64_t timeout)
+		void WaitEventsTimeout_Platform(GE_Window* pWindow, float64_t timeout)
 		{
 			assert(pWindow != nullptr);
 
@@ -940,7 +944,7 @@ namespace GraphicsEngine
 
 			case WM_MOUSEWHEEL:
 			{
-				InputMouseScroll(pWindow, 0.0, static_cast<SHORT>(HIWORD(wParam)) / static_cast<bfloat64_t>(WHEEL_DELTA));
+				InputMouseScroll(pWindow, 0.0, static_cast<SHORT>(HIWORD(wParam)) / static_cast<float64_t>(WHEEL_DELTA));
 
 				break;
 			}
@@ -949,7 +953,7 @@ namespace GraphicsEngine
 			{
 				// This message is only sent on Windows Vista and later
 				// NOTE: The X-axis is inverted for consistency with macOS and X11
-				InputMouseScroll(pWindow, -(static_cast<SHORT>(HIWORD(wParam)) / static_cast<bfloat64_t>(WHEEL_DELTA)), 0.0);
+				InputMouseScroll(pWindow, -(static_cast<SHORT>(HIWORD(wParam)) / static_cast<float64_t>(WHEEL_DELTA)), 0.0);
 
 				break;
 			}

@@ -1,8 +1,7 @@
-#ifndef GRAPHICS_RENDERING_VULKAN_BUFFER_HPP
-#define GRAPHICS_RENDERING_VULKAN_BUFFER_HPP
+#ifndef GRAPHICS_RENDERING_VULKAN_INTERNAL_VULKAN_BUFFER_HPP
+#define GRAPHICS_RENDERING_VULKAN_INTERNAL_VULKAN_BUFFER_HPP
 
-#include "Foundation/TypeDefs.hpp"
-#include "vulkan/vulkan.h"
+#include "Graphics/Rendering/Vulkan/Common/VulkanObject.hpp"
 #include "VulkanAllocator.hpp"
 
 namespace GraphicsEngine
@@ -28,15 +27,17 @@ namespace GraphicsEngine
 			Buffers represent linear arrays of data which are used for various purposes by binding them to a graphics or compute pipeline
 			via descriptor sets or via certain commands, or by directly specifying them as parameters to certain commands.
 		*/
-		class VulkanBuffer
+		class VulkanBuffer : public VulkanObject
 		{
+			GE_RTTI(GraphicsEngine::Graphics::VulkanBuffer)
+
 		public:
 			// BufferType is denoted by VkBufferUsageFlags	
 
 			// NOTE! For now we suppose we work only on hardware that supports COHERENT memory via the VK_MEMORY_PROPERTY_HOST_COHERENT_BIT flag
 			VulkanBuffer();
 			explicit VulkanBuffer(VulkanDevice* pDevice, VkMemoryPropertyFlags memoryPropertyFlags, VkBufferUsageFlags usageFlags, VkDeviceSize size, void* pData = nullptr,
-							VkSharingMode sharingMode = VK_SHARING_MODE_EXCLUSIVE, uint32_t queueFamilyIndexCount = 1, const uint32_t * pQueueFamilyIndices = nullptr,
+							VkSharingMode sharingMode = VkSharingMode::VK_SHARING_MODE_EXCLUSIVE, uint32_t queueFamilyIndexCount = 1, const uint32_t * pQueueFamilyIndices = nullptr,
 							VkBufferCreateFlags flags = 0);
 			virtual ~VulkanBuffer();
 
@@ -71,4 +72,4 @@ namespace GraphicsEngine
 	}
 }
 
-#endif // GRAPHICS_RENDERING_VULKAN_BUFFER_HPP
+#endif // GRAPHICS_RENDERING_VULKAN_INTERNAL_VULKAN_BUFFER_HPP

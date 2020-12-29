@@ -1,8 +1,7 @@
-#ifndef GRAPHICS_RENDERING_VULKAN_GRAPHICS_PIPELINE_HPP
-#define GRAPHICS_RENDERING_VULKAN_GRAPHICS_PIPELINE_HPP
+#ifndef GRAPHICS_RENDERING_VULKAN_INTERNAL_VULKAN_GRAPHICS_PIPELINE_HPP
+#define GRAPHICS_RENDERING_VULKAN_INTERNAL_VULKAN_GRAPHICS_PIPELINE_HPP
 
-#include "Foundation/TypeDefs.hpp"
-#include "vulkan/vulkan.h"
+#include "Graphics/Rendering/Vulkan/Common/VulkanObject.hpp"
 #include <vector>
 
 namespace GraphicsEngine
@@ -27,8 +26,10 @@ namespace GraphicsEngine
 			commonality. The goal of derivative pipelines is that they be cheaper to create using the parent as a starting point, and that 
 			it be more efficient (on either host or device) to switch/bind between children of the same parent.
 		*/
-		class VulkanGraphicsPipeline
+		class VulkanGraphicsPipeline : public VulkanObject
 		{
+			GE_RTTI(GraphicsEngine::Graphics::VulkanGraphicsPipeline)
+
 		public:
 			VulkanGraphicsPipeline();
 			explicit VulkanGraphicsPipeline(VulkanDevice* pDevice, VulkanPipelineCache* pCache,
@@ -64,4 +65,4 @@ namespace GraphicsEngine
 	}
 }
 
-#endif // GRAPHICS_RENDERING_VULKAN_GRAPHICS_PIPELINE_HPP
+#endif // GRAPHICS_RENDERING_VULKAN_INTERNAL_VULKAN_GRAPHICS_PIPELINE_HPP

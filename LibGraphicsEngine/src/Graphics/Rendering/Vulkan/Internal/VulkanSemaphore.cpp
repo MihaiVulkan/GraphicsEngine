@@ -35,6 +35,8 @@ void VulkanSemaphore::Create(VkSemaphoreCreateFlags flags)
 
 void VulkanSemaphore::Destroy()
 {
+	assert(mpDevice != nullptr);
+
 	if (mHandle)
 	{
 		vkDestroySemaphore(mpDevice->GetDeviceHandle(), mHandle, nullptr);

@@ -48,7 +48,7 @@ namespace GraphicsEngine
 		/////////////// EVENTS API /////////////////
 		void PollEvents_Platform(GE_Window* pWindow);
 		void WaitEvents_Platform(GE_Window* pWindow);
-		void WaitEventsTimeout_Platform(GE_Window* pWindow, bfloat64_t timeout);
+		void WaitEventsTimeout_Platform(GE_Window* pWindow, float64_t timeout);
 
 
 		///////////// NON PLATFORM API ////////////////
@@ -64,7 +64,7 @@ namespace GraphicsEngine
 
 		void InputKey(GE_Window* pWindow, int32_t key, int32_t scancode, int32_t action, int32_t mods);
 		void InputMouseButton(GE_Window* pWindow, int32_t button, int32_t action, int32_t mods);
-		void InputMouseScroll(GE_Window* pWindow, bfloat64_t xOffset, bfloat64_t yOffset);
+		void InputMouseScroll(GE_Window* pWindow, float64_t xOffset, float64_t yOffset);
 		void InputMouseMove(GE_Window* pWindow, int32_t xPos, int32_t yPos);
 		void InputMouseEnterWindow(GE_Window* pWindow, bool_t isEntered);
 

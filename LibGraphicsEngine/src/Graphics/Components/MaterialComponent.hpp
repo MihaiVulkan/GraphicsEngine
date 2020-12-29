@@ -9,24 +9,27 @@ namespace GraphicsEngine
 	{
 		class Material;
 
+		/* MaterialComponent used for the nodes who want to have materials */
 		class MaterialComponent : public NodeComponent
 		{
 			GE_RTTI(GraphicsEngine::Graphics::MaterialComponent)
 
 		public:
 			MaterialComponent();
+			explicit MaterialComponent(const std::string& name);
 			virtual ~MaterialComponent();
 
 			virtual void Start() override;
-			virtual void Update(bfloat32_t deltaTime) override;
-
-			const char_t* GetName() const override;
+			virtual void Update(float32_t deltaTime) override;
 
 			Material* GetMaterial() const;
 			void SetMaterial(Material* pMaterial);
 
 
 		private:
+			void Create();
+			void Destroy();
+
 			Material* mpMaterial;
 		};
 	}

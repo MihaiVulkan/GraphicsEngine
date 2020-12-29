@@ -1,5 +1,13 @@
 TODO
 
+NOTE! Regarding the Vulkan backedn we have:
+- command pools and command buffers
+- descritpor pools and descriptor sets
+- query pools and queries
+Maybe add some kind of managers to construct commands, descriptors and queries on demand from those pools
+
+- add ref_counted/ref_pointers to manage the memory of resources
+
 - add non-copy-non-move to all required classes
 
 - work on SceneGraph
@@ -8,14 +16,9 @@ TODO
 
 - add spec info to wrappers
 
-- Rendering wrappers
-
 - Improve renderer code
 
-- add support for queries (query pool)
-
 - Resource Manager
-- Scene Management
 
 - Config/Settings wrapper
 

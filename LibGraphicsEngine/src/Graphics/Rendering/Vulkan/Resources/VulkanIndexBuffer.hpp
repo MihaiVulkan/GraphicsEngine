@@ -1,5 +1,5 @@
-#ifndef GRAPHICS_RENDERING_VULKAN_RESOURCES_INDEX_BUFFER_HPP
-#define GRAPHICS_RENDERING_VULKAN_RESOURCES_INDEX_BUFFER_HPP
+#ifndef GRAPHICS_RENDERING_VULKAN_RESOURCES_VULKAN_INDEX_BUFFER_HPP
+#define GRAPHICS_RENDERING_VULKAN_RESOURCES_VULKAN_INDEX_BUFFER_HPP
 
 #include "VulkanResource.hpp"
 #include "Graphics/Rendering/Resources/IndexBuffer.hpp"
@@ -23,7 +23,7 @@ namespace GraphicsEngine
 
 			//void Bind();
 
-			const IndexBuffer::Usage& GetUsage() const;
+			const Buffer::BufferUsage& GetBufferUsage() const;
 			const IndexBuffer::IndexType& GetIndexType() const;
 
 			VulkanBuffer* GetVkBuffer() const;
@@ -40,4 +40,4 @@ namespace GraphicsEngine
 	}
 }
 
-#endif // GRAPHICS_RENDERING_VULKAN_RESOURCES_INDEX_BUFFER_HPP
+#endif // GRAPHICS_RENDERING_VULKAN_RESOURCES_VULKAN_INDEX_BUFFER_HPP

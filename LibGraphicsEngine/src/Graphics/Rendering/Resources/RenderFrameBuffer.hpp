@@ -17,15 +17,15 @@ namespace GraphicsEngine
 
 		public:
 
-			typedef std::unordered_map<std::string, RenderTarget*, std::hash<std::string>> RenderTargetMap;
+			typedef std::unordered_map<std::string, RenderTarget*> RenderTargetMap;
 
 			enum class ClearFlag : uint8_t
 			{
-				CF_NONE = 0,
-				CF_COLOR,
-				CF_DEPTH,
-				CF_COLOD_DEPTH,
-				CF_COUNT
+				GE_CF_NONE = 0,
+				GE_CF_COLOR,
+				GE_CF_DEPTH,
+				GE_CF_COLOD_DEPTH,
+				GE_CF_COUNT
 			};
 
 			RenderFrameBuffer();

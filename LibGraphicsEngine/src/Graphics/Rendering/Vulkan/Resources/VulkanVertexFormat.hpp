@@ -1,9 +1,9 @@
-#ifndef GRAPHICS_RENDERING_VULKAN_RESOURCES_VERTEX_FORMAT_HPP
-#define GRAPHICS_RENDERING_VULKAN_RESOURCES_VERTEX_FORMAT_HPP
+#ifndef GRAPHICS_RENDERING_VULKAN_RESOURCES_VULKAN_VERTEX_FORMAT_HPP
+#define GRAPHICS_RENDERING_VULKAN_RESOURCES_VULKAN_VERTEX_FORMAT_HPP
 
 #include "VulkanResource.hpp"
 #include "Graphics/Rendering/Resources/VertexFormat.hpp"
-#include <vector>
+#include <unordered_map>
 
 namespace GraphicsEngine
 {
@@ -17,14 +17,13 @@ namespace GraphicsEngine
 			GE_RTTI(GraphicsEngine::Graphics::GADRVertexFormat)
 
 		public:
+			typedef std::unordered_map<VertexFormat::VertexAttribute, VkVertexInputAttributeDescription> InputAttributeMap;
+
 			GADRVertexFormat();
 			explicit GADRVertexFormat(Renderer* pRenderer, VertexFormat* pVertexFormat);
 			virtual ~GADRVertexFormat();
 
-			//const VertexFormat& GetFormat() const;
-			const std::vector<VkVertexInputAttributeDescription>& GetVkInputAttributes() const;
-
-			static VkFormat VertexFormatToVulkanVertexFormat(const VertexFormat::Attribute& att);
+			const GADRVertexFormat::InputAttributeMap& GetVkInputAttributes() const;
 
 		private:
 			void Create(Renderer* pRenderer);
@@ -33,9 +32,9 @@ namespace GraphicsEngine
 
 			VertexFormat* mpVertexFormat;
 
-			std::vector<VkVertexInputAttributeDescription> mInputAttributes;
+			InputAttributeMap mInputAttributeMap;
 		};
 	}
 }
 
-#endif // GRAPHICS_RENDERING_VULKAN_RESOURCES_VERTEX_FORMAT_HPP
+#endif // GRAPHICS_RENDERING_VULKAN_RESOURCES_VULKAN_VERTEX_FORMAT_HPP

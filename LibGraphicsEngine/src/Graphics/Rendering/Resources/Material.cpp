@@ -1,20 +1,17 @@
 #include "Material.hpp"
-#include "Graphics/Rendering/Resources/Shader.hpp"
+//#include "Graphics/Rendering/Resources/Shader.hpp"
 #include "Graphics/Rendering/Resources/Texture.hpp"
-#include "Graphics/Rendering/Resources/UniformBuffer.hpp"
 
 using namespace GraphicsEngine;
 using namespace GraphicsEngine::Graphics;
 
 Material::Material()
-	: mpUniformBuffer(nullptr)
-	, mProperties{}
+	: mProperties{}
 {}
 
-Material::Material(const Material::MaterialProperties& properties, const std::vector<Shader*>& shaders)
-	: mpUniformBuffer(nullptr)
-	, mProperties(properties)
-	, mShaders(shaders)
+Material::Material(const Material::MaterialProperties& properties)
+	: mProperties(properties)
+	//, mShaders(shaders)
 {
 	Create();
 }
@@ -31,32 +28,20 @@ void Material::Create()
 
 void Material::Destroy()
 {
-	mShaders.clear();
+	//mShaders.clear();
 }
 
-void Material::SetShaders(const std::vector<Shader*>& shaders)
-{
-	mShaders.clear();
-
-	mShaders = shaders;
-}
-
-const std::vector<Shader*>& Material::GetShaders() const
-{
-	return mShaders;
-}
-
-void Material::SetUniformBuffer(UniformBuffer* pUniformBuffer)
-{
-	assert(pUniformBuffer != nullptr);
-
-	mpUniformBuffer = pUniformBuffer;
-}
-
-UniformBuffer* Material::GetUniformBuffer() const
-{
-	return mpUniformBuffer;
-}
+//void Material::SetShaders(const std::vector<Shader*>& shaders)
+//{
+//	mShaders.clear();
+//
+//	mShaders = shaders;
+//}
+//
+//const std::vector<Shader*>& Material::GetShaders() const
+//{
+//	return mShaders;
+//}
 
 const Material::MaterialProperties& Material::GetMaterialProperties() const
 {

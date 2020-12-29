@@ -1,42 +1,44 @@
-#ifndef GRAPHICS_RENDERING_VULKAN_RENDERPASS_ATTACHMENT_HPP
-#define GRAPHICS_RENDERING_VULKAN_RENDERPASS_ATTACHMENT_HPP
+#ifndef GRAPHICS_RENDERING_VULKAN_INTERNAL_VULKAN_RENDER_PASS_ATTACHMENT_HPP
+#define GRAPHICS_RENDERING_VULKAN_INTERNAL_VULKAN_RENDER_PASS_ATTACHMENT_HPP
 
-#include "Foundation/TypeDefs.hpp"
-#include "vulkan/vulkan.h"
+#include "Graphics/Rendering/Vulkan/Common/VulkanObject.hpp"
 
 namespace GraphicsEngine
 {
 	namespace Graphics
 	{
 		/*
-			Wrapper for the VkAttachmentDescription + id
+			*Wrapper for the VkAttachmentDescription + AttachmentType*
+			
+			Just encapsulates all the vulkan render pass attachment data
 		*/
-		class VulkanRenderPassAttachment
+		class VulkanRenderPassAttachment : public VulkanObject
 		{
+			GE_RTTI(GraphicsEngine::Graphics::VulkanRenderPassAttachment)
+
 		public:
-			enum Type
+			enum class AttachmentType : uint8_t
 			{
-				COLOR = 0,
-				DEPTH_STENCIL,
-				COUNT
+				GE_AT_COLOR = 0,
+				GE_AT_DEPTH_STENCIL,
+				GE_AT_COUNT
 			};
 
 			VulkanRenderPassAttachment();
-			explicit VulkanRenderPassAttachment( VkFormat format, VkSampleCountFlagBits samples, VkAttachmentLoadOp loadOp, VkAttachmentStoreOp storeOp,
+			explicit VulkanRenderPassAttachment(VkFormat format, VkSampleCountFlagBits samples, VkAttachmentLoadOp loadOp, VkAttachmentStoreOp storeOp,
 												VkAttachmentLoadOp stencilLoadOp, VkAttachmentStoreOp stencilStoreOp, VkImageLayout initialLayout, 
-												VkImageLayout finalLayout, Type type);
+												VkImageLayout finalLayout, AttachmentType type);
 
 			virtual ~VulkanRenderPassAttachment();
 
-
 			const VkAttachmentDescription& GetAttachmentDescription() const;;
-			const VulkanRenderPassAttachment::Type& GetType() const;
+			const VulkanRenderPassAttachment::AttachmentType& GetAttachmentType() const;
 
 		private:
 			VkAttachmentDescription mAttachmentDescription;
-			Type mType;
+			AttachmentType mAttachmentType;
 		};
 	}
 }
 
-#endif // GRAPHICS_RENDERING_VULKAN_RENDERPASS_ATTACHMENT_HPP
+#endif // GRAPHICS_RENDERING_VULKAN_INTERNAL_VULKAN_RENDER_PASS_ATTACHMENT_HPP

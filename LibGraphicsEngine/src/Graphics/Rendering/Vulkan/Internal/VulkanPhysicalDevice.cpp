@@ -2,10 +2,12 @@
 #include "VulkanDevice.hpp"
 #include "VulkanHelpers.hpp"
 #include "VulkanInitializers.hpp"
+#include <array>
 #include <cassert>
 
 using namespace GraphicsEngine;
 using namespace GraphicsEngine::Graphics;
+
 
 VulkanPhysicalDevice::VulkanPhysicalDevice()
 	: mpDevice(nullptr)
@@ -256,11 +258,11 @@ void VulkanPhysicalDevice::SelectSurfaceFormat(VkSurfaceFormatKHR& outSurfaceFor
 	}
 }
 
-VkFormat VulkanPhysicalDevice::SelectDepthFormat()
+VkFormat VulkanPhysicalDevice::SelectDepthStencilFormat()
 {
 	// Since all depth formats may be optional, we need to find a suitable depth format to use
 	// Start with the highest precision packed format
-	std::vector<VkFormat> depthFormats =
+	std::array<VkFormat, DEPTH_STENCIL_FORMAT_COUNT> depthStencilFormats =
 	{
 		VkFormat::VK_FORMAT_D32_SFLOAT_S8_UINT,
 		VkFormat::VK_FORMAT_D32_SFLOAT,
@@ -269,10 +271,10 @@ VkFormat VulkanPhysicalDevice::SelectDepthFormat()
 		VkFormat::VK_FORMAT_D16_UNORM
 	};
 
-	return SelectSupportedFormat(depthFormats, VkImageTiling::VK_IMAGE_TILING_OPTIMAL, VkFormatFeatureFlagBits::VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
+	return SelectSupportedFormat(depthStencilFormats, VkImageTiling::VK_IMAGE_TILING_OPTIMAL, VkFormatFeatureFlagBits::VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
 }
 
-VkFormat VulkanPhysicalDevice::SelectSupportedFormat(const std::vector<VkFormat>& formats, VkImageTiling tiling, VkFormatFeatureFlags features)
+VkFormat VulkanPhysicalDevice::SelectSupportedFormat(const std::array<VkFormat, DEPTH_STENCIL_FORMAT_COUNT>& formats, VkImageTiling tiling, VkFormatFeatureFlags features)
 {
 	for (auto& format : formats)
 	{
@@ -307,6 +309,8 @@ void VulkanPhysicalDevice::Terminate()
 
 void VulkanPhysicalDevice::UpdateSurfaceCapabilities()
 {
+	assert(mpDevice != nullptr);
+
 	VK_CHECK_RESULT(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(mHandle, mpDevice->GetSurfaceHandle(), &mSurfaceCapabilities));
 }
 

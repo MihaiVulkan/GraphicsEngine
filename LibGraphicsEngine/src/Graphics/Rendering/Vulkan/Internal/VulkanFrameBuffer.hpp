@@ -1,8 +1,7 @@
-#ifndef GRAPHICS_RENDERING_VULKAN_FRAMEBUFFER_HPP
-#define GRAPHICS_RENDERING_VULKAN_FRAMEBUFFER_HPP
+#ifndef GRAPHICS_RENDERING_VULKAN_INTERNAL_VULKAN_FRAMEBUFFER_HPP
+#define GRAPHICS_RENDERING_VULKAN_INTERNAL_VULKAN_FRAMEBUFFER_HPP
 
-#include "Foundation/TypeDefs.hpp"
-#include "vulkan/vulkan.h"
+#include "Graphics/Rendering/Vulkan/Common/VulkanObject.hpp"
 #include <vector>
 
 namespace GraphicsEngine
@@ -11,13 +10,14 @@ namespace GraphicsEngine
 	{
 		class VulkanDevice;
 		class VulkanRenderPass;
-		class VulkanFrameBufferAttachment;
 
 		/*
 			*Wrapper for VkFramebuffer object*
 
 			Render passes operate in conjunction with framebuffers. Framebuffers represent a collection of specific memory attachments 
 			that a render pass instance uses.
+
+			A framebuffer holds the image views for the attachments the render pass uses.
 
 			Framebuffers and graphics pipelines are created based on a specific render pass object. They must only be used with that
 			render pass object, or one compatible with it.
@@ -26,24 +26,26 @@ namespace GraphicsEngine
 
 
 		*/
-		class VulkanFrameBuffer
+		class VulkanFrameBuffer : public VulkanObject
 		{
+			GE_RTTI(GraphicsEngine::Graphics::VulkanDescriptorSet)
+
 		public:
 			VulkanFrameBuffer();
-			explicit VulkanFrameBuffer(VulkanDevice* pDevice, VulkanRenderPass* pRenderPass, const std::vector<VulkanFrameBufferAttachment*>& attachments, uint32_t width, uint32_t height);
+			explicit VulkanFrameBuffer(VulkanDevice* pDevice, VulkanRenderPass* pRenderPass, const std::vector<VkImageView>& attachments, uint32_t width, uint32_t height);
 			virtual ~VulkanFrameBuffer();
 
 			const VkFramebuffer& GetHandle() const;
 
 		private:
-			void Create(const std::vector<VulkanFrameBufferAttachment*>& attachments, uint32_t width, uint32_t height);
+			void Create(const std::vector<VkImageView>& attachments, uint32_t width, uint32_t height);
 			void Destroy();
 
 			VulkanDevice* mpDevice;
 			VulkanRenderPass* mpRenderPass;
-			VkFramebuffer mFrameBufferHandle;
+			VkFramebuffer mHandle;
 		};
 	}
 }
 
-#endif // GRAPHICS_RENDERING_VULKAN_FRAMEBUFFER_HPP
+#endif // GRAPHICS_RENDERING_VULKAN_INTERNAL_VULKAN_FRAMEBUFFER_HPP

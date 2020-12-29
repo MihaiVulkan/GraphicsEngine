@@ -1,9 +1,8 @@
-#ifndef GRAPHICS_RENDERING_VULKAN_LOGICAL_DEVICE_HPP
-#define GRAPHICS_RENDERING_VULKAN_LOGICAL_DEVICE_HPP
+#ifndef GRAPHICS_RENDERING_VULKAN_INTERNAL_VULKAN_LOGICAL_DEVICE_HPP
+#define GRAPHICS_RENDERING_VULKAN_INTERNAL_VULKAN_LOGICAL_DEVICE_HPP
 
-#include "Foundation/TypeDefs.hpp"
-#include "vulkan/vulkan.h"
-#include <vector>
+#include "Graphics/Rendering/Vulkan/Common/VulkanObject.hpp"
+#include <unordered_map>
 
 namespace GraphicsEngine
 {
@@ -36,8 +35,10 @@ namespace GraphicsEngine
 
 			Operations on logical device: wait for work to finish
 		*/
-		class VulkanLogicalDevice
+		class VulkanLogicalDevice : public VulkanObject
 		{
+			GE_RTTI(GraphicsEngine::Graphics::VulkanLogicalDevice)
+
 		public:
 			typedef struct
 			{
@@ -74,7 +75,8 @@ namespace GraphicsEngine
 
 			// Queues
 			// TODO - maybe use a std::unordered_map for faster lookup
-			std::vector<VulkanQueue*> mQueues;
+			//std::vector<VulkanQueue*> mQueues;
+			std::unordered_map<VkQueueFlagBits, VulkanQueue*> mQueueMap;
 
 			// Queue family indices
 			QueueFamilyIndices mQueueFamilyIndices;
@@ -86,4 +88,4 @@ namespace GraphicsEngine
 	}
 }
 
-#endif // GRAPHICS_RENDERING_VULKAN_LOGICAL_DEVICE_HPP
+#endif // GRAPHICS_RENDERING_VULKAN_INTERNAL_VULKAN_LOGICAL_DEVICE_HPP

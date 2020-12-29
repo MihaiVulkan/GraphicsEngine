@@ -1,8 +1,7 @@
-#ifndef GRAPHICS_RENDERING_VULKAN_DESCRIPTOR_SET_HPP
-#define GRAPHICS_RENDERING_VULKAN_DESCRIPTOR_SET_HPP
+#ifndef GRAPHICS_RENDERING_VULKAN_INTERNAL_VULKAN_DESCRIPTOR_SET_HPP
+#define GRAPHICS_RENDERING_VULKAN_INTERNAL_VULKAN_DESCRIPTOR_SET_HPP
 
-#include "Foundation/TypeDefs.hpp"
-#include "vulkan/vulkan.h"
+#include "Graphics/Rendering/Vulkan/Common/VulkanObject.hpp"
 #include <vector>
 
 namespace GraphicsEngine
@@ -32,8 +31,10 @@ namespace GraphicsEngine
 			is used both for determining the resources that need to be associated with the descriptor set, and determining the interface 
 			between shader stages and shader resources.
 		*/
-		class VulkanDescriptorSet
+		class VulkanDescriptorSet : public VulkanObject
 		{
+			GE_RTTI(GraphicsEngine::Graphics::VulkanDescriptorSet)
+
 		public:
 			VulkanDescriptorSet();
 			explicit VulkanDescriptorSet(VulkanDevice* pDevice, VulkanDescriptorPool* pDescriptorPool, const std::vector<VulkanDescriptorSetLayout*>& layouts);
@@ -57,4 +58,4 @@ namespace GraphicsEngine
 	}
 }
 
-#endif // GRAPHICS_RENDERING_VULKAN_DESCRIPTOR_SET_HPP
+#endif // GRAPHICS_RENDERING_VULKAN_INTERNAL_VULKAN_DESCRIPTOR_SET_HPP

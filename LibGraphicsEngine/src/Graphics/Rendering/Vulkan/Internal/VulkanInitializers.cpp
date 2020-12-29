@@ -46,13 +46,13 @@ namespace GraphicsEngine
 				return debugMarkerObjectTagInfo;
 			}
 
-			VkDebugMarkerMarkerInfoEXT DebugMarkerMarkerInfo(const char_t* pMarkerName, bfloat32_t color[4])
+			VkDebugMarkerMarkerInfoEXT DebugMarkerMarkerInfo(const char_t* pMarkerName, float32_t color[4])
 			{
 				VkDebugMarkerMarkerInfoEXT debugMarkerMarkerInfo {};
 				debugMarkerMarkerInfo.sType = VkStructureType::VK_STRUCTURE_TYPE_DEBUG_MARKER_MARKER_INFO_EXT;
 				debugMarkerMarkerInfo.pNext = nullptr;
 				debugMarkerMarkerInfo.pMarkerName = pMarkerName;
-				::memcpy(debugMarkerMarkerInfo.color, &color[0], sizeof(bfloat32_t) * 4);
+				::memcpy(debugMarkerMarkerInfo.color, &color[0], sizeof(float32_t) * 4);
 
 				return debugMarkerMarkerInfo;
 			}
@@ -157,7 +157,7 @@ namespace GraphicsEngine
 			}
 
 			// Queue
-			VkDeviceQueueCreateInfo DeviceQueueCreateInfo(uint32_t queueFamilyIndex, uint32_t queueCount, const bfloat32_t* pQueuePriorities, VkDeviceQueueCreateFlags flags)
+			VkDeviceQueueCreateInfo DeviceQueueCreateInfo(uint32_t queueFamilyIndex, uint32_t queueCount, const float32_t* pQueuePriorities, VkDeviceQueueCreateFlags flags)
 			{
 				VkDeviceQueueCreateInfo deviceQueueCreateInfo {};
 				deviceQueueCreateInfo.sType = VkStructureType::VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
@@ -243,7 +243,7 @@ namespace GraphicsEngine
 				return bufferCreateInfo;
 			}
 
-			VkBufferCopy BufferCopy(VkDeviceSize srcOffset, VkDeviceSize dstOffset, VkDeviceSize size)
+			/*VkBufferCopy BufferCopy(VkDeviceSize srcOffset, VkDeviceSize dstOffset, VkDeviceSize size)
 			{
 				VkBufferCopy bufferCopy {};
 				bufferCopy.srcOffset = srcOffset;
@@ -251,7 +251,7 @@ namespace GraphicsEngine
 				bufferCopy.size = size;
 
 				return bufferCopy;
-			}
+			}*/
 
 			// BufferView
 			VkBufferViewCreateInfo BufferViewCreateInfo(VkBuffer buffer, VkFormat format, VkDeviceSize offset, VkDeviceSize  range, VkBufferViewCreateFlags flags)
@@ -270,8 +270,8 @@ namespace GraphicsEngine
 
 			// Sampler
 			VkSamplerCreateInfo SamplerCreateInfo(VkFilter magFilter, VkFilter  minFilter, VkSamplerMipmapMode mipmapMode, VkSamplerAddressMode addressModeU,
-													VkSamplerAddressMode addressModeV, VkSamplerAddressMode addressModeW, bfloat32_t mipLodBias, VkBool32 anisotropyEnable,
-													bfloat32_t maxAnisotropy, VkBool32 compareEnable, VkCompareOp compareOp, bfloat32_t minLod, bfloat32_t maxLod, VkBorderColor borderColor,
+													VkSamplerAddressMode addressModeV, VkSamplerAddressMode addressModeW, float32_t mipLodBias, VkBool32 anisotropyEnable,
+													float32_t maxAnisotropy, VkBool32 compareEnable, VkCompareOp compareOp, float32_t minLod, float32_t maxLod, VkBorderColor borderColor,
 													VkBool32 unnormalizedCoordinates, VkSamplerCreateFlags flags)
 			{
 				VkSamplerCreateInfo samplerCreateInfo {};
@@ -323,7 +323,7 @@ namespace GraphicsEngine
 				return imageCreateInfo;
 			}
 
-			VkImageCopy ImageCopy(const VkImageSubresourceLayers& srcSubresource, const VkOffset3D& srcOffset, const VkImageSubresourceLayers& dstSubresource, 
+			/*VkImageCopy ImageCopy(const VkImageSubresourceLayers& srcSubresource, const VkOffset3D& srcOffset, const VkImageSubresourceLayers& dstSubresource, 
 									const VkOffset3D& dstOffset, const VkExtent3D& extent)
 			{
 				VkImageCopy imageCopy {};
@@ -418,7 +418,7 @@ namespace GraphicsEngine
 				imageResolve.extent = extent;
 
 				return imageResolve;
-			}
+			}*/
 
 			// ImageView
 			VkImageViewCreateInfo ImageViewCreateInfo(VkImage image, VkImageViewType viewType, VkFormat format, const VkComponentMapping& components, const VkImageSubresourceRange& subresourceRange,
@@ -450,70 +450,70 @@ namespace GraphicsEngine
 				return shaderModuleCreateInfo;
 			}
 
-			// Attachment
-			VkAttachmentDescription AttachmentDescription(VkFormat format, VkSampleCountFlagBits samples, VkAttachmentLoadOp loadOp, VkAttachmentStoreOp storeOp,
-															VkAttachmentLoadOp stencilLoadOp, VkAttachmentStoreOp stencilStoreOp, VkImageLayout initialLayout,
-															VkImageLayout finalLayout, VkAttachmentDescriptionFlags flags)
-			{
-				VkAttachmentDescription attachmentDescription {};
-				attachmentDescription.flags = flags;
-				attachmentDescription.format = format;
-				attachmentDescription.samples = samples;
-				attachmentDescription.loadOp = loadOp;
-				attachmentDescription.storeOp = storeOp;
-				attachmentDescription.stencilLoadOp = stencilLoadOp;
-				attachmentDescription.stencilStoreOp = stencilStoreOp;
-				attachmentDescription.initialLayout = initialLayout;
-				attachmentDescription.finalLayout = finalLayout;
+			//// Attachment
+			//VkAttachmentDescription AttachmentDescription(VkFormat format, VkSampleCountFlagBits samples, VkAttachmentLoadOp loadOp, VkAttachmentStoreOp storeOp,
+			//												VkAttachmentLoadOp stencilLoadOp, VkAttachmentStoreOp stencilStoreOp, VkImageLayout initialLayout,
+			//												VkImageLayout finalLayout, VkAttachmentDescriptionFlags flags)
+			//{
+			//	VkAttachmentDescription attachmentDescription {};
+			//	attachmentDescription.flags = flags;
+			//	attachmentDescription.format = format;
+			//	attachmentDescription.samples = samples;
+			//	attachmentDescription.loadOp = loadOp;
+			//	attachmentDescription.storeOp = storeOp;
+			//	attachmentDescription.stencilLoadOp = stencilLoadOp;
+			//	attachmentDescription.stencilStoreOp = stencilStoreOp;
+			//	attachmentDescription.initialLayout = initialLayout;
+			//	attachmentDescription.finalLayout = finalLayout;
 
-				return attachmentDescription;
-			}
+			//	return attachmentDescription;
+			//}
 
-			VkAttachmentReference AttachmentReference(uint32_t attachment, VkImageLayout layout)
-			{
-				VkAttachmentReference attachmentReference {};
-				attachmentReference.attachment = attachment;
-				attachmentReference.layout = layout;
+			//VkAttachmentReference AttachmentReference(uint32_t attachment, VkImageLayout layout)
+			//{
+			//	VkAttachmentReference attachmentReference {};
+			//	attachmentReference.attachment = attachment;
+			//	attachmentReference.layout = layout;
 
-				return attachmentReference;
-			}
+			//	return attachmentReference;
+			//}
 
-			// Subpass
-			VkSubpassDescription SubpassDescription(VkPipelineBindPoint pipelineBindPoint, uint32_t colorAttachmentCount, const VkAttachmentReference* pColorAttachments,
-													const VkAttachmentReference* pDepthStencilAttachment, uint32_t inputAttachmentCount, const VkAttachmentReference* pInputAttachments,
-													const VkAttachmentReference* pResolveAttachments, uint32_t preserveAttachmentCount, const uint32_t* pPreserveAttachments,
-													VkSubpassDescriptionFlags flags)
-			{
-				VkSubpassDescription subpassDescription {};
-				subpassDescription.flags = flags;
-				subpassDescription.pipelineBindPoint = pipelineBindPoint;
-				subpassDescription.inputAttachmentCount = inputAttachmentCount;
-				subpassDescription.pInputAttachments = pInputAttachments;
-				subpassDescription.colorAttachmentCount = colorAttachmentCount;
-				subpassDescription.pColorAttachments = pColorAttachments;
-				subpassDescription.pResolveAttachments = pResolveAttachments;
-				subpassDescription.pDepthStencilAttachment = pDepthStencilAttachment;
-				subpassDescription.preserveAttachmentCount = preserveAttachmentCount;
-				subpassDescription.pPreserveAttachments = pPreserveAttachments;
+			//// Subpass
+			//VkSubpassDescription SubpassDescription(VkPipelineBindPoint pipelineBindPoint, uint32_t colorAttachmentCount, const VkAttachmentReference* pColorAttachments,
+			//										const VkAttachmentReference* pDepthStencilAttachment, uint32_t inputAttachmentCount, const VkAttachmentReference* pInputAttachments,
+			//										const VkAttachmentReference* pResolveAttachments, uint32_t preserveAttachmentCount, const uint32_t* pPreserveAttachments,
+			//										VkSubpassDescriptionFlags flags)
+			//{
+			//	VkSubpassDescription subpassDescription {};
+			//	subpassDescription.flags = flags;
+			//	subpassDescription.pipelineBindPoint = pipelineBindPoint;
+			//	subpassDescription.inputAttachmentCount = inputAttachmentCount;
+			//	subpassDescription.pInputAttachments = pInputAttachments;
+			//	subpassDescription.colorAttachmentCount = colorAttachmentCount;
+			//	subpassDescription.pColorAttachments = pColorAttachments;
+			//	subpassDescription.pResolveAttachments = pResolveAttachments;
+			//	subpassDescription.pDepthStencilAttachment = pDepthStencilAttachment;
+			//	subpassDescription.preserveAttachmentCount = preserveAttachmentCount;
+			//	subpassDescription.pPreserveAttachments = pPreserveAttachments;
 
-				return subpassDescription;
-			}
+			//	return subpassDescription;
+			//}
 
-			// Subpass
-			VkSubpassDependency SubpassDependency(uint32_t srcSubpass, uint32_t dstSubpass, VkPipelineStageFlags srcStageMask, VkPipelineStageFlags dstStageMask,
-													VkAccessFlags srcAccessMask, VkAccessFlags dstAccessMask, VkDependencyFlags dependencyFlags)
-			{
-				VkSubpassDependency subpassDependency {};
-				subpassDependency.srcSubpass = srcSubpass;
-				subpassDependency.dstSubpass = dstSubpass;
-				subpassDependency.srcStageMask = srcStageMask;
-				subpassDependency.dstStageMask = dstStageMask;
-				subpassDependency.srcAccessMask = srcAccessMask;
-				subpassDependency.dstAccessMask = dstAccessMask;
-				subpassDependency.dependencyFlags = dependencyFlags;
+			//// Subpass
+			//VkSubpassDependency SubpassDependency(uint32_t srcSubpass, uint32_t dstSubpass, VkPipelineStageFlags srcStageMask, VkPipelineStageFlags dstStageMask,
+			//										VkAccessFlags srcAccessMask, VkAccessFlags dstAccessMask, VkDependencyFlags dependencyFlags)
+			//{
+			//	VkSubpassDependency subpassDependency {};
+			//	subpassDependency.srcSubpass = srcSubpass;
+			//	subpassDependency.dstSubpass = dstSubpass;
+			//	subpassDependency.srcStageMask = srcStageMask;
+			//	subpassDependency.dstStageMask = dstStageMask;
+			//	subpassDependency.srcAccessMask = srcAccessMask;
+			//	subpassDependency.dstAccessMask = dstAccessMask;
+			//	subpassDependency.dependencyFlags = dependencyFlags;
 
-				return subpassDependency;
-			}
+			//	return subpassDependency;
+			//}
 
 			// RenderPass
 			VkRenderPassCreateInfo RenderPassCreateInfo(uint32_t attachmentCount, const VkAttachmentDescription* pAttachments, uint32_t subpassCount, 
@@ -714,15 +714,15 @@ namespace GraphicsEngine
 				return queryPoolCreateInfo;
 			}
 
-			// DescriptorPool
-			VkDescriptorPoolSize DescriptorPoolSize(VkDescriptorType type, uint32_t descriptorCount)
-			{
-				VkDescriptorPoolSize descriptorPoolSize{};
-				descriptorPoolSize.type = type;
-				descriptorPoolSize.descriptorCount = descriptorCount;
+			//// DescriptorPool
+			//VkDescriptorPoolSize DescriptorPoolSize(VkDescriptorType type, uint32_t descriptorCount)
+			//{
+			//	VkDescriptorPoolSize descriptorPoolSize{};
+			//	descriptorPoolSize.type = type;
+			//	descriptorPoolSize.descriptorCount = descriptorCount;
 
-				return descriptorPoolSize;
-			}
+			//	return descriptorPoolSize;
+			//}
 
 			VkDescriptorPoolCreateInfo DescriptorPoolCreateInfo(uint32_t maxSets, uint32_t poolSizeCount, const VkDescriptorPoolSize* pPoolSizes,
 																VkDescriptorPoolCreateFlags flags)
@@ -738,19 +738,19 @@ namespace GraphicsEngine
 				return descriptorPoolCreateInfo;
 			}
 
-			// DescriptorSet
-			VkDescriptorSetLayoutBinding DescriptorSetLayoutBinding(uint32_t binding, VkDescriptorType descriptorType, uint32_t descriptorCount,
-																	VkShaderStageFlags stageFlags, const VkSampler* pImmutableSamplers)
-			{
-				VkDescriptorSetLayoutBinding descriptorSetLayoutBinding {};
-				descriptorSetLayoutBinding.binding = binding;
-				descriptorSetLayoutBinding.descriptorType = descriptorType;
-				descriptorSetLayoutBinding.descriptorCount = descriptorCount;
-				descriptorSetLayoutBinding.stageFlags = stageFlags;
-				descriptorSetLayoutBinding.pImmutableSamplers = pImmutableSamplers;
+			//// DescriptorSet
+			//VkDescriptorSetLayoutBinding DescriptorSetLayoutBinding(uint32_t binding, VkDescriptorType descriptorType, uint32_t descriptorCount,
+			//														VkShaderStageFlags stageFlags, const VkSampler* pImmutableSamplers)
+			//{
+			//	VkDescriptorSetLayoutBinding descriptorSetLayoutBinding {};
+			//	descriptorSetLayoutBinding.binding = binding;
+			//	descriptorSetLayoutBinding.descriptorType = descriptorType;
+			//	descriptorSetLayoutBinding.descriptorCount = descriptorCount;
+			//	descriptorSetLayoutBinding.stageFlags = stageFlags;
+			//	descriptorSetLayoutBinding.pImmutableSamplers = pImmutableSamplers;
 
-				return descriptorSetLayoutBinding;
-			}
+			//	return descriptorSetLayoutBinding;
+			//}
 
 			VkDescriptorSetLayoutCreateInfo DescriptorSetLayoutCreateInfo(uint32_t bindingCount, const VkDescriptorSetLayoutBinding* pBindings,
 																			VkDescriptorSetLayoutCreateFlags flags)
@@ -812,7 +812,7 @@ namespace GraphicsEngine
 				return writeDescriptorSet;
 			}
 
-			VkDescriptorImageInfo DescriptorImageInfo(VkSampler sampler, VkImageView imageView, VkImageLayout imageLayout)
+			/*VkDescriptorImageInfo DescriptorImageInfo(VkSampler sampler, VkImageView imageView, VkImageLayout imageLayout)
 			{
 				VkDescriptorImageInfo descriptorImageInfo{};
 				descriptorImageInfo.sampler = sampler;
@@ -830,7 +830,7 @@ namespace GraphicsEngine
 				descriptorBufferInfo.range = range;
 
 				return descriptorBufferInfo;
-			}
+			}*/
 
 			// Pipeline
 			VkPipelineCacheCreateInfo PipelineCacheCreateInfo(size_t initialDataSize, const void* pInitialData, VkPipelineCacheCreateFlags flags)
@@ -925,7 +925,7 @@ namespace GraphicsEngine
 				return pipelineShaderStageCreateInfo;
 			}
 
-			VkSpecializationInfo SpecializationInfo(uint32_t mapEntryCount, const VkSpecializationMapEntry* pMapEntries, size_t dataSize, const void* pData)
+		/*	VkSpecializationInfo SpecializationInfo(uint32_t mapEntryCount, const VkSpecializationMapEntry* pMapEntries, size_t dataSize, const void* pData)
 			{
 				VkSpecializationInfo specializationInfo {};
 				specializationInfo.mapEntryCount = mapEntryCount;
@@ -944,7 +944,7 @@ namespace GraphicsEngine
 				specializationMapEntry.size = size;
 
 				return specializationMapEntry;
-			}
+			}*/
 
 			// VertexInput State
 			VkPipelineVertexInputStateCreateInfo PipelineVertexInputStateCreateInfo(uint32_t vertexBindingDescriptionCount, const VkVertexInputBindingDescription* pVertexBindingDescriptions, 
@@ -963,7 +963,7 @@ namespace GraphicsEngine
 				return pipelineVertexInputStateCreateInfo;
 			}
 
-			VkVertexInputBindingDescription VertexInputBindingDescription(uint32_t binding, uint32_t stride, VkVertexInputRate inputRate)
+		/*	VkVertexInputBindingDescription VertexInputBindingDescription(uint32_t binding, uint32_t stride, VkVertexInputRate inputRate)
 			{
 				VkVertexInputBindingDescription vertexInputBindingDescription {};
 				vertexInputBindingDescription.binding = binding;
@@ -982,7 +982,7 @@ namespace GraphicsEngine
 				vertexInputAttributeDescription.offset = offset;
 
 				return vertexInputAttributeDescription;
-			}
+			}*/
 
 			// InputAssembly State
 			VkPipelineInputAssemblyStateCreateInfo PipelineInputAssemblyStateCreateInfo(VkPrimitiveTopology topology, VkBool32 primitiveRestartEnable, VkPipelineInputAssemblyStateCreateFlags flags)
@@ -1028,8 +1028,8 @@ namespace GraphicsEngine
 			// Rasterization State
 			VkPipelineRasterizationStateCreateInfo PipelineRasterizationStateCreateInfo(VkBool32 depthClampEnable, VkBool32 rasterizerDiscardEnable, VkPolygonMode polygonMode, 
 																						VkCullModeFlags cullMode, VkFrontFace frontFace, VkBool32 depthBiasEnable, 
-																						bfloat32_t depthBiasConstantFactor, bfloat32_t depthBiasClamp, bfloat32_t depthBiasSlopeFactor,
-																						bfloat32_t lineWidth, VkPipelineRasterizationStateCreateFlags flags)
+																						float32_t depthBiasConstantFactor, float32_t depthBiasClamp, float32_t depthBiasSlopeFactor,
+																						float32_t lineWidth, VkPipelineRasterizationStateCreateFlags flags)
 			{
 				VkPipelineRasterizationStateCreateInfo pipelineRasterizationStateCreateInfo {};
 				pipelineRasterizationStateCreateInfo.sType = VkStructureType::VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
@@ -1050,7 +1050,7 @@ namespace GraphicsEngine
 			}
 
 			// Multisample State
-			VkPipelineMultisampleStateCreateInfo PipelineMultisampleStateCreateInfo(VkSampleCountFlagBits rasterizationSamples, VkBool32 sampleShadingEnable, bfloat32_t minSampleShading,
+			VkPipelineMultisampleStateCreateInfo PipelineMultisampleStateCreateInfo(VkSampleCountFlagBits rasterizationSamples, VkBool32 sampleShadingEnable, float32_t minSampleShading,
 																					const VkSampleMask* pSampleMask, VkBool32 alphaToCoverageEnable, VkBool32 alphaToOneEnable,
 																					VkPipelineMultisampleStateCreateFlags flags)
 			{
@@ -1071,7 +1071,7 @@ namespace GraphicsEngine
 			// DepthStencil State
 			VkPipelineDepthStencilStateCreateInfo PipelineDepthStencilStateCreateInfo(VkBool32 depthTestEnable, VkBool32 depthWriteEnable, VkCompareOp depthCompareOp, 
 																						VkBool32 depthBoundsTestEnable, VkBool32 stencilTestEnable, const VkStencilOpState& front,
-																						const VkStencilOpState& back, bfloat32_t minDepthBounds, bfloat32_t maxDepthBounds,
+																						const VkStencilOpState& back, float32_t minDepthBounds, float32_t maxDepthBounds,
 																						VkPipelineDepthStencilStateCreateFlags flags)
 			{
 				VkPipelineDepthStencilStateCreateInfo pipelineDepthStencilStateCreateInfo {};
@@ -1091,7 +1091,7 @@ namespace GraphicsEngine
 				return pipelineDepthStencilStateCreateInfo;
 			}
 
-			VkStencilOpState StencilOpState(VkStencilOp failOp, VkStencilOp passOp, VkStencilOp depthFailOp, VkCompareOp compareOp, 
+		/*	VkStencilOpState StencilOpState(VkStencilOp failOp, VkStencilOp passOp, VkStencilOp depthFailOp, VkCompareOp compareOp, 
 											uint32_t compareMask, uint32_t writeMask, uint32_t reference)
 			{
 				VkStencilOpState stencilOpState {};
@@ -1104,11 +1104,11 @@ namespace GraphicsEngine
 				stencilOpState.reference = reference;
 
 				return stencilOpState;
-			}
+			}*/
 
 			// ColorBlend State
 			VkPipelineColorBlendStateCreateInfo PipelineColorBlendStateCreateInfo(VkBool32 logicOpEnable, VkLogicOp logicOp, uint32_t attachmentCount,
-																					const VkPipelineColorBlendAttachmentState* pAttachments, bfloat32_t blendConstants[4],
+																					const VkPipelineColorBlendAttachmentState* pAttachments, float32_t blendConstants[4],
 																					VkPipelineColorBlendStateCreateFlags flags)
 			{
 				VkPipelineColorBlendStateCreateInfo pipelineColorBlendStateCreateInfo {};
@@ -1119,12 +1119,12 @@ namespace GraphicsEngine
 				pipelineColorBlendStateCreateInfo.logicOp = logicOp;
 				pipelineColorBlendStateCreateInfo.attachmentCount = attachmentCount;
 				pipelineColorBlendStateCreateInfo.pAttachments = pAttachments;
-				::memcpy(pipelineColorBlendStateCreateInfo.blendConstants, blendConstants, sizeof(bfloat32_t) * 4);
+				::memcpy(pipelineColorBlendStateCreateInfo.blendConstants, blendConstants, sizeof(float32_t) * 4);
 
 				return pipelineColorBlendStateCreateInfo;
 			}
 
-			VkPipelineColorBlendAttachmentState PipelineColorBlendAttachmentState(VkBool32 blendEnable, VkBlendFactor srcColorBlendFactor, VkBlendFactor dstColorBlendFactor,
+		/*	VkPipelineColorBlendAttachmentState PipelineColorBlendAttachmentState(VkBool32 blendEnable, VkBlendFactor srcColorBlendFactor, VkBlendFactor dstColorBlendFactor,
 																					VkBlendOp colorBlendOp, VkBlendFactor srcAlphaBlendFactor, VkBlendFactor dstAlphaBlendFactor,
 																					VkBlendOp alphaBlendOp, VkColorComponentFlags colorWriteMask)
 			{
@@ -1139,7 +1139,7 @@ namespace GraphicsEngine
 				pipelineColorBlendAttachmentState.colorWriteMask = colorWriteMask;
 
 				return pipelineColorBlendAttachmentState;
-			}
+			}*/
 
 			// Dynamic State
 			VkPipelineDynamicStateCreateInfo PipelineDynamicStateCreateInfo(uint32_t dynamicStateCount, const VkDynamicState* pDynamicStates, VkPipelineDynamicStateCreateFlags flags)
@@ -1155,80 +1155,80 @@ namespace GraphicsEngine
 			}
 
 
-			// PushConstants
-			VkPushConstantRange PushConstantRange(VkShaderStageFlags stageFlags, uint32_t offset, uint32_t size)
-			{
-				VkPushConstantRange pushConstantRange {};
-				pushConstantRange.stageFlags = stageFlags;
-				pushConstantRange.offset = offset;
-				pushConstantRange.size = size;
+			//// PushConstants
+			//VkPushConstantRange PushConstantRange(VkShaderStageFlags stageFlags, uint32_t offset, uint32_t size)
+			//{
+			//	VkPushConstantRange pushConstantRange {};
+			//	pushConstantRange.stageFlags = stageFlags;
+			//	pushConstantRange.offset = offset;
+			//	pushConstantRange.size = size;
 
-				return pushConstantRange;
-			}
+			//	return pushConstantRange;
+			//}
 
-			// Viewport
-			VkViewport Viewport(bfloat32_t x, bfloat32_t y, bfloat32_t width, bfloat32_t height, bfloat32_t minDepth, bfloat32_t maxDepth)
-			{
-				VkViewport viewport {};
-				viewport.x = x;
-				viewport.y = y;
-				viewport.width = width;
-				viewport.height = height;
-				viewport.minDepth = minDepth;
-				viewport.maxDepth = maxDepth;
+			//// Viewport
+			//VkViewport Viewport(float32_t x, float32_t y, float32_t width, float32_t height, float32_t minDepth, float32_t maxDepth)
+			//{
+			//	VkViewport viewport {};
+			//	viewport.x = x;
+			//	viewport.y = y;
+			//	viewport.width = width;
+			//	viewport.height = height;
+			//	viewport.minDepth = minDepth;
+			//	viewport.maxDepth = maxDepth;
 
-				return viewport;
-			}
+			//	return viewport;
+			//}
 
-			// Offset
-			VkOffset2D Offset2D(int32_t x, uint32_t y)
-			{
-				VkOffset2D offset2D {};
-				offset2D.x = x;
-				offset2D.y = y;
+			//// Offset
+			//VkOffset2D Offset2D(int32_t x, uint32_t y)
+			//{
+			//	VkOffset2D offset2D {};
+			//	offset2D.x = x;
+			//	offset2D.y = y;
 
-				return offset2D;
-			}
+			//	return offset2D;
+			//}
 
-			VkOffset3D Offset3D(int32_t x, uint32_t y, uint32_t z)
-			{
-				VkOffset3D offset3D {};
-				offset3D.x = x;
-				offset3D.y = y;
-				offset3D.z = z;
+			//VkOffset3D Offset3D(int32_t x, uint32_t y, uint32_t z)
+			//{
+			//	VkOffset3D offset3D {};
+			//	offset3D.x = x;
+			//	offset3D.y = y;
+			//	offset3D.z = z;
 
-				return offset3D;
-			}
+			//	return offset3D;
+			//}
 
-			// Extent
-			VkExtent2D Extent2D(uint32_t width, uint32_t height)
-			{
-				VkExtent2D extent2D {};
-				extent2D.width = width;
-				extent2D.height = height;
+			//// Extent
+			//VkExtent2D Extent2D(uint32_t width, uint32_t height)
+			//{
+			//	VkExtent2D extent2D {};
+			//	extent2D.width = width;
+			//	extent2D.height = height;
 
-				return extent2D;
-			}
+			//	return extent2D;
+			//}
 
-			VkExtent3D Extent3D(uint32_t width, uint32_t height, uint32_t depth)
-			{
-				VkExtent3D extent3D {};
-				extent3D.width = width;
-				extent3D.height = height;
-				extent3D.depth = depth;
+			//VkExtent3D Extent3D(uint32_t width, uint32_t height, uint32_t depth)
+			//{
+			//	VkExtent3D extent3D {};
+			//	extent3D.width = width;
+			//	extent3D.height = height;
+			//	extent3D.depth = depth;
 
-				return extent3D;
-			}
+			//	return extent3D;
+			//}
 
-			// Rect
-			VkRect2D Rect2D(const VkOffset2D& offset, const VkExtent2D& extent)
-			{
-				VkRect2D rect2D {};
-				rect2D.offset = offset;
-				rect2D.extent = extent;
+			//// Rect
+			//VkRect2D Rect2D(const VkOffset2D& offset, const VkExtent2D& extent)
+			//{
+			//	VkRect2D rect2D {};
+			//	rect2D.offset = offset;
+			//	rect2D.extent = extent;
 
-				return rect2D;
-			}
+			//	return rect2D;
+			//}
 
 			// Clear
 			//VkClearColorValue ClearColorValue(float float32[4], int32_t int32[4], uint32_t uint32[4])
@@ -1246,14 +1246,14 @@ namespace GraphicsEngine
 			//	return clearColorValue;
 			//}
 
-			VkClearDepthStencilValue ClearDepthStencilValue(bfloat32_t depth, uint32_t stencil)
+		/*	VkClearDepthStencilValue ClearDepthStencilValue(float32_t depth, uint32_t stencil)
 			{
 				VkClearDepthStencilValue clearDepthStencilValue {};
 				clearDepthStencilValue.depth = depth;
 				clearDepthStencilValue.stencil = stencil;
 
 				return clearDepthStencilValue;
-			}
+			}*/
 
 			//VkClearValue ClearValue(VkClearColorValue color, VkClearDepthStencilValue depthStencil)
 			//{
@@ -1265,7 +1265,7 @@ namespace GraphicsEngine
 			//	return clearValue;
 			//}
 
-			VkClearAttachment ClearAttachment(VkImageAspectFlags aspectMask, uint32_t colorAttachment, VkClearValue clearValue)
+		/*	VkClearAttachment ClearAttachment(VkImageAspectFlags aspectMask, uint32_t colorAttachment, VkClearValue clearValue)
 			{
 				VkClearAttachment clearAttachment {};
 				clearAttachment.aspectMask = aspectMask;
@@ -1283,7 +1283,7 @@ namespace GraphicsEngine
 				clearRect.layerCount = layerCount;
 
 				return clearRect;
-			}
+			}*/
 
 			// SubmitInfo 
 			VkSubmitInfo SubmitInfo(uint32_t commandBufferCount, const VkCommandBuffer* pCommandBuffers, uint32_t waitSemaphoreCount, const VkSemaphore* pWaitSemaphores,

@@ -46,6 +46,8 @@ void VulkanPipelineLayout::Create(const VkPipelineLayoutCreateInfo& pipelineLayo
 
 void VulkanPipelineLayout::Destroy()
 {
+	assert(mpDevice != nullptr);
+
 	if (mHandle)
 	{
 		vkDestroyPipelineLayout(mpDevice->GetDeviceHandle(), mHandle, nullptr);

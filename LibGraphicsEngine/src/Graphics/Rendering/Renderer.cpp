@@ -10,7 +10,6 @@
 #include "Resources/Shader.hpp"
 #include "Resources/Material.hpp"
 #include "Graphics/SceneGraph/GeometryNode.hpp"
-#include "Graphics/GeometricPrimitives/GeometricPrimitive.hpp"
 
 // Resources
 #if defined(VULKAN_RENDERER)
@@ -25,7 +24,6 @@
 #include "Vulkan/Resources/VulkanMaterial.hpp"
 #endif // VULKAN_RENDERER
 
-#include "Graphics/Camera/Camera.hpp"
 #include "Foundation/Platform/Platform.hpp"
 #include "Foundation/MemoryManagement/MemoryOperations.hpp"
 #include <cassert>
@@ -34,23 +32,21 @@ using namespace GraphicsEngine;
 using namespace GraphicsEngine::Graphics;
 
 Renderer::Renderer()
-	: mType(RendererType::FORWARD)
+	: mRendererType(RendererType::GE_RT_FORWARD)
 	, mIsPrepared(false)
 	, mWindowWidth(0)
 	, mWindowHeight(0)
 	, mpRenderQueue(nullptr)
 	, mpRenderPass(nullptr)
-	, mpCamera(nullptr)
 {}
 
 Renderer::Renderer(Renderer::RendererType type)
-	: mType(type)
+	: mRendererType(type)
 	, mIsPrepared(false)
 	, mWindowWidth(0)
 	, mWindowHeight(0)
 	, mpRenderQueue(nullptr)
 	, mpRenderPass(nullptr)
-	, mpCamera(nullptr)
 {}
 
 Renderer::~Renderer()
@@ -61,11 +57,8 @@ Renderer::~Renderer()
 void Renderer::Init(Platform::GE_Window* pWindow)
 {
 	assert(pWindow != nullptr);
-	assert(pWindow->width > 0);
-	assert(pWindow->height > 0);
-
-	mWindowWidth = pWindow->width;
-	mWindowHeight = pWindow->height;
+	
+	Platform::GetWindowSize(pWindow, &mWindowWidth, &mWindowHeight);
 }
 
 
@@ -76,7 +69,6 @@ void Renderer::Terminate()
 
 	mpRenderQueue = nullptr;
 	mpRenderPass = nullptr;
-	mpCamera = nullptr;
 
 	CleanUpResources();
 }
@@ -142,225 +134,440 @@ GADRVertexFormat* Renderer::Bind(VertexFormat* pVertexFormat)
 {
 	assert(pVertexFormat != nullptr);
 
-	if (mVertexFormatMap.find(pVertexFormat) == mVertexFormatMap.end())
-	{
-		mVertexFormatMap[pVertexFormat] = GE_ALLOC(GADRVertexFormat)(this, pVertexFormat);
-	}
+	auto pGADRVertexFormat = Get(pVertexFormat);
+	
+	if (pGADRVertexFormat)
+		pGADRVertexFormat->OnBind();
 
-	return mVertexFormatMap[pVertexFormat];
+	return pGADRVertexFormat;
 }
 
 void Renderer::UnBind(VertexFormat* pVertexFormat)
 {
 	assert(pVertexFormat != nullptr);
 
-	VertexFormatMap::iterator iter = mVertexFormatMap.find(pVertexFormat);
+	auto iter = mVertexFormatMap.find(pVertexFormat);
 	if (iter != mVertexFormatMap.end())
 	{
-		GE_FREE(iter->second);
+		auto ref = iter->second;
+		if (ref)
+			ref->OnUnBind();
+
+		GE_FREE(ref);
 		mVertexFormatMap.erase(iter);
 	}
+}
+
+GADRVertexFormat* Renderer::Get(VertexFormat* pVertexFormat)
+{
+	assert(pVertexFormat != nullptr);
+
+	auto iter = mVertexFormatMap.find(pVertexFormat);
+	if (iter != mVertexFormatMap.end())
+	{
+		return iter->second;
+	}
+	else
+	{
+		auto ref = mVertexFormatMap[pVertexFormat] = GE_ALLOC(GADRVertexFormat)(this, pVertexFormat);
+		assert(ref != nullptr);
+
+		return ref;
+	}
+
+	return nullptr;
 }
 
 GADRVertexBuffer* Renderer::Bind(VertexBuffer* pVertexBuffer)
 {
 	assert(pVertexBuffer != nullptr);
 
-	if (mVertexBufferMap.find(pVertexBuffer) == mVertexBufferMap.end())
-	{
-		mVertexBufferMap[pVertexBuffer] = GE_ALLOC(GADRVertexBuffer)(this, pVertexBuffer);
-	}
+	auto pGADRVertexBuffer = Get(pVertexBuffer);
+	
+	if (pGADRVertexBuffer)
+		pGADRVertexBuffer->OnBind();
 
-	return mVertexBufferMap[pVertexBuffer];
+	return pGADRVertexBuffer;
 }
 
 void Renderer::UnBind(VertexBuffer* pVertexBuffer)
 {
 	assert(pVertexBuffer != nullptr);
 
-	VertexBufferMap::iterator iter = mVertexBufferMap.find(pVertexBuffer);
+	auto iter = mVertexBufferMap.find(pVertexBuffer);
 	if (iter != mVertexBufferMap.end())
 	{
-		GE_FREE(iter->second);
+		auto ref = iter->second;
+		if (ref)
+			ref->OnUnBind();
+
+		GE_FREE(ref);
 		mVertexBufferMap.erase(iter);
 	}
+}
+
+GADRVertexBuffer* Renderer::Get(VertexBuffer* pVertexBuffer)
+{
+	assert(pVertexBuffer != nullptr);
+
+	auto iter = mVertexBufferMap.find(pVertexBuffer);
+	if (iter != mVertexBufferMap.end())
+	{
+		return iter->second;
+	}
+	else
+	{
+		auto ref = mVertexBufferMap[pVertexBuffer] = GE_ALLOC(GADRVertexBuffer)(this, pVertexBuffer);
+		assert(ref != nullptr);
+
+		return ref;
+	}
+
+	return nullptr;
 }
 
 GADRIndexBuffer* Renderer::Bind(IndexBuffer* pIndexBuffer)
 {
 	assert(pIndexBuffer != nullptr);
 
-	if (mIndexBufferMap.find(pIndexBuffer) == mIndexBufferMap.end())
-	{
-		mIndexBufferMap[pIndexBuffer] = GE_ALLOC(GADRIndexBuffer)(this, pIndexBuffer);
-	}
+	auto pGADRIndexBuffer = Get(pIndexBuffer);
 
-	return mIndexBufferMap[pIndexBuffer];
+	if (pGADRIndexBuffer)
+		pGADRIndexBuffer->OnBind();
+
+	return pGADRIndexBuffer;
 }
 
 void Renderer::UnBind(IndexBuffer* pIndexBuffer)
 {
 	assert(pIndexBuffer != nullptr);
 
-	IndexBufferMap::iterator iter = mIndexBufferMap.find(pIndexBuffer);
+	auto iter = mIndexBufferMap.find(pIndexBuffer);
 	if (iter != mIndexBufferMap.end())
 	{
-		GE_FREE(iter->second);
+		auto ref = iter->second;
+		if (ref)
+			ref->OnUnBind();
+
+		GE_FREE(ref);
 		mIndexBufferMap.erase(iter);
 	}
+}
+
+GADRIndexBuffer* Renderer::Get(IndexBuffer* pIndexBuffer)
+{
+	assert(pIndexBuffer != nullptr);
+
+	auto iter = mIndexBufferMap.find(pIndexBuffer);
+	if (iter != mIndexBufferMap.end())
+	{
+		return iter->second;
+	}
+	else
+	{
+		auto ref = mIndexBufferMap[pIndexBuffer] = GE_ALLOC(GADRIndexBuffer)(this, pIndexBuffer);
+		assert(ref != nullptr);
+
+		return ref;
+	}
+
+	return nullptr;
 }
 
 GADRUniformBuffer* Renderer::Bind(UniformBuffer* pUniformBuffer)
 {
 	assert(pUniformBuffer != nullptr);
 
-	if (mUniformBufferMap.find(pUniformBuffer) == mUniformBufferMap.end())
-	{
-		mUniformBufferMap[pUniformBuffer] = GE_ALLOC(GADRUniformBuffer)(this, pUniformBuffer);
-	}
+	auto pGADRUniformBuffer = Get(pUniformBuffer);
 
-	return mUniformBufferMap[pUniformBuffer];
+	if (pGADRUniformBuffer)
+		pGADRUniformBuffer->OnBind();
+
+	return pGADRUniformBuffer;
 }
 
 void Renderer::UnBind(UniformBuffer* pUniformBuffer)
 {
 	assert(pUniformBuffer != nullptr);
 
-	UniformBufferMap::iterator iter = mUniformBufferMap.find(pUniformBuffer);
+	auto iter = mUniformBufferMap.find(pUniformBuffer);
 	if (iter != mUniformBufferMap.end())
 	{
-		GE_FREE(iter->second);
+		auto ref = iter->second;
+		if (ref)
+			ref->OnUnBind();
+
+		GE_FREE(ref);
 		mUniformBufferMap.erase(iter);
 	}
+}
+
+GADRUniformBuffer* Renderer::Get(UniformBuffer* pUniformBuffer)
+{
+	assert(pUniformBuffer != nullptr);
+
+	auto iter = mUniformBufferMap.find(pUniformBuffer);
+	if (iter != mUniformBufferMap.end())
+	{
+		return iter->second;
+	}
+	else
+	{
+		auto ref = mUniformBufferMap[pUniformBuffer] = GE_ALLOC(GADRUniformBuffer)(this, pUniformBuffer);
+		assert(ref != nullptr);
+
+		return ref;
+	}
+
+	return nullptr;
 }
 
 GADRTexture* Renderer::Bind(Texture* pTexture)
 {
 	assert(pTexture != nullptr);
 
-	if (mTextureMap.find(pTexture) == mTextureMap.end())
-	{
-		mTextureMap[pTexture] = GE_ALLOC(GADRTexture)(this, pTexture);
-	}
+	auto pGADRTexture = Get(pTexture);
 
-	return mTextureMap[pTexture];
+	if (pGADRTexture)
+		pGADRTexture->OnBind();
+
+	return pGADRTexture;
 }
 
 void Renderer::UnBind(Texture* pTexture)
 {
 	assert(pTexture != nullptr);
 
-	TextureMap::iterator iter = mTextureMap.find(pTexture);
+	auto iter = mTextureMap.find(pTexture);
 	if (iter != mTextureMap.end())
 	{
-		GE_FREE(iter->second);
+		auto ref = iter->second;
+		if (ref)
+			ref->OnUnBind();
+
+		GE_FREE(ref);
 		mTextureMap.erase(iter);
 	}
+}
+
+GADRTexture* Renderer::Get(Texture* pTexture)
+{
+	assert(pTexture != nullptr);
+
+	auto iter = mTextureMap.find(pTexture);
+	if (iter != mTextureMap.end())
+	{
+		return iter->second;
+	}
+	else
+	{
+		auto ref = mTextureMap[pTexture] = GE_ALLOC(GADRTexture)(this, pTexture);
+		assert(ref != nullptr);
+
+		return ref;
+	}
+
+	return nullptr;
 }
 
 GADRRenderTarget* Renderer::Bind(RenderTarget* pRenderTarget)
 {
 	assert(pRenderTarget != nullptr);
 
-	if (mRenderTargetMap.find(pRenderTarget) == mRenderTargetMap.end())
-	{
-		mRenderTargetMap[pRenderTarget] = GE_ALLOC(GADRRenderTarget)(this, pRenderTarget);
-	}
+	auto pGADRRenderTarget = Get(pRenderTarget);
 
-	return mRenderTargetMap[pRenderTarget];
+	if (pGADRRenderTarget)
+		pGADRRenderTarget->OnBind();
+
+	return pGADRRenderTarget;
 }
 
 void Renderer::UnBind(RenderTarget* pRenderTarget)
 {
 	assert(pRenderTarget != nullptr);
 
-	RenderTargetMap::iterator iter = mRenderTargetMap.find(pRenderTarget);
+	auto iter = mRenderTargetMap.find(pRenderTarget);
 	if (iter != mRenderTargetMap.end())
 	{
-		GE_FREE(iter->second);
+		auto ref = iter->second;
+		if (ref)
+			ref->OnUnBind();
+
+		GE_FREE(ref);
 		mRenderTargetMap.erase(iter);
 	}
+}
+
+GADRRenderTarget* Renderer::Get(RenderTarget* pRenderTarget)
+{
+	assert(pRenderTarget != nullptr);
+
+	auto iter = mRenderTargetMap.find(pRenderTarget);
+	if (iter != mRenderTargetMap.end())
+	{
+		return iter->second;
+	}
+	else
+	{
+		auto ref = mRenderTargetMap[pRenderTarget] = GE_ALLOC(GADRRenderTarget)(this, pRenderTarget);
+		assert(ref != nullptr);
+
+		return ref;
+	}
+
+	return nullptr;
 }
 
 GADRRenderFrameBuffer* Renderer::Bind(RenderFrameBuffer* pRenderFrameBuffer)
 {
 	assert(pRenderFrameBuffer != nullptr);
 
-	if (mRenderFrameBufferMap.find(pRenderFrameBuffer) == mRenderFrameBufferMap.end())
-	{
-		mRenderFrameBufferMap[pRenderFrameBuffer] = GE_ALLOC(GADRRenderFrameBuffer)(this, pRenderFrameBuffer);
-	}
+	auto pGADRRenderTarget = Get(pRenderFrameBuffer);
 
-	return mRenderFrameBufferMap[pRenderFrameBuffer];
+	if (pGADRRenderTarget)
+		pGADRRenderTarget->OnBind();
+
+	return pGADRRenderTarget;
 }
 
 void Renderer::UnBind(RenderFrameBuffer* pRenderFrameBuffer)
 {
 	assert(pRenderFrameBuffer != nullptr);
 
-	RenderFrameBufferMap::iterator iter = mRenderFrameBufferMap.find(pRenderFrameBuffer);
+	auto iter = mRenderFrameBufferMap.find(pRenderFrameBuffer);
 	if (iter != mRenderFrameBufferMap.end())
 	{
-		GE_FREE(iter->second);
+		auto ref = iter->second;
+		if (ref)
+			ref->OnUnBind();
+
+		GE_FREE(ref);
 		mRenderFrameBufferMap.erase(iter);
 	}
+}
+
+GADRRenderFrameBuffer* Renderer::Get(RenderFrameBuffer* pRenderFrameBuffer)
+{
+	assert(pRenderFrameBuffer != nullptr);
+
+	auto iter = mRenderFrameBufferMap.find(pRenderFrameBuffer);
+	if (iter != mRenderFrameBufferMap.end())
+	{
+		return iter->second;
+	}
+	else
+	{
+		auto ref = mRenderFrameBufferMap[pRenderFrameBuffer] = GE_ALLOC(GADRRenderFrameBuffer)(this, pRenderFrameBuffer);
+		assert(ref != nullptr);
+
+		return ref;
+	}
+
+	return nullptr;
 }
 
 GADRShader* Renderer::Bind(Shader* pShader)
 {
 	assert(pShader != nullptr);
 
-	if (mShaderMap.find(pShader) == mShaderMap.end())
-	{
-		mShaderMap[pShader] = GE_ALLOC(GADRShader)(this, pShader);
-	}
+	auto pGADRShader = Get(pShader);
 
-	return mShaderMap[pShader];
+	if (pGADRShader)
+		pGADRShader->OnBind();
+
+	return pGADRShader;
 }
 
 void Renderer::UnBind(Shader* pShader)
 {
 	assert(pShader != nullptr);
 
-	ShaderMap::iterator iter = mShaderMap.find(pShader);
+	auto iter = mShaderMap.find(pShader);
 	if (iter != mShaderMap.end())
 	{
-		GE_FREE(iter->second);
+		auto ref = iter->second;
+		if (ref)
+			ref->OnUnBind();
+
+		GE_FREE(ref);
 		mShaderMap.erase(iter);
 	}
 }
 
-GADRMaterial* Renderer::Bind(Material* pMaterial, GeometricPrimitive* pGeoPrimitive, uint32_t currentBufferIdx)
+GADRShader* Renderer::Get(Shader* pShader)
 {
-	assert(pMaterial != nullptr);
-	assert(pGeoPrimitive != nullptr);
+	assert(pShader != nullptr);
 
-	if (mMaterialMap.find(pMaterial) == mMaterialMap.end())
+	auto iter = mShaderMap.find(pShader);
+	if (iter != mShaderMap.end())
 	{
-		mMaterialMap[pMaterial] = GE_ALLOC(GADRMaterial)(this, pMaterial, pGeoPrimitive);
+		return iter->second;
+	}
+	else
+	{
+		auto ref = mShaderMap[pShader] = GE_ALLOC(GADRShader)(this, pShader);
+		assert(ref != nullptr);
+
+		return ref;
 	}
 
-	OnBindMaterial(mMaterialMap[pMaterial], currentBufferIdx);
+	return nullptr;
+}
 
-	return mMaterialMap[pMaterial];
+GADRMaterial* Renderer::Bind(Material* pMaterial)
+{
+	assert(pMaterial != nullptr);
+
+	auto pGADRShader = Get(pMaterial);
+
+	if (pGADRShader)
+		pGADRShader->OnBind();
+
+	return pGADRShader;
 }
 
 void Renderer::UnBind(Material* pMaterial)
 {
 	assert(pMaterial != nullptr);
 
-	MaterialMap::iterator iter = mMaterialMap.find(pMaterial);
+	auto iter = mMaterialMap.find(pMaterial);
 	if (iter != mMaterialMap.end())
 	{
-		GE_FREE(iter->second);
+		auto ref = iter->second;
+		if (ref)
+			ref->OnUnBind();
+
+		GE_FREE(ref);
 		mMaterialMap.erase(iter);
 	}
 }
 
-void Renderer::OnBindMaterial(GADRMaterial* pGADRMaterial, uint32_t currentBufferIdx)
+GADRMaterial* Renderer::Get(Material* pMaterial)
 {
-	assert(pGADRMaterial != nullptr);
+	assert(pMaterial != nullptr);
 
-	// bind GADR material
-	pGADRMaterial->Bind(currentBufferIdx);
+	auto iter = mMaterialMap.find(pMaterial);
+	if (iter != mMaterialMap.end())
+	{
+		return iter->second;
+	}
+	else
+	{
+		auto ref = mMaterialMap[pMaterial] = GE_ALLOC(GADRMaterial)(this, pMaterial);
+		assert(ref != nullptr);
+
+		return ref;
+	}
+
+	return nullptr;
+}
+
+uint32_t Renderer::GetWindowWidth() const
+{
+	return mWindowWidth;
+}
+
+uint32_t Renderer::GetWindowHeight() const
+{
+	return mWindowHeight;
 }

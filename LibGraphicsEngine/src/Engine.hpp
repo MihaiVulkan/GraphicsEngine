@@ -2,10 +2,9 @@
 #define ENGINE_HPP
 
 #include "AppConfig.hpp"
-#include "Foundation/TypeDefs.hpp"
-#include "Foundation/RTTI.hpp"
+#include "Foundation/Object.hpp"
 #include "Foundation/NoCopyNoMove.hpp"
-#include "Foundation/Singleton.hpp"
+#include "Foundation/DynamicSingleton.hpp"
 #include <string>
 
 /* SETUP
@@ -41,12 +40,12 @@ namespace GraphicsEngine
 	class InputSystem;
 	class GraphicsSystem;
 
-	class Engine : public RTTI, public Singleton<Engine>
+	class Engine : public Object, public DynamicSingleton<Engine>
 	{
 		GE_RTTI(GraphicsEngine::Engine)
 
 		// to keep ctor() and dtor() private
-		friend Singleton<Engine>;
+		friend DynamicSingleton<Engine>;
 
 	public:
 		void Init(const std::string& name, uint32_t width, uint32_t height);
@@ -54,8 +53,9 @@ namespace GraphicsEngine
 
 		void Run();
 
-		GraphicsSystem* GetGraphicsSystem() { return mpGraphicsSystem; }
-		InputSystem* GetInputSystem() { return mpInputSystem; }
+		Platform::GE_Window* GetWindow();
+		GraphicsSystem* GetGraphicsSystem();
+		InputSystem* GetInputSystem();
 
 	private:
 		NO_COPY_NO_MOVE(Engine)
@@ -64,7 +64,10 @@ namespace GraphicsEngine
 		virtual ~Engine();
 
 
-		void FPSCount(bfloat32_t deltaTime);
+		void FPSCount(float32_t deltaTime);
+
+		// Window - TODO - only one window for now
+		Platform::GE_Window* mpWindow;
 
 		GraphicsSystem* mpGraphicsSystem;
 		InputSystem* mpInputSystem;

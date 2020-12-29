@@ -9,14 +9,32 @@ using namespace GraphicsEngine::Graphics;
 
 GroupNode::GroupNode()
 	: Node()
-{}
+{
+	Create();
+}
 
 GroupNode::GroupNode(const std::string& name)
 	: Node(name)
-{}
+{
+	Create();
+}
 
 GroupNode::~GroupNode()
-{}
+{
+	Destroy();
+}
+
+void GroupNode::Create()
+{
+
+}
+
+void GroupNode::Destroy()
+{
+	// TODO - properly destroy all children
+
+	mChildren.clear();
+}
 
 bool_t GroupNode::HasChildren() const
 {
@@ -25,6 +43,7 @@ bool_t GroupNode::HasChildren() const
 
 void GroupNode::AttachNode(Node* pNode)
 {
+	assert(pNode != nullptr);
 	assert(pNode != nullptr);
 
 	// node to add already is attached to this parent
@@ -67,13 +86,13 @@ Node* GroupNode::GetNodeAt(uint32_t index)
 	return mChildren[index];
 }
 
-Node* GroupNode::GetNode(const std::string& name)
+Node* GroupNode::GetNode(const std::string& nodeName)
 {
-	assert(! name.empty());
+	assert(nodeName.empty() == false);
 
 	for (auto& pNode : mChildren)
 	{
-		if (pNode->GetName() == name)
+		if (pNode->GetName() == nodeName)
 			return pNode;
 	}
 

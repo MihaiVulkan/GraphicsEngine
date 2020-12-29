@@ -10,15 +10,13 @@ using namespace GraphicsEngine::Graphics;
 VertexBuffer::VertexBuffer()
 	: Buffer()
 	, mpFormat(nullptr)
-	, mUsage(VertexBuffer::Usage::U_COUNT)
-	, mInputRate(VertexBuffer::InputRate::IR_COUNT)
+	, mInputRate(VertexBuffer::InputRate::GE_IR_COUNT)
 	, mVertexCount(0)
 {}
 
-VertexBuffer::VertexBuffer(VertexFormat* pFormat, VertexBuffer::Usage usage, VertexBuffer::InputRate inputRate, void* pData, uint32_t size)
-	: Buffer(pData, size)
+VertexBuffer::VertexBuffer(VertexFormat* pFormat, Buffer::BufferUsage usage, VertexBuffer::InputRate inputRate, void* pData, uint32_t size)
+	: Buffer(usage, pData, size)
 	, mpFormat(pFormat)
-	, mUsage(usage)
 	, mInputRate(inputRate)
 	, mVertexCount(0)
 {
@@ -36,14 +34,13 @@ void VertexBuffer::Create(void* pData)
 
 	Buffer::SetData(pData, mSize);
 
-	mVertexCount = mSize / mpFormat->GetTotalStride();
+	mVertexCount = mSize / mpFormat->GetVertexTotalStride();
 }
 
 void VertexBuffer::Destroy()
 {
 	mVertexCount = 0;
-	mInputRate = InputRate::IR_COUNT;
-	mUsage = Usage::U_COUNT;
+	mInputRate = InputRate::GE_IR_COUNT;
 	mpFormat = nullptr;
 	
 	Buffer::Destroy();
@@ -52,11 +49,6 @@ void VertexBuffer::Destroy()
 VertexFormat* VertexBuffer::GetFormat() const
 {
 	return mpFormat;
-}
-
-const VertexBuffer::Usage& VertexBuffer::GetUsage() const
-{
-	return mUsage;
 }
 
 const VertexBuffer::InputRate& VertexBuffer::GetInputRate() const

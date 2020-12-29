@@ -2,6 +2,7 @@
 #define GRAPHICS_RENDERING_RESOURCES_MATERIAL_HPP
 
 #include "Resource.hpp"
+
 #include <vector>
 #include <array>
 
@@ -16,8 +17,7 @@ namespace GraphicsEngine
 	namespace Graphics
 	{
 		class Texture;
-		class Shader;
-		class UniformBuffer;
+		//class Shader;
 
 		// Material - used to store material data to pass to a specific Graphics API
 		class Material : public Resource
@@ -30,23 +30,19 @@ namespace GraphicsEngine
 				Color3f ambient;
 				Color3f diffuse;
 				Color3f specular;
-				bfloat32_t shininess;
-				bfloat32_t emissive;
+				float32_t shininess;
+				float32_t emissive;
 			};
 
 			typedef std::array<Texture*, MAP_COUNT> TextureArray;
 
 			Material();
-			explicit Material(const Material::MaterialProperties& properties, const std::vector<Shader*>& shaders);
+			explicit Material(const Material::MaterialProperties& properties);
 			virtual ~Material();
 
 
-			void SetShaders(const std::vector<Shader*>& shaders);
-			const std::vector<Shader*>& GetShaders() const;
-
-			//TODO
-			void SetUniformBuffer(UniformBuffer* uniformBuffer);
-			UniformBuffer* GetUniformBuffer() const;
+		//	void SetShaders(const std::vector<Shader*>& shaders);
+		//	const std::vector<Shader*>& GetShaders() const;
 
 			const Material::MaterialProperties& GetMaterialProperties() const;
 
@@ -58,12 +54,11 @@ namespace GraphicsEngine
 			void Create();
 			void Destroy();
 
-			std::vector<Shader*> mShaders;
-			UniformBuffer* mpUniformBuffer; //TODO - move out of here
+		//	std::vector<Shader*> mShaders;
+			TextureArray mTextures;
 
 			MaterialProperties mProperties;
 
-			TextureArray mTextures;
 		};
 
 	}

@@ -30,6 +30,7 @@ VulkanSurface::~VulkanSurface()
 void VulkanSurface::Create()
 {
 	assert(mpDevice != nullptr);
+	assert(mpDevice->GetWindow() != nullptr);
 
 	// TODO - fix this
 #ifdef _WIN32
@@ -49,6 +50,8 @@ void VulkanSurface::Create()
 
 void VulkanSurface::Destroy()
 {
+	assert(mpDevice != nullptr);
+
 	if (mHandle)
 	{
 		vkDestroySurfaceKHR(mpDevice->GetInstanceHandle(), mHandle, nullptr);

@@ -2,13 +2,12 @@
 #define SYSTEM_HPP
 
 #include "AppConfig.hpp"
-#include "Foundation/TypeDefs.hpp"
+#include "Foundation/Object.hpp"
 #include "Foundation/NoCopyNoMove.hpp"
-#include "Foundation/RTTI.hpp"
 
 namespace GraphicsEngine
 {
-	class System : public RTTI
+	class System : public Object
 	{
 		GE_RTTI(GraphicsEngine::System)
 

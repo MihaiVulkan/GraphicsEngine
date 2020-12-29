@@ -2,8 +2,7 @@
 #define GRAPHICS_RENDERING_RENDERER_HPP
 
 #include "AppConfig.hpp"
-#include "Foundation/TypeDefs.hpp"
-#include "Foundation/RTTI.hpp"
+#include "Foundation/Object.hpp"
 #include "Foundation/NoCopyNoMove.hpp"
 #include "Foundation/HashUtils.hpp"
 #include "Graphics/Rendering/RenderQueue.hpp"
@@ -32,6 +31,9 @@ namespace GraphicsEngine
 		class Shader;
 		class Material;
 
+		// Pipeline States
+		class DynamicState;
+
 		// Graphics API Dependent Resources
 		class GADRVertexFormat;
 		class GADRVertexBuffer;
@@ -45,24 +47,21 @@ namespace GraphicsEngine
 		
 		class RenderPass;
 
-		class Camera;
-
-		class GeometricPrimitive;
 		class GeometryNode;
 
 		/* Rederer is the interface used to access all that is related to rendering
 			base renderer class
 		*/
-		class Renderer : public RTTI
+		class Renderer : public Object
 		{
 			GE_RTTI(GraphicsEngine::Graphics::Renderer)
 
 		public:
 			enum class RendererType : uint8_t
 			{
-				FORWARD = 0, //TODO - for now we support only forward renderer
-				DEFERRED,
-				COUNT
+				GE_RT_FORWARD = 0, //TODO - for now we support only forward renderer
+				GE_RT_DEFERRED,
+				GE_RT_COUNT
 			};
 
 			// Resource Types
@@ -83,17 +82,16 @@ namespace GraphicsEngine
 			virtual void Init(Platform::GE_Window* pWindow);
 			virtual void Terminate();
 
-			virtual void RenderFrame() {};
-			virtual void UpdateFrame(bfloat32_t deltaTime) {};
+			virtual void RenderFrame(RenderQueue* pRenderQueue, RenderPass* pRenderPass) {};
+			virtual void UpdateFrame(Camera* pCamera, float32_t deltaTime) {};
 			virtual void SubmitFrame() {};
 	
+			virtual void OnWindowResize(uint32_t width = 0, uint32_t height = 0) {};
 
-			virtual void WindowResize(uint32_t width = 0, uint32_t height = 0) {};
+			uint32_t GetWindowWidth() const;
+			uint32_t GetWindowHeight() const;
 
-			void SetCamera(Camera* pCamera) { mpCamera = pCamera; }
-			Camera* GetCamera(void) { return mpCamera; }
-
-			Renderer::RendererType GetType() const { return mType; };
+			Renderer::RendererType GetRendererType() const { return mRendererType; };
 
 			bool_t IsPrepared() { return mIsPrepared; }
 
@@ -103,59 +101,61 @@ namespace GraphicsEngine
 			GADRVertexFormat* Bind(VertexFormat* pVertexFormat);
 			void UnBind(VertexFormat* pVertexFormat);
 
+			GADRVertexFormat* Get(VertexFormat* pVertexFormat);
+
 			GADRVertexBuffer* Bind(VertexBuffer* pVertexBuffer);
 			void UnBind(VertexBuffer* pVertexBuffer);
+
+			GADRVertexBuffer* Get(VertexBuffer* pVertexBuffer);
 
 			GADRIndexBuffer* Bind(IndexBuffer* pIndexBuffer);
 			void UnBind(IndexBuffer* pIndexBuffer);
 
+			GADRIndexBuffer* Get(IndexBuffer* pIndexBuffer);
+
 			GADRUniformBuffer* Bind(UniformBuffer* pUniformBuffer);
 			void UnBind(UniformBuffer* pUniformBuffer);
+
+			GADRUniformBuffer* Get(UniformBuffer* pUniformBuffer);
 
 			GADRTexture* Bind(Texture* pTexture);
 			void UnBind(Texture* pTexture);
 
+			GADRTexture* Get(Texture* pTexture);
+
 			GADRRenderTarget* Bind(RenderTarget* pRenderTarget);
 			void UnBind(RenderTarget* pRenderTarget);
+
+			GADRRenderTarget* Get(RenderTarget* pRenderTarget);
 
 			GADRRenderFrameBuffer* Bind(RenderFrameBuffer* pRenderFrameBuffer);
 			void UnBind(RenderFrameBuffer* pRenderFrameBuffer);
 
+			GADRRenderFrameBuffer* Get(RenderFrameBuffer* pRenderFrameBuffer);
+
 			GADRShader* Bind(Shader* pShader);
 			void UnBind(Shader* pShader);
 
-			GADRMaterial* Bind(Material* pMaterial, GeometricPrimitive* pGeoPrimitive, uint32_t currentBufferIdx); //TODO
+			GADRShader* Get(Shader* pShader);
+
+			GADRMaterial* Bind(Material* pMaterial);
 			void UnBind(Material* pMaterial);
 
+			GADRMaterial* Get(Material* pMaterial);
 
-			void OnBindMaterial(GADRMaterial* pGADRMaterial, uint32_t currentBufferIdx);
-
-			////////////////////
-
-			//VertexInputState ?
-			//InputAssemblyState ?
-
-			//AlphaState* GetAlphaState(); //blend
-			//ColorMaskState* GetColorMaskState(); //color
-			//DepthStencilState* GetDepthState(); //depth & stencil
-			//RasterizerState* GetRasterizerState(); // cull mode & poligon fill mode
-			//ViewportState* ViewportState(); // viewport & scissors
-			//RenderState* GetRenderState(); //enabled?
-
-			//Pipeline?
 
 			////////////////////
+			virtual void ComputeGraphicsResources(RenderQueue* pRenderQueue, RenderPass* pRenderPass) {};
 
-			virtual void Render(RenderQueue* pRenderQueue, RenderPass* pRenderPass) {};
-			virtual void Update(Camera* pCamera, bfloat32_t deltaTime) {};
+			virtual void UpdateUniformBuffers(RenderQueue::Renderable* pRenderable, Camera* pCamera) {};
 
-			virtual void UpdateUniformBuffers(RenderQueue::Renderable* pRenderable, Camera* pCamera) {}
+			virtual void BindShaderBinds(uint32_t currentBufferIdx) {};
 
-			virtual void BindShaderBinds(uint32_t currentBufferIdx) {}
-
-			virtual void DrawObject(RenderQueue::Renderable* pRenderable, uint32_t currentBufferIdx) {}
+			virtual void DrawObject(RenderQueue::Renderable* pRenderable, uint32_t currentBufferIdx) {};
 			virtual void DrawGeometry(GeometryNode* pGeometryNode, uint32_t currentBufferIdx) {};
 			virtual void DrawGemetricPrimitve() {};
+
+			virtual void UpdateDynamicStates(const DynamicState& dynamicState, uint32_t currentBufferIdx) {};
 
 			////////////////////
 
@@ -190,7 +190,7 @@ namespace GraphicsEngine
 
 			void CleanUpResources();
 
-			RendererType mType;
+			RendererType mRendererType;
 		};
 	}
 }

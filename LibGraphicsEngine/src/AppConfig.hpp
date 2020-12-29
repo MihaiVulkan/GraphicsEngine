@@ -3,13 +3,13 @@
 #ifndef APP_CONFIG_HPP
 #define APP_CONFIG_HPP
 
-//#define NEW_GRAPHICS /// TODO - remove
+#define USE_GLSLANG //TODO - using glsltospriv lib for shader introspection, maybe create our own code for introspection
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__WINDOWS__)
 //#define ENABLE_ALLOCATOR
 #define ENABLE_LOG
 #define VULKAN_RENDERER
-#define VULKAN_ALLOCATOR
+#define VULKAN_POOL_ALLOCATOR
 #define VULKAN_DEBUG true
 
 #define RIGHT_HAND_COORDINATES //default

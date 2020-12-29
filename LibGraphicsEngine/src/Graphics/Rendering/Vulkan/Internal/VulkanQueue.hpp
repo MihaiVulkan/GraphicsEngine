@@ -1,8 +1,7 @@
-#ifndef GRAPHICS_RENDERING_VULKAN_QUEUE_HPP
-#define GRAPHICS_RENDERING_VULKAN_QUEUE_HPP
+#ifndef GRAPHICS_RENDERING_VULKAN_INTERNAL_VULKAN_QUEUE_HPP
+#define GRAPHICS_RENDERING_VULKAN_INTERNAL_VULKAN_QUEUE_HPP
 
-#include "Foundation/TypeDefs.hpp"
-#include "vulkan/vulkan.h"
+#include "Graphics/Rendering/Vulkan/Common/VulkanObject.hpp"
 
 namespace GraphicsEngine
 {
@@ -30,14 +29,16 @@ namespace GraphicsEngine
 			Usually work is submited to queue via command buffer objects.
 
 		*/
-		class VulkanQueue
+		class VulkanQueue : public VulkanObject
 		{
+			GE_RTTI(GraphicsEngine::Graphics::VulkanQueue)
+
 		public:
 			VulkanQueue();
-			explicit VulkanQueue(VkQueueFlags typeFlags, uint32_t familyIndex, uint32_t index, bfloat32_t priority, VkDeviceQueueCreateFlags flags = 0);
+			explicit VulkanQueue(VkQueueFlags typeFlags, uint32_t familyIndex, uint32_t index, float32_t priority, VkDeviceQueueCreateFlags flags = 0);
 			virtual ~VulkanQueue();
 
-			// we have to init the queue after the VkDevice has been created!
+			// NOTE! we have to init the queue after the VkDevice has been created!
 			void Init(VkDevice deviceHandle);
 
 			VkResult WaitIdle() const;
@@ -52,15 +53,17 @@ namespace GraphicsEngine
 			const VkDeviceQueueCreateInfo& GetCreateInfo() const;
 
 		private:
+			void Create(VkDeviceQueueCreateFlags flags);
+			void Destroy();
 
 			VkQueue mHandle;
 			VkQueueFlags mTypeFlags;
 			uint32_t mFamilyIndex;
 			uint32_t mIndex;
-			bfloat32_t mPriority;
+			float32_t mPriority;
 			VkDeviceQueueCreateInfo mCreateInfo;
 		};
 	}
 }
 
-#endif // GRAPHICS_RENDERING_VULKAN_QUEUE_HPP
+#endif // GRAPHICS_RENDERING_VULKAN_INTERNAL_VULKAN_QUEUE_HPP

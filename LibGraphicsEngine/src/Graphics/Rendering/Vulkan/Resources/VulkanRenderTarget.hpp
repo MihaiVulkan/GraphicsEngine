@@ -1,5 +1,5 @@
-#ifndef GRAPHICS_RENDERING_VULKAN_RESOURCES_RENDER_TARGET_HPP
-#define GRAPHICS_RENDERING_VULKAN_RESOURCES_RENDER_TARGET_HPP
+#ifndef GRAPHICS_RENDERING_VULKAN_RESOURCES_VULKAN_RENDER_TARGET_HPP
+#define GRAPHICS_RENDERING_VULKAN_RESOURCES_VULKAN_RENDER_TARGET_HPP
 
 #include "VulkanResource.hpp"
 
@@ -10,7 +10,7 @@ namespace GraphicsEngine
 		class Renderer;
 		class RenderTarget;
 
-		class VulkanFrameBufferAttachment;
+		//class VulkanFrameBufferAttachment;
 
 		// Vulkan implementation of the Graphics API Dependent Resource
 		class GADRRenderTarget : public GADRResource
@@ -30,7 +30,7 @@ namespace GraphicsEngine
 			void Destroy();
 
 			
-			VulkanFrameBufferAttachment* mpVulkanFrameBufferAttachment;
+			//VulkanFrameBufferAttachment* mpVulkanFrameBufferAttachment;
 
 			RenderTarget* mpRenderTarget;
 
@@ -38,4 +38,4 @@ namespace GraphicsEngine
 	}
 }
 
-#endif // GRAPHICS_RENDERING_VULKAN_RESOURCES_RENDER_TARGET_HPP
+#endif // GRAPHICS_RENDERING_VULKAN_RESOURCES_VULKAN_RENDER_TARGET_HPP

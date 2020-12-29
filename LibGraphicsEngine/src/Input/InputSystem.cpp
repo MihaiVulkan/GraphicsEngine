@@ -13,25 +13,29 @@ using namespace GraphicsEngine::Graphics;
 InputSystem::InputSystem()
 	: mpWindow(nullptr)
 	, mpCamera(nullptr)
-	, mInputMode(GE_InputMode::GE_Invalid), mIsCursorCapured(false)
+	, mInputMode(InputMode::GE_IM_COUNT)
+	, mIsCursorCapured(false)
+{}
+
+
+InputSystem::InputSystem(Platform::GE_Window* pWindow, Graphics::Camera* pCamera, InputSystem::InputMode inputMode)
+	: mpWindow(pWindow)
+	, mpCamera(pCamera)
+	, mInputMode(inputMode)
+	, mIsCursorCapured(false)
 {
+	Init();
 }
 
 InputSystem::~InputSystem()
 {
-	mpWindow = nullptr;
-	mpCamera = nullptr;
+	Terminate();
 }
 
-void InputSystem::Init(Platform::GE_Window* pWindow, Graphics::Camera* pCamera, GE_InputMode inputMode)
+void InputSystem::Init()
 {
-	assert(pWindow != nullptr);
-	mpWindow = pWindow;
-
-	assert(pCamera != nullptr);
-	mpCamera = pCamera;
-
-	mInputMode = inputMode;
+	assert(mpWindow != nullptr);
+	assert(mpCamera != nullptr);
 
 	// Initial Input Setup
 	//mKeyboardKeys
@@ -54,14 +58,14 @@ void InputSystem::Init(Platform::GE_Window* pWindow, Graphics::Camera* pCamera, 
 	Platform::RegisterKeyCallback(mpWindow,
 		[this](Platform::GE_Window* pWindow, int32_t key, int32_t scancode, int32_t action, int32_t mods)
 		{
-			if (mpWindow->keys[GE_KEY_ESCAPE])
+			if (pWindow->keys[GE_KEY_ESCAPE])
 			{
 				Platform::SetShouldWindowClose(pWindow, true);
 			}
 
-			if (mInputMode == GE_InputMode::GE_FPS)
+			if (mInputMode == InputMode::GE_IM_FPS)
 			{
-				if (mpWindow->keys[GE_KEY_1])
+				if (pWindow->keys[GE_KEY_1])
 				{
 					mIsCursorCapured = !mIsCursorCapured;
 
@@ -74,11 +78,11 @@ void InputSystem::Init(Platform::GE_Window* pWindow, Graphics::Camera* pCamera, 
 
 	switch (mInputMode)
 	{
-		case GE_InputMode::GE_Standrd:
+		case InputMode::GE_IM_STANDARD:
 			break;
-		case GE_InputMode::GE_LookAt:
+		case InputMode::GE_IM_LOOK_AT:
 			break;
-		case GE_InputMode::GE_FPS:
+		case InputMode::GE_IM_FPS:
 		{
 			// In First Person Shooter mode
 			// The mouse cursor is:
@@ -95,11 +99,7 @@ void InputSystem::Init(Platform::GE_Window* pWindow, Graphics::Camera* pCamera, 
 
 			Platform::HideCursor();
 
-			// conversion unsigned int -> int
-			int32_t halfWidth = mpWindow->width / 2;
-			int32_t halfHeight = mpWindow->height / 2;
-
-			Platform::SetCursorPos(mpWindow, halfWidth, halfHeight);
+			UpdateCursorPos();
 		}
 		break;
 	}
@@ -108,15 +108,40 @@ void InputSystem::Init(Platform::GE_Window* pWindow, Graphics::Camera* pCamera, 
 	// ...
 }
 
-void InputSystem::UpdateContinuousInput(bfloat32_t deltaTime)
+void InputSystem::Terminate()
+{
+	mInputMode = InputMode::GE_IM_COUNT;
+	mIsCursorCapured = false;
+
+	if (mpCamera)
+	{
+		mpCamera = nullptr;
+	}
+
+	if (mpWindow)
+	{
+		mpWindow = nullptr;
+	}
+}
+
+void InputSystem::UpdateCursorPos()
+{
+	// conversion unsigned int -> int
+	uint32_t winWidth = 0, winHeight = 0;
+	Platform::GetWindowSize(mpWindow, &winWidth, &winHeight);
+
+	Platform::SetCursorPos(mpWindow, winWidth / 2, winHeight / 2);
+}
+
+void InputSystem::UpdateContinuousInput(float32_t deltaTime)
 {
 	switch (mInputMode)
 	{
-	case GE_InputMode::GE_Standrd:
+	case InputMode::GE_IM_STANDARD:
 		break;
-	case GE_InputMode::GE_LookAt:
+	case InputMode::GE_IM_LOOK_AT:
 		break;
-	case GE_InputMode::GE_FPS:
+	case InputMode::GE_IM_FPS:
 		UpdateFPSInput(deltaTime);
 		break;
 	}
@@ -124,44 +149,45 @@ void InputSystem::UpdateContinuousInput(bfloat32_t deltaTime)
 	mpCamera->UpdateViewMatrix();
 }
 
-void InputSystem::UpdateFPSInput(bfloat32_t deltaTime)
+void InputSystem::UpdateFPSInput(float32_t deltaTime)
 {
+	//TODO - remove dynamic_cast at runtime as it is really slow!!!
 	FPSCamera* pFPSCamera = dynamic_cast<FPSCamera*>(mpCamera);
 	assert(pFPSCamera != nullptr);
 
 	{
 		///////// KEYBOARD ///////////
-		const bfloat32_t KeySpeed = 0.01f;
-		bfloat32_t deltaVal = KeySpeed * deltaTime;
+		const float32_t KeySpeed = 0.01f;
+		float32_t deltaVal = KeySpeed * deltaTime;
 
 		if (mpWindow->keys[GE_KEY_W] || mpWindow->keys[GE_KEY_UP])
 		{
-			pFPSCamera->UpdatePositionWithKeyboard(deltaVal, FPSCamera::CAMERA_DIRECTIONS::CD_FORWARD);
+			pFPSCamera->UpdatePositionWithKeyboard(deltaVal, FPSCamera::CAMERA_DIRECTIONS::GE_CD_FORWARD);
 		}
 
 		if (mpWindow->keys[GE_KEY_S] || mpWindow->keys[GE_KEY_DOWN])
 		{
-			pFPSCamera->UpdatePositionWithKeyboard(deltaVal, FPSCamera::CAMERA_DIRECTIONS::CD_BACKWARD);
+			pFPSCamera->UpdatePositionWithKeyboard(deltaVal, FPSCamera::CAMERA_DIRECTIONS::GE_CD_BACKWARD);
 		}
 
 		if (mpWindow->keys[GE_KEY_A] || mpWindow->keys[GE_KEY_LEFT])
 		{
-			pFPSCamera->UpdatePositionWithKeyboard(deltaVal, FPSCamera::CAMERA_DIRECTIONS::CD_LEFT);
+			pFPSCamera->UpdatePositionWithKeyboard(deltaVal, FPSCamera::CAMERA_DIRECTIONS::GE_CD_LEFT);
 		}
 
 		if (mpWindow->keys[GE_KEY_D] || mpWindow->keys[GE_KEY_RIGHT])
 		{
-			pFPSCamera->UpdatePositionWithKeyboard(deltaVal, FPSCamera::CAMERA_DIRECTIONS::CD_RIGHT);
+			pFPSCamera->UpdatePositionWithKeyboard(deltaVal, FPSCamera::CAMERA_DIRECTIONS::GE_CD_RIGHT);
 		}
 
 		if (mpWindow->keys[GE_KEY_U])
 		{
-			pFPSCamera->UpdatePositionWithKeyboard(deltaVal, FPSCamera::CAMERA_DIRECTIONS::CD_UP);
+			pFPSCamera->UpdatePositionWithKeyboard(deltaVal, FPSCamera::CAMERA_DIRECTIONS::GE_CD_UP);
 		}
 
 		if (mpWindow->keys[GE_KEY_B])
 		{
-			pFPSCamera->UpdatePositionWithKeyboard(deltaVal, FPSCamera::CAMERA_DIRECTIONS::CD_DOWN);
+			pFPSCamera->UpdatePositionWithKeyboard(deltaVal, FPSCamera::CAMERA_DIRECTIONS::GE_CD_DOWN);
 		}
 	}
 
@@ -174,13 +200,16 @@ void InputSystem::UpdateFPSInput(bfloat32_t deltaTime)
 
 		//	LOG_DEBUG("Mouse Pos: x: %d, y: %d", cursorXPos, cursorYPos);
 
-		// conversion unsigned int -> int
-		int32_t halfWidth = mpWindow->width / 2;
-		int32_t halfHeight = mpWindow->height / 2;
+		uint32_t winWidth = 0, winHeight = 0;
+		Platform::GetWindowSize(mpWindow, &winWidth, &winHeight);
 
-		const bfloat32_t MouseSpeed = 0.005f;
-		bfloat32_t dx = (halfWidth - cursorXPos) * MouseSpeed * deltaTime;
-		bfloat32_t dy = (halfHeight - cursorYPos) * MouseSpeed * deltaTime;
+		// conversion unsigned int -> int
+		int32_t halfWidth = winWidth / 2;
+		int32_t halfHeight = winHeight / 2;
+
+		const float32_t MouseSpeed = 0.005f;
+		float32_t dx = (halfWidth - cursorXPos) * MouseSpeed * deltaTime;
+		float32_t dy = (halfHeight - cursorYPos) * MouseSpeed * deltaTime;
 
 		//	LOG_DEBUG("Delta Mouse Pos: dx: %f, dy: %f", dx, dy);
 

@@ -1,8 +1,7 @@
-#ifndef GRAPHICS_RENDERING_VULKAN_PIPELINE_LAYOUT_HPP
-#define GRAPHICS_RENDERING_VULKAN_PIPELINE_LAYOUT_HPP
+#ifndef GRAPHICS_RENDERING_VULKAN_INTERNAL_VULKAN_PIPELINE_LAYOUT_HPP
+#define GRAPHICS_RENDERING_VULKAN_INTERNAL_VULKAN_PIPELINE_LAYOUT_HPP
 
-#include "Foundation/TypeDefs.hpp"
-#include "vulkan/vulkan.h"
+#include "Graphics/Rendering/Vulkan/Common/VulkanObject.hpp"
 #include <vector>
 
 namespace GraphicsEngine
@@ -23,8 +22,10 @@ namespace GraphicsEngine
 			interface between shader stages and shader resources. Each pipeline is created using a
 			pipeline layout.
 		*/
-		class VulkanPipelineLayout
+		class VulkanPipelineLayout : public VulkanObject
 		{
+			GE_RTTI(GraphicsEngine::Graphics::VulkanPipelineLayout)
+
 		public:
 			VulkanPipelineLayout();
 			explicit VulkanPipelineLayout(VulkanDevice* pDevice, const std::vector<VulkanDescriptorSetLayout*>& descriptorSetLayouts, const std::vector<VkPushConstantRange>& pushConstantRanges,
@@ -44,4 +45,4 @@ namespace GraphicsEngine
 	}
 }
 
-#endif // GRAPHICS_RENDERING_VULKAN_PIPELINE_LAYOUT_HPP
+#endif // GRAPHICS_RENDERING_VULKAN_INTERNAL_VULKAN_PIPELINE_LAYOUT_HPP

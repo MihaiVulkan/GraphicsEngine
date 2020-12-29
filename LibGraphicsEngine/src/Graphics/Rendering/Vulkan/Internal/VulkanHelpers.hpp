@@ -1,5 +1,5 @@
-#ifndef GRAPHICS_RENDERING_VULKAN_HELPERS_HPP
-#define GRAPHICS_RENDERING_VULKAN_HELPERS_HPP
+#ifndef GRAPHICS_RENDERING_VULKAN_INTERNAL_VULKAN_HELPERS_HPP
+#define GRAPHICS_RENDERING_VULKAN_INTERNAL_VULKAN_HELPERS_HPP
 
 #include "Foundation/TypeDefs.hpp"
 #include "Foundation/Logger.hpp"
@@ -34,10 +34,10 @@ namespace GraphicsEngine
 #define VK_CHECK_RESULT(funCall)																				\
 	{																										\
 		VkResult vkRes = (funCall);																					\
-		if (vkRes != VK_SUCCESS)																				\
+		if (vkRes != VkResult::VK_SUCCESS)																				\
 		{																									\
 			LOG_DEBUG("Fatal : VkResult is \"%s\"", VulkanHelpers::ErrorString(vkRes).c_str());		\
-			assert(vkRes == VK_SUCCESS);																		\
+			assert(vkRes == VkResult::VK_SUCCESS);																		\
 		}																									\
 	}
 			void ListInstanceSupportedLayers(const std::vector<VkLayerProperties>& supportedInstanceLayers);
@@ -62,4 +62,4 @@ namespace GraphicsEngine
 	}
 }
 
-#endif // GRAPHICS_RENDERING_VULKAN_HELPERS_HPP
+#endif // GRAPHICS_RENDERING_VULKAN_INTERNAL_VULKAN_HELPERS_HPP

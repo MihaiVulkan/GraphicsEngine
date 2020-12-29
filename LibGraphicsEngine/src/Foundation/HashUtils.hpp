@@ -2,6 +2,7 @@
 #define FOUNDATION_HASH_UTILS_HPP
 
 #include "TypeDefs.hpp"
+#include <typeinfo> //std::type_info, std::typeid()
 
 namespace GraphicsEngine
 {
@@ -21,6 +22,16 @@ namespace GraphicsEngine
 				return addr;
 			}
 		};
+
+		template <typename T>
+		static std::size_t GetTypeHash()
+		{
+			//const std::type_info& ti = typeid(T);
+			//return ti.hash_code();
+
+			return typeid(T).hash_code();
+		}
+
 	}
 }
 

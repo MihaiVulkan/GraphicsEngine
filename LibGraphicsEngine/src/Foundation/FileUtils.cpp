@@ -1,19 +1,19 @@
 #include "FileUtils.hpp"
 #include "MemoryManagement/MemoryOperations.hpp"
 #include "Logger.hpp"
-#include "fstream"
+#include <fstream>
+#include <sstream>
 #include <cassert>
 
 namespace GraphicsEngine
 {
 	namespace FileUtils
 	{
-		char_t* ReadFile(const char_t* pFilePath, uint32_t& sizeOut)
+		void ReadFile(const std::string& filePath, std::string& fileContentOut)
 		{
-			assert(pFilePath != nullptr);
+			assert(filePath.empty() == false);
 
-			char_t* pFileContent = nullptr;
-			std::ifstream is(pFilePath, std::ios::binary | std::ios::in | std::ios::ate);
+			std::ifstream is(filePath.c_str(), std::ios::binary | std::ios::in | std::ios::ate);
 
 			if (is.is_open())
 			{
@@ -21,20 +21,16 @@ namespace GraphicsEngine
 				assert(size > 0);
 				is.seekg(0, std::ios::beg);
 
-				pFileContent = GE_ALLOC_ARRAY(char_t, (size + 1)); //1 more for terminator operator
-				is.read(pFileContent, size);
+				std::ostringstream ss;
+				ss << is.rdbuf(); // reading data directly form the file stream to the outputstream
+				fileContentOut = ss.str();
+
 				is.close();
-
-				pFileContent[size] = '\0';
-
-				sizeOut = size + 1;
 			}
 			else
 			{
-				LOG_ERROR("Could not open shader file \"%s\"\n", pFilePath);
-				return nullptr;
+				LOG_ERROR("Could not open shader file \"%s\"\n", filePath.c_str());
 			}
-			return pFileContent;
 		}
 	}
 }

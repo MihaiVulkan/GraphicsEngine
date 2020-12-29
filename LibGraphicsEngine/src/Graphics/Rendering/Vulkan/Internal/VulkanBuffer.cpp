@@ -1,6 +1,7 @@
 #include "VulkanBuffer.hpp"
 #include "VulkanDevice.hpp"
 #include "VulkanQueue.hpp"
+#include "VulkanCommandPool.hpp"
 #include "VulkanCommandBuffer.hpp"
 #include "VulkanPassThroughAllocator.hpp"
 #include "VulkanInitializers.hpp"
@@ -19,8 +20,8 @@ VulkanBuffer::VulkanBuffer()
 {}
 
 VulkanBuffer::VulkanBuffer(VulkanDevice* pDevice, VkMemoryPropertyFlags memoryPropertyFlags, VkBufferUsageFlags usageFlags, VkDeviceSize size,
-	void* pData, VkSharingMode sharingMode, uint32_t queueFamilyIndexCount, const uint32_t* pQueueFamilyIndices,
-	VkBufferCreateFlags flags)
+							void* pData, VkSharingMode sharingMode, uint32_t queueFamilyIndexCount, const uint32_t* pQueueFamilyIndices,
+							VkBufferCreateFlags flags)
 	: mpDevice(pDevice)
 	, mHandle(VK_NULL_HANDLE)
 	, mAllocation()
@@ -41,6 +42,7 @@ VulkanBuffer::~VulkanBuffer()
 void VulkanBuffer::Create(const VkBufferCreateInfo& bufferCreateInfo, VkMemoryPropertyFlags memoryPropertyFlags, void* pData)
 {
 	assert(mpDevice != nullptr);
+	assert(mpDevice->GetAllocator() != nullptr);
 
 	VK_CHECK_RESULT(vkCreateBuffer(mpDevice->GetDeviceHandle(), &bufferCreateInfo, nullptr, &mHandle));
 
@@ -51,7 +53,7 @@ void VulkanBuffer::Create(const VkBufferCreateInfo& bufferCreateInfo, VkMemoryPr
 	assert(mpDevice->GetMemoryTypeFromProperties(memReqs.memoryTypeBits, memoryPropertyFlags, typeIndex) == true);
 
 	// Alloc
-	mpDevice->GetAllocator()->Alloc(mAllocation, memoryPropertyFlags, typeIndex, memReqs.size);
+	mpDevice->GetAllocator()->Alloc(memoryPropertyFlags, typeIndex, memReqs.size, mAllocation);
 
 	// if valid data available, we map it and copy to the buffer
 	if (pData)
@@ -70,6 +72,8 @@ void VulkanBuffer::Create(const VkBufferCreateInfo& bufferCreateInfo, VkMemoryPr
 
 void VulkanBuffer::Destroy()
 {
+	assert(mpDevice != nullptr);
+
 	if (mpMappedData)
 	{
 		mpMappedData = nullptr;
@@ -99,6 +103,7 @@ void VulkanBuffer::Destroy()
 
 VkResult VulkanBuffer::Map(VkDeviceSize size, VkDeviceSize offset, VkMemoryMapFlags flags)
 {
+	assert(mpDevice != nullptr);
 	// important to use memory property VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT
 
 	return vkMapMemory(mpDevice->GetDeviceHandle(), mAllocation.handle, offset, size, flags, &mpMappedData);
@@ -106,6 +111,8 @@ VkResult VulkanBuffer::Map(VkDeviceSize size, VkDeviceSize offset, VkMemoryMapFl
 
 void VulkanBuffer::UnMap()
 {
+	assert(mpDevice != nullptr);
+
 	// no return as UnMap can not fail
 	vkUnmapMemory(mpDevice->GetDeviceHandle(), mAllocation.handle);
 }
@@ -121,16 +128,20 @@ void VulkanBuffer::SetData(void* pData, VkDeviceSize size)
 
 VkResult VulkanBuffer::Bind(VkDeviceSize offset)
 {
+	assert(mpDevice != nullptr);
+
 	return vkBindBufferMemory(mpDevice->GetDeviceHandle(), mHandle, mAllocation.handle, offset);
 }
 
 void VulkanBuffer::CopyTo(VulkanBuffer* pDestBuffer, VulkanQueue* pQueue, VkBufferCopy* pCopyRegion)
 {
+	assert(mpDevice != nullptr);
 	assert(pDestBuffer != nullptr);
 	assert(pDestBuffer->GetSize() <= mSize);
 	assert(pQueue != nullptr);
 
-	VulkanCommandBuffer copyCommandBuffer(mpDevice, VkCommandBufferLevel::VK_COMMAND_BUFFER_LEVEL_PRIMARY, true);
+	VulkanCommandPool copyCommandPool(mpDevice, pQueue->GetFamilyIndex());
+	VulkanCommandBuffer copyCommandBuffer(mpDevice, copyCommandPool.GetHandle(), VkCommandBufferLevel::VK_COMMAND_BUFFER_LEVEL_PRIMARY, true);
 
 	VkBufferCopy bufferCopy {};
 	if (pCopyRegion == nullptr)
@@ -150,7 +161,9 @@ void VulkanBuffer::CopyTo(VulkanBuffer* pDestBuffer, VulkanQueue* pQueue, VkBuff
 
 void VulkanBuffer::SetDecriptorInfo(VkDeviceSize size, VkDeviceSize offset)
 {
-	mDefaultDescriptorInfo = VulkanInitializers::DescriptorBufferInfo(mHandle, offset, size);
+	mDefaultDescriptorInfo.buffer = mHandle;
+	mDefaultDescriptorInfo.range = size;
+	mDefaultDescriptorInfo.offset = offset;
 }
 
 const VkBuffer& VulkanBuffer::GetHandle() const

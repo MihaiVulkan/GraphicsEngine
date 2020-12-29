@@ -4,126 +4,79 @@
 
 #include "Foundation/MemoryManagement/MemoryOperations.hpp"
 #include "Foundation/Logger.hpp"
+
 #include "Graphics/Rendering/RenderQueue.hpp"
 #include "Graphics/Rendering/RenderPasses/RenderPass.hpp"
+
 #include "Graphics/SceneGraph/GeometryNode.hpp"
 #include "Graphics/GeometricPrimitives/GeometricPrimitive.hpp"
 #include "Graphics/Camera/Camera.hpp"
+
+#include "Graphics/Components/VisualComponent.hpp"
+#include "Graphics/Components/MaterialComponent.hpp"
+
 #include "Graphics/Rendering/Resources/Material.hpp"
 #include "Graphics/Rendering/Resources/UniformBuffer.hpp"
 
+#include "Graphics/ShaderTools/GLSL/GLSLShaderParser.hpp"
+
+// Common
+#include "Graphics/Rendering/Vulkan/Common/VulkanCommon.hpp"
+#include "Graphics/Rendering/Vulkan/Common/VulkanUtils.hpp"
+
 // Resources
-#include "Resources/VulkanVertexFormat.hpp"
-#include "Resources/VulkanVertexBuffer.hpp"
-#include "Resources/VulkanIndexBuffer.hpp"
-#include "Resources/VulkanShader.hpp"
-#include "Resources/VulkanTexture.hpp"
-#include "Resources/VulkanMaterial.hpp"
-#include "Resources/VulkanUniformBuffer.hpp"
+#include "Graphics/Rendering/Vulkan/Resources/VulkanVertexFormat.hpp"
+#include "Graphics/Rendering/Vulkan/Resources/VulkanVertexBuffer.hpp"
+#include "Graphics/Rendering/Vulkan/Resources/VulkanIndexBuffer.hpp"
+#include "Graphics/Rendering/Vulkan/Resources/VulkanShader.hpp"
+#include "Graphics/Rendering/Vulkan/Resources/VulkanTexture.hpp"
+#include "Graphics/Rendering/Vulkan/Resources/VulkanMaterial.hpp"
+#include "Graphics/Rendering/Vulkan/Resources/VulkanUniformBuffer.hpp"
 
-#include "Internal/VulkanCommon.hpp"
-#include "Internal/VulkanPassThroughAllocator.hpp"
-#include "Internal/VulkanPoolAllocator.hpp"
-#include "Internal/VulkanDevice.hpp"
-#include "Internal/VulkanQueue.hpp"
-#include "Internal/VulkanBuffer.hpp"
-#include "Internal/VulkanCommandBuffer.hpp"
-#include "Internal/VulkanFrameBuffer.hpp"
-#include "Internal/VulkanFrameBufferAttachment.hpp"
-#include "Internal/VulkanRenderPass.hpp"
-#include "Internal/VulkanRenderPassAttachment.hpp"
-#include "Internal/VulkanSubPass.hpp"
-#include "Internal/VulkanSemaphore.hpp"
-#include "Internal/VulkanFence.hpp"
-#include "Internal/VulkanShaderModule.hpp"
-#include "Internal/VulkanDescriptorPool.hpp"
-#include "Internal/VulkanDescriptorSetLayout.hpp"
-#include "Internal/VulkanDescriptorSet.hpp"
-#include "Internal/VulkanPipelineCache.hpp"
-#include "Internal/VulkanPipelineLayout.hpp"
-#include "Internal/VulkanGraphicsPipeline.hpp"
-#include "Internal/VulkanQueryPool.hpp"
-#include "Internal/VulkanInitializers.hpp"
-#include "Internal/VulkanHelpers.hpp"
-#include "Internal/VulkanDebug.hpp"
+//Internal
+#include "Graphics/Rendering/Vulkan/Internal/VulkanPassThroughAllocator.hpp"
+#include "Graphics/Rendering/Vulkan/Internal/VulkanPoolAllocator.hpp"
+#include "Graphics/Rendering/Vulkan/Internal/VulkanDevice.hpp"
+#include "Graphics/Rendering/Vulkan/Internal/VulkanQueue.hpp"
+#include "Graphics/Rendering/Vulkan/Internal/VulkanBuffer.hpp"
+#include "Graphics/Rendering/Vulkan/Internal/VulkanCommandPool.hpp"
+#include "Graphics/Rendering/Vulkan/Internal/VulkanCommandBuffer.hpp"
+#include "Graphics/Rendering/Vulkan/Internal/VulkanFrameBuffer.hpp"
+#include "Graphics/Rendering/Vulkan/Internal/VulkanSwapChainBuffer.hpp"
+#include "Graphics/Rendering/Vulkan/Internal/VulkanRenderPass.hpp"
+#include "Graphics/Rendering/Vulkan/Internal/VulkanSemaphore.hpp"
+#include "Graphics/Rendering/Vulkan/Internal/VulkanFence.hpp"
+#include "Graphics/Rendering/Vulkan/Internal/VulkanShaderModule.hpp"
+#include "Graphics/Rendering/Vulkan/Internal/VulkanDescriptorPool.hpp"
+#include "Graphics/Rendering/Vulkan/Internal/VulkanDescriptorSetLayout.hpp"
+#include "Graphics/Rendering/Vulkan/Internal/VulkanDescriptorSet.hpp"
+#include "Graphics/Rendering/Vulkan/Internal/VulkanPipelineCache.hpp"
+#include "Graphics/Rendering/Vulkan/Internal/VulkanPipelineLayout.hpp"
+#include "Graphics/Rendering/Vulkan/Internal/VulkanGraphicsPipeline.hpp"
+#include "Graphics/Rendering/Vulkan/Internal/VulkanQueryPool.hpp"
+#include "Graphics/Rendering/Vulkan/Internal/VulkanInitializers.hpp"
+#include "Graphics/Rendering/Vulkan/Internal/VulkanHelpers.hpp"
+#include "Graphics/Rendering/Vulkan/Internal/VulkanDebug.hpp"
 
-#ifndef NEW_GRAPHICS
-#include <fstream>
-#include <iostream>
-#include <array>
-#include <cassert>
+#include <unordered_map>
 
-#include "glm/gtc/matrix_transform.hpp"
-#include "glm/trigonometric.hpp"
-
-
-/* Number of viewports and number of scissors have to be the same */
-/* at pipeline creation and in any call to set them dynamically   */
-/* They also have to be the same as each other                    */
-#define NUM_VIEWPORTS 1
-#define NUM_SCISSORS NUM_VIEWPORTS
-
-#define VERTEX_STAGE 0
-#define FRAGMENT_STAGE 1
-#define SHADER_COUNT 2
-
-
-#define TRIANGLE
-//#define CUBE
-
-#if defined(TRIANGLE)
-#define USE_INDEX_BUFFER
-#undef CUBE
-#endif
-
-#if defined(CUBE)
-#undef TRIANGLE
-#endif
-
-#endif // NEW_GRAPHICS
-
-/* Number of descriptor sets needs to be the same at alloc,       */
-/* pipeline layout creation, and descriptor set layout creation   */
-#define NUM_DESCRIPTOR_SETS 1
-
-/* Number of samples needs to be the same at image creation,      */
-/* renderpass creation and pipeline creation.                     */
-#define NUM_SAMPLES VK_SAMPLE_COUNT_1_BIT
-
-#define SUBPASS_ID 0
-
-#define COLOR_ATT 0
-#define DEPTH_ATT 1
-#define ATT_COUNT 2
-
-#define PIPELINE_STATS
+//#define PIPELINE_STATS
 
 
 using namespace GraphicsEngine;
 using namespace GraphicsEngine::Graphics;
 
 VulkanRenderer::VulkanRenderer()
-	: Renderer(RendererType::FORWARD)
+	: Renderer(RendererType::GE_RT_FORWARD)
 	, mpDevice(nullptr)
-	, mpDepthStencil(nullptr)
 	, mpDefaultRenderPass(nullptr)
 	, mpRenderCompleteSemaphore(nullptr)
 	, mpPresentCompleteSemaphore(nullptr)
+	, mpCommandPool(nullptr)
 	, mCurrentBufferIdx(0) 
 	, mSubmitInfo{}
 	, mpPipelineCache(nullptr)
 	, mpQueryPool(nullptr)
-#ifndef NEW_GRAPHICS
-	, mpDescriptorPool(nullptr)
-	, mpDescriptorSet(nullptr)
-	, mpDescriptorSetLayout(nullptr)
-	, mpPipelineLayout(nullptr)
-	, mpGraphicsPipeline(nullptr)
-	, mpVertices(nullptr)
-	, mpIndices(nullptr)
-	, mIndicesCount(0)
-	, mpUniformBufferVS(nullptr)
-#endif
 {}
 
 
@@ -137,12 +90,21 @@ void VulkanRenderer::Init(Platform::GE_Window* pWindow)
 	Renderer::Init(pWindow);
 
 	mpDevice = GE_ALLOC(VulkanDevice)(pWindow, VULKAN_DEBUG);
+	assert(mpDevice != nullptr);
+
+	// NOTE! adjust view size as the surfa capabilities differ from the native window size
+	auto surfCapabilities = mpDevice->GetSurfaceCapabilities();
+
+	mWindowWidth = surfCapabilities.currentExtent.width;
+	mWindowHeight = surfCapabilities.currentExtent.height;
 
 	Prepare();
 }
 
 void VulkanRenderer::Terminate()
 {
+	assert(mpDevice != nullptr);
+
 	// wait for the device to finish ongoing operations on all owned queues
 	mpDevice->WaitIdle();
 
@@ -152,6 +114,27 @@ void VulkanRenderer::Terminate()
 #endif
 
 	Renderer::Terminate();
+
+	//////////
+	// pipeline objects
+	for (auto& pipelineData : mPipelineDataCollection)
+	{
+		GE_FREE(pipelineData.pPipelineLayout);
+		GE_FREE(pipelineData.pGraphicsPipeline);
+	}
+
+	// descriptor set objects
+	for (auto& descriptorSetData : mDescriptorSetDataCollection)
+	{
+		GE_FREE(descriptorSetData.pDescriptorSetLayout);
+		GE_FREE(descriptorSetData.pDescriptorSet);
+	}
+
+	GE_FREE(mpDescriptorPool);
+
+	/////////////
+
+
 
 #ifdef PIPELINE_STATS
 	GE_FREE(mpQueryPool);
@@ -163,35 +146,9 @@ void VulkanRenderer::Terminate()
 		GE_FREE(commandBufferRef);
 	}
 
+	GE_FREE(mpCommandPool);
+
 	GE_FREE(mpPipelineCache);
-
-#ifndef NEW_GRAPHICS
-	// pipeline objects
-	GE_FREE(mpPipelineLayout);
-	GE_FREE(mpGraphicsPipeline);
-
-	// descriptor set layout
-	GE_FREE(mpDescriptorSetLayout);
-
-	// descriptor set is invalidated and destroyed with the descriptor pool
-	GE_FREE(mpDescriptorSet);
-
-	// descriptor pool
-	GE_FREE(mpDescriptorPool);
-
-
-	// uniform buffers
-	GE_FREE(mpUniformBufferVS);
-
-	// vertex buffers
-	GE_FREE(mpVertices);
-
-#if defined(USE_INDEX_BUFFER)
-	// indices buffers
-	GE_FREE(mpIndices);
-#endif // USE_INDEX_BUFFER
-
-#endif /////
 
 	// syncronization 
 	GE_FREE(mpRenderCompleteSemaphore);
@@ -209,8 +166,6 @@ void VulkanRenderer::Terminate()
 
 	GE_FREE(mpDefaultRenderPass);
 
-	GE_FREE(mpDepthStencil);
-
 
 	GE_FREE(mpDevice);
 }
@@ -220,11 +175,13 @@ void VulkanRenderer::Prepare()
 {
 	////////// GENERAL RESOURCES //////////
 
-	setupDefaultDepthStencil();
+	// All these general resources should be managed by the renderer or the Device itself!
 
 	setupDefaultRenderPass();
 
 	setupDefaultFrameBuffer();
+
+	setupDrawCommandPool();
 
 	setupDrawCommandBuffers();
 
@@ -236,15 +193,10 @@ void VulkanRenderer::Prepare()
 
 	setupPipelineStats();
 
-	//////// SCENE DEPENDENT ///////////
-#ifndef NEW_GRAPHICS
-	setupScene();
-#endif
-
 	mIsPrepared = true;
 }
 
-void VulkanRenderer::WindowResize(uint32_t width, uint32_t height)
+void VulkanRenderer::OnWindowResize(uint32_t width, uint32_t height)
 {
 	if (false == mIsPrepared)
 		return;
@@ -257,16 +209,13 @@ void VulkanRenderer::WindowResize(uint32_t width, uint32_t height)
 	if (height > 0)
 		mWindowHeight = height;
 
+	assert(mpDevice != nullptr);
+
 	// Ensure all operations on the device have been finished before destroying resources
 	mpDevice->WaitIdle();
 
 	// Recreate swap chain
 	mpDevice->ResetSwapChain();
-
-
-	GE_FREE(mpDepthStencil);
-
-	setupDefaultDepthStencil();
 
 	for (auto& fb : mDefaultFrameBuffers)
 	{
@@ -284,145 +233,163 @@ void VulkanRenderer::WindowResize(uint32_t width, uint32_t height)
 
 	setupDrawCommandBuffers();
 
-#ifdef NEW_GRAPHICS
 	DrawSceneToCommandBuffer();
-#else
-	buildCommandBuffers();
-#endif
 
 	mpDevice->WaitIdle();
 
-#ifndef NEW_GRAPHICS
-	// notify derived class
-	viewChanged(); //TODO - to remove
-#endif 
 
 	mIsPrepared = true;
 }
 
-
-void VulkanRenderer::setupDefaultDepthStencil()
-{
-	if (mpDepthStencil)
-	{
-		GE_FREE(mpDepthStencil);
-	}
-
-	mpDepthStencil = GE_ALLOC(VulkanFrameBufferAttachment)(mpDevice, mpDevice->GetDepthFormat(), 
-									VkImageUsageFlagBits::VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VkImageUsageFlagBits::VK_IMAGE_USAGE_TRANSFER_SRC_BIT,
-															mWindowWidth, mWindowHeight, VulkanFrameBufferAttachment::Type::DEPTH_STENCIL);
-}
-
 void VulkanRenderer::setupDefaultRenderPass()
 {
-	// attachments
-	std::vector<VulkanRenderPassAttachment*> renderPassAttachments;
-	renderPassAttachments.resize(ATT_COUNT);
+	assert(mpDevice != nullptr);
 
-	// For this color attachemnt we use VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL as final layout, because this attachment is used as present image to the graphics queue!
-	renderPassAttachments[COLOR_ATT] = GE_ALLOC(VulkanRenderPassAttachment)
-											(mpDevice->GetSurfaceFormat().format, NUM_SAMPLES, VkAttachmentLoadOp::VK_ATTACHMENT_LOAD_OP_CLEAR, 
-											VkAttachmentStoreOp::VK_ATTACHMENT_STORE_OP_STORE, VkAttachmentLoadOp::VK_ATTACHMENT_LOAD_OP_DONT_CARE,
-											VkAttachmentStoreOp::VK_ATTACHMENT_STORE_OP_DONT_CARE, VkImageLayout::VK_IMAGE_LAYOUT_UNDEFINED, 
-											VkImageLayout::VK_IMAGE_LAYOUT_PRESENT_SRC_KHR, VulkanRenderPassAttachment::Type::COLOR);
+	// COLOR_AT
+	VkAttachmentDescription colorAttachment{};
+	colorAttachment.format = mpDevice->GetSurfaceFormat().format;
+	colorAttachment.samples = MIN_NUM_SAMPLES;
+	colorAttachment.loadOp = VkAttachmentLoadOp::VK_ATTACHMENT_LOAD_OP_CLEAR;
+	colorAttachment.storeOp = VkAttachmentStoreOp::VK_ATTACHMENT_STORE_OP_STORE;
+	colorAttachment.stencilLoadOp = VkAttachmentLoadOp::VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+	colorAttachment.stencilStoreOp = VkAttachmentStoreOp::VK_ATTACHMENT_STORE_OP_DONT_CARE;
+	colorAttachment.initialLayout = VkImageLayout::VK_IMAGE_LAYOUT_UNDEFINED;
+	colorAttachment.finalLayout = VkImageLayout::VK_IMAGE_LAYOUT_PRESENT_SRC_KHR; /////////////
 
-	renderPassAttachments[DEPTH_ATT] = GE_ALLOC(VulkanRenderPassAttachment)
-											(mpDevice->GetDepthFormat(), NUM_SAMPLES, VkAttachmentLoadOp::VK_ATTACHMENT_LOAD_OP_CLEAR,
-												VkAttachmentStoreOp::VK_ATTACHMENT_STORE_OP_STORE, VkAttachmentLoadOp::VK_ATTACHMENT_LOAD_OP_CLEAR, 
-												VkAttachmentStoreOp::VK_ATTACHMENT_STORE_OP_DONT_CARE, VkImageLayout::VK_IMAGE_LAYOUT_UNDEFINED,
-												VkImageLayout::VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
-												VulkanRenderPassAttachment::Type::DEPTH_STENCIL);
+	VkAttachmentDescription depthStencilAttachment{};
+	depthStencilAttachment.format = mpDevice->GetDepthStencilFormat();
+	depthStencilAttachment.samples = MIN_NUM_SAMPLES;
+	depthStencilAttachment.loadOp = VkAttachmentLoadOp::VK_ATTACHMENT_LOAD_OP_CLEAR;
+	depthStencilAttachment.storeOp = VkAttachmentStoreOp::VK_ATTACHMENT_STORE_OP_STORE;
+	depthStencilAttachment.stencilLoadOp = VkAttachmentLoadOp::VK_ATTACHMENT_LOAD_OP_CLEAR; //
+	depthStencilAttachment.stencilStoreOp = VkAttachmentStoreOp::VK_ATTACHMENT_STORE_OP_DONT_CARE;
+	depthStencilAttachment.initialLayout = VkImageLayout::VK_IMAGE_LAYOUT_UNDEFINED;
+	depthStencilAttachment.finalLayout = VkImageLayout::VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL; /////////
 
-	std::vector<VkAttachmentReference> colorReferences;
-	colorReferences.push_back(VulkanInitializers::AttachmentReference(COLOR_ATT, VkImageLayout::VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL));
-	VkAttachmentReference depthStencilReference = VulkanInitializers::AttachmentReference(DEPTH_ATT, VkImageLayout::VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
+	VkAttachmentReference colorReference;
+	colorReference.attachment = COLOR_ATT;
+	colorReference.layout = VkImageLayout::VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+	VkAttachmentReference depthStencilReference;
+	depthStencilReference.attachment = DEPTH_ATT;
+	depthStencilReference.layout = VkImageLayout::VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
 	// subPasses
-	std::vector<VulkanSubPass*> subPasses;
-	subPasses.push_back(GE_ALLOC(VulkanSubPass)(colorReferences, depthStencilReference, {}, VkPipelineBindPoint::VK_PIPELINE_BIND_POINT_GRAPHICS, SUBPASS_ID));
+	VkSubpassDescription subPass{};
+	subPass.pipelineBindPoint = VkPipelineBindPoint::VK_PIPELINE_BIND_POINT_GRAPHICS;
+	subPass.colorAttachmentCount = 1;
+	subPass.pColorAttachments = &colorReference;
+	subPass.pDepthStencilAttachment = &depthStencilReference;
 
-	// SubPass dependencies for layout transitions
-	std::vector<VkSubpassDependency> subPassDependencies;
-	subPassDependencies.push_back(VulkanInitializers::SubpassDependency(
-									VK_SUBPASS_EXTERNAL, SUBPASS_ID, VkPipelineStageFlagBits::VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
-									VkPipelineStageFlagBits::VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-									VkAccessFlagBits::VK_ACCESS_MEMORY_READ_BIT, 
-									VkAccessFlagBits::VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VkAccessFlagBits::VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-									VkDependencyFlagBits::VK_DEPENDENCY_BY_REGION_BIT));
+	VkSubpassDependency subPassDep_1;
+	subPassDep_1.srcSubpass = VK_SUBPASS_EXTERNAL;
+	subPassDep_1.dstSubpass = SUBPASS_ID;
+	subPassDep_1.srcStageMask = VkPipelineStageFlagBits::VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+	subPassDep_1.dstStageMask = VkPipelineStageFlagBits::VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+	subPassDep_1.srcAccessMask = VkAccessFlagBits::VK_ACCESS_MEMORY_READ_BIT;
+	subPassDep_1.dstAccessMask = VkAccessFlagBits::VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VkAccessFlagBits::VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+	subPassDep_1.dependencyFlags = VkDependencyFlagBits::VK_DEPENDENCY_BY_REGION_BIT;
 
-	subPassDependencies.push_back(VulkanInitializers::SubpassDependency(
-									SUBPASS_ID, VK_SUBPASS_EXTERNAL, VkPipelineStageFlagBits::VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-									VkPipelineStageFlagBits::VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
-									VkAccessFlagBits::VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VkAccessFlagBits::VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT, 
-									VkAccessFlagBits::VK_ACCESS_MEMORY_READ_BIT, VkDependencyFlagBits::VK_DEPENDENCY_BY_REGION_BIT));
+	VkSubpassDependency subPassDep_2;
+	subPassDep_2.srcSubpass = SUBPASS_ID;
+	subPassDep_2.dstSubpass = VK_SUBPASS_EXTERNAL;
+	subPassDep_2.srcStageMask = VkPipelineStageFlagBits::VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+	subPassDep_2.dstStageMask = VkPipelineStageFlagBits::VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+	subPassDep_2.srcAccessMask = VkAccessFlagBits::VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VkAccessFlagBits::VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+	subPassDep_2.dstAccessMask = VkAccessFlagBits::VK_ACCESS_MEMORY_READ_BIT;
+	subPassDep_2.dependencyFlags = VkDependencyFlagBits::VK_DEPENDENCY_BY_REGION_BIT;
 
 
-	mpDefaultRenderPass = GE_ALLOC(VulkanRenderPass)(mpDevice, renderPassAttachments, subPasses, subPassDependencies);
-
-	// cleanup
-	for (auto& att : renderPassAttachments)
-	{
-		GE_FREE(att);
-	}
-
-	for (auto& subpass : subPasses)
-	{
-		GE_FREE(subpass);
-	}
+	mpDefaultRenderPass = GE_ALLOC(VulkanRenderPass)(mpDevice, { colorAttachment, depthStencilAttachment }, { subPass }, { subPassDep_1, subPassDep_2 });
+	assert(mpDefaultRenderPass != nullptr);
 }
 
 void VulkanRenderer::setupDefaultFrameBuffer()
 {
-	if (mDefaultFrameBuffers.size() > 0)
+	assert(mpDevice != nullptr);
+	assert(mpDefaultRenderPass != nullptr);
+	assert(mWindowWidth > 0);
+	assert(mWindowHeight > 0);
+
+	// prepare color + depth image views as attachments for the framebuffer
+	std::vector<VkImageView> frameBufferAttachments(ATT_COUNT);
+
+	// depth stencil
+	auto pDepthStencilBuffer = mpDevice->GetSwapChainDepthStencilBuffer();
+	assert(pDepthStencilBuffer != nullptr);
+	frameBufferAttachments[DEPTH_ATT] = pDepthStencilBuffer->GetImageViewHandle();
+
+	// color
+	auto colorBuffers = mpDevice->GetSwapChainColorBuffers();
+	assert(colorBuffers.empty() == false);
+
+	// Create one frame buffer for each swap chain image and reuse for rendering
+	if (mDefaultFrameBuffers.empty())
 	{
-		for (auto& fb : mDefaultFrameBuffers)
-		{
-			GE_FREE(fb);
-		}
+		mDefaultFrameBuffers.resize(colorBuffers.size());
 	}
 
-	std::vector<VulkanFrameBufferAttachment*> frameBufferAttachments;
-	frameBufferAttachments.resize(ATT_COUNT);
-
-	frameBufferAttachments[DEPTH_ATT] = mpDepthStencil;
-
-	mDefaultFrameBuffers.resize(mpDevice->GetSwapChainImageCount());
 	for (uint32_t i = 0; i < mDefaultFrameBuffers.size(); ++i)
 	{
-		frameBufferAttachments[COLOR_ATT] = mpDevice->GetSwapChainBuffers()[i];
+		frameBufferAttachments[COLOR_ATT] = colorBuffers[i]->GetImageViewHandle();
 
-		mDefaultFrameBuffers[i] = GE_ALLOC(VulkanFrameBuffer)(mpDevice, mpDefaultRenderPass, frameBufferAttachments, mWindowWidth, mWindowHeight);
+		mDefaultFrameBuffers[i] = GE_ALLOC(VulkanFrameBuffer)
+		(
+			mpDevice,
+			mpDefaultRenderPass,
+			frameBufferAttachments,
+			mWindowWidth, mWindowHeight
+		);
+		assert(mDefaultFrameBuffers[i] != nullptr);
 	}
+}
+
+void VulkanRenderer::setupDrawCommandPool()
+{
+	assert(mpDevice != nullptr);
+
+	auto pQueue = mpDevice->GetGraphicsQueue();
+	assert(pQueue != nullptr);
+
+	// we create a command pool for graphics commands
+	mpCommandPool = GE_ALLOC(VulkanCommandPool)(mpDevice, pQueue->GetFamilyIndex());
+	assert(mpCommandPool != nullptr);
 }
 
 void VulkanRenderer::setupDrawCommandBuffers()
 {
-	if (mDrawCommandBuffers.size() > 0)
-	{
-		for (auto& commandBufferRef : mDrawCommandBuffers)
-		{
-			GE_FREE(commandBufferRef);
-		}
-	}
+	assert(mpDevice != nullptr);
+	assert(mpCommandPool != nullptr);
 
 	// Create one command buffer for each swap chain image and reuse for rendering
-	mDrawCommandBuffers.resize(mpDevice->GetSwapChainImageCount());
+	if (mDrawCommandBuffers.empty())
+	{
+		mDrawCommandBuffers.resize(mpDevice->GetSwapChainColorBufferCount());
+	}
 
 	for (auto& commandBufferRef : mDrawCommandBuffers)
 	{
-		commandBufferRef = GE_ALLOC(VulkanCommandBuffer)(mpDevice, VkCommandBufferLevel::VK_COMMAND_BUFFER_LEVEL_PRIMARY);
+		commandBufferRef = GE_ALLOC(VulkanCommandBuffer)
+		(
+			mpDevice,
+			mpCommandPool->GetHandle(),
+			VkCommandBufferLevel::VK_COMMAND_BUFFER_LEVEL_PRIMARY
+		);
 		assert(commandBufferRef != nullptr);
 	}
 }
 
 void VulkanRenderer::setupSynchronizationPrimitives()
 {
+	assert(mpDevice != nullptr);
+
 	// Semaphores (Used for correct command ordering)
 	//// Semaphore used to ensures that all commands submitted have been finished before submitting the image to the queue
 	mpRenderCompleteSemaphore = GE_ALLOC(VulkanSemaphore)(mpDevice);
+	assert(mpRenderCompleteSemaphore != nullptr);
 	//// Semaphore used to ensures that image presentation is complete before starting to submit again
 	mpPresentCompleteSemaphore = GE_ALLOC(VulkanSemaphore)(mpDevice);
-
+	assert(mpPresentCompleteSemaphore != nullptr);
 
 	// Fences (Used to check draw command buffer completion)
 	// Create in signaled state so we don't wait on first render of each command buffer
@@ -430,485 +397,46 @@ void VulkanRenderer::setupSynchronizationPrimitives()
 	for (auto& fence : mWaitFences)
 	{
 		fence = GE_ALLOC(VulkanFence)(mpDevice, VkFenceCreateFlagBits::VK_FENCE_CREATE_SIGNALED_BIT);
+		assert(fence != nullptr);
 	}
 }
 
 void VulkanRenderer::setupPipelineCache()
 {
+	assert(mpDevice != nullptr);
+
 	mpPipelineCache = GE_ALLOC(VulkanPipelineCache)(mpDevice, {});
+	assert(mpPipelineCache != nullptr);
 }
-
-#ifndef NEW_GRAPHICS
-void VulkanRenderer::setupScene()
-{
-	setupVertexBuffers();
-
-	setupUniformBuffers();
-
-	setupShaders();
-
-	setupTextures();
-
-
-	setupDescriptorPool();
-
-	setupDescriptorSet();
-
-	setupPipeline();
-
-	buildCommandBuffers();
-
-}
-
-
-void VulkanRenderer::setupVertexBuffers()
-{
-	// Prepare vertex and index buffers for an indexed triangle
-	// Also uploads them to device local memory using staging and initializes vertex input and attribute binding to match the vertex shader
-
-	// A note on memory management in Vulkan in general:
-	//	This is a very complex topic and while it's fine for an example application to do small individual memory allocations that is not
-	//	what should be done a real-world application, where you should allocate large chunkgs of memory at once instead.
-
-#if defined(TRIANGLE)
-	// Setup vertices
-	std::vector<Vertex> vertexBuffer =
-	{
-		// the clip space coordinates are defined as expected by Vulkan viewport - Y points down
-		// coordinates defined in clock-wise winding
-
-		// clip space position, color
-		{ {  0.0f,  1.0f, 0.0f }, { 1.0f, 0.0f, 0.0f } },
-		{ {  1.0f, -1.0f, 0.0f }, { 0.0f, 1.0f, 0.0f } },
-		{ { -1.0f, -1.0f, 0.0f }, { 0.0f, 0.0f, 1.0f } }
-	};
-
-	uint32_t vertexBufferSize = static_cast<uint32_t>(vertexBuffer.size()) * sizeof(Vertex);
-
-	// Setup indices
-	std::vector<uint32_t> indexBuffer = { 0, 1, 2 };
-
-	//mIndices.count = static_cast<uint32_t>(indexBuffer.size());
-	mIndicesCount = static_cast<uint32_t>(indexBuffer.size());
-	uint32_t indexBufferSize = mIndicesCount * sizeof(uint32_t);
-
-#elif defined(CUBE)
-#define XYZ1(_x_, _y_, _z_) (_x_), (_y_), (_z_)//, 1.f
-#define UV(_u_, _v_) (_u_), (_v_)
-
-	// Setup vertices
-	std::vector<Vertex> vertexBuffer =
-	{
-		// clip coordinates defined in clockwise winding
-
-		// red - front face
-		{XYZ1(-1, -1, 1), XYZ1(1.f, 0.f, 0.f)},
-		{XYZ1(-1, 1, 1), XYZ1(1.f, 0.f, 0.f)},
-		{XYZ1(1, -1, 1), XYZ1(1.f, 0.f, 0.f)},
-		{XYZ1(1, -1, 1), XYZ1(1.f, 0.f, 0.f)},
-		{XYZ1(-1, 1, 1), XYZ1(1.f, 0.f, 0.f)},
-		{XYZ1(1, 1, 1), XYZ1(1.f, 0.f, 0.f)},
-		// green - back face
-		{XYZ1(-1, -1, -1), XYZ1(0.f, 1.f, 0.f)},
-		{XYZ1(1, -1, -1), XYZ1(0.f, 1.f, 0.f)},
-		{XYZ1(-1, 1, -1), XYZ1(0.f, 1.f, 0.f)},
-		{XYZ1(-1, 1, -1), XYZ1(0.f, 1.f, 0.f)},
-		{XYZ1(1, -1, -1), XYZ1(0.f, 1.f, 0.f)},
-		{XYZ1(1, 1, -1), XYZ1(0.f, 1.f, 0.f)},
-		// blue - left face
-		{XYZ1(-1, 1, 1), XYZ1(0.f, 0.f, 1.f)},
-		{XYZ1(-1, -1, 1), XYZ1(0.f, 0.f, 1.f)},
-		{XYZ1(-1, 1, -1), XYZ1(0.f, 0.f, 1.f)},
-		{XYZ1(-1, 1, -1), XYZ1(0.f, 0.f, 1.f)},
-		{XYZ1(-1, -1, 1), XYZ1(0.f, 0.f, 1.f)},
-		{XYZ1(-1, -1, -1), XYZ1(0.f, 0.f, 1.f)},
-		// yellow - right face
-		{XYZ1(1, 1, 1), XYZ1(1.f, 1.f, 0.f)},
-		{XYZ1(1, 1, -1), XYZ1(1.f, 1.f, 0.f)},
-		{XYZ1(1, -1, 1), XYZ1(1.f, 1.f, 0.f)},
-		{XYZ1(1, -1, 1), XYZ1(1.f, 1.f, 0.f)},
-		{XYZ1(1, 1, -1), XYZ1(1.f, 1.f, 0.f)},
-		{XYZ1(1, -1, -1), XYZ1(1.f, 1.f, 0.f)},
-		// magenta - top face
-		{XYZ1(1, 1, 1), XYZ1(1.f, 0.f, 1.f)},
-		{XYZ1(-1, 1, 1), XYZ1(1.f, 0.f, 1.f)},
-		{XYZ1(1, 1, -1), XYZ1(1.f, 0.f, 1.f)},
-		{XYZ1(1, 1, -1), XYZ1(1.f, 0.f, 1.f)},
-		{XYZ1(-1, 1, 1), XYZ1(1.f, 0.f, 1.f)},
-		{XYZ1(-1, 1, -1), XYZ1(1.f, 0.f, 1.f)},
-		// cyan - bottom face
-		{XYZ1(1, -1, 1), XYZ1(0.f, 1.f, 1.f)},
-		{XYZ1(1, -1, -1), XYZ1(0.f, 1.f, 1.f)},
-		{XYZ1(-1, -1, 1), XYZ1(0.f, 1.f, 1.f)},
-		{XYZ1(-1, -1, 1), XYZ1(0.f, 1.f, 1.f)},
-		{XYZ1(1, -1, -1), XYZ1(0.f, 1.f, 1.f)},
-		{XYZ1(-1, -1, -1), XYZ1(0.f, 1.f, 1.f)},
-	};
-
-	uint32_t vertexBufferSize = static_cast<uint32_t>(vertexBuffer.size()) * sizeof(Vertex);
-
-	// no index data
-	std::vector<uint32_t> indexBuffer;
-	uint32_t indexBufferSize = 0;
-#endif //
-
-	// Vertex buffer
-	// Create a host-visible buffer to copy the vertex data to (staging buffer)
-	VulkanBuffer* pStagingVertices = GE_ALLOC(VulkanBuffer)(mpDevice, 
-								VkMemoryPropertyFlagBits::VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VkMemoryPropertyFlagBits::VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-								VkBufferUsageFlagBits::VK_BUFFER_USAGE_TRANSFER_SRC_BIT, vertexBufferSize, vertexBuffer.data());
-	assert(pStagingVertices != nullptr);
-
-	// Create a device local buffer to which the (host local) vertex data will be copied and which will be used for rendering
-	mpVertices = GE_ALLOC(VulkanBuffer)(mpDevice, VkMemoryPropertyFlagBits::VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-										VkBufferUsageFlagBits::VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VkBufferUsageFlagBits::VK_BUFFER_USAGE_TRANSFER_DST_BIT, vertexBufferSize);
-	assert(mpVertices != nullptr);
-
-	// Buffer copies have to be submitted to a queue, so we need a command buffer for them
-	// Note: Some devices offer a dedicated transfer queue (with only the transfer bit set) that may be faster when doing lots of copies
-
-	if (mpDevice->IsPresentQueueSupported()) // separate present queue
-	{
-		pStagingVertices->CopyTo(mpVertices, mpDevice->GetPresentQueue());
-	}
-	else // graphics and present queue are the same
-	{
-		pStagingVertices->CopyTo(mpVertices, mpDevice->GetMainGraphicsQueue());
-	}
-	GE_FREE(pStagingVertices);
-
-#if defined(USE_INDEX_BUFFER)
-	// Index buffer
-	// Create a host-visible buffer to copy the vertex data to (staging buffer)
-	VulkanBuffer* pStagingIndices = GE_ALLOC(VulkanBuffer)(mpDevice, VkMemoryPropertyFlagBits::VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VkMemoryPropertyFlagBits::VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-															VkBufferUsageFlagBits::VK_BUFFER_USAGE_TRANSFER_SRC_BIT, indexBufferSize, indexBuffer.data());
-	assert(pStagingIndices != nullptr);
-
-	// Create a device local buffer to which the (host local) vertex data will be copied and which will be used for rendering
-	mpIndices = GE_ALLOC(VulkanBuffer)(mpDevice, VkMemoryPropertyFlagBits::VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-										VkBufferUsageFlagBits::VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VkBufferUsageFlagBits::VK_BUFFER_USAGE_TRANSFER_DST_BIT, indexBufferSize);
-	assert(mpIndices != nullptr);
-
-	// Buffer copies have to be submitted to a queue, so we need a command buffer for them
-	// Note: Some devices offer a dedicated transfer queue (with only the transfer bit set) that may be faster when doing lots of copies
-
-	if (mpDevice->IsPresentQueueSupported()) // separate present queue
-	{
-		pStagingIndices->CopyTo(mpIndices, mpDevice->GetPresentQueue());
-	}
-	else // graphics and present queue are the same
-	{
-		pStagingIndices->CopyTo(mpIndices, mpDevice->GetMainGraphicsQueue());
-	}
-
-	GE_FREE(pStagingIndices);
-#endif // USE_INDEX_BUFFER
-}
-
-void VulkanRenderer::setupUniformBuffers()
-{
-	// This buffer will be used as a uniform buffer
-	mpUniformBufferVS = GE_ALLOC(VulkanBuffer)(mpDevice, VkMemoryPropertyFlagBits::VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VkMemoryPropertyFlagBits::VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-												VkBufferUsageFlagBits::VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, static_cast<VkDeviceSize>(sizeof(mUboVS)));
-	assert(mpUniformBufferVS != nullptr);
-
-	// Store information in the uniform's descriptor that is used by the descriptor set
-	mpUniformBufferVS->SetDecriptorInfo(static_cast<VkDeviceSize>(sizeof(mUboVS)));
-
-
-	updateUBO();
-}
-
-void VulkanRenderer::setupShaders()
-{
-	mShaderModules.resize(SHADER_COUNT);
-
-	mShaderModules[VERTEX_STAGE] = GE_ALLOC(VulkanShaderModule)(mpDevice, VkShaderStageFlagBits::VK_SHADER_STAGE_VERTEX_BIT, "../../LibGraphicsEngine/res/shaders/triangle.vert");
-	mShaderModules[FRAGMENT_STAGE] = GE_ALLOC(VulkanShaderModule)(mpDevice, VkShaderStageFlagBits::VK_SHADER_STAGE_FRAGMENT_BIT, "../../LibGraphicsEngine/res/shaders/triangle.frag");
-}
-
-void VulkanRenderer::setupTextures()
-{
-	//TODO
-}
-
-
-void VulkanRenderer::updateUBO()
-{
-	// Update matrices
-	assert(mpCamera != nullptr);
-
-	mUboVS.projectionMatrix = mpCamera->GetProjectionMatrix();
-
-	mUboVS.viewMatrix = mpCamera->GetViewMatrix();
-
-	mUboVS.modelMatrix = glm::mat4(1.0f);
-	//mUboVS.modelMatrix = glm::rotate(mUboVS.modelMatrix, glm::radians(mRotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
-	//mUboVS.modelMatrix = glm::rotate(mUboVS.modelMatrix, glm::radians(mRotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
-	//mUboVS.modelMatrix = glm::rotate(mUboVS.modelMatrix, glm::radians(mRotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
-
-	// Map uniform buffer and update it
-	assert(mpUniformBufferVS != nullptr);
-
-	mpUniformBufferVS->Map(sizeof(mUboVS));
-	mpUniformBufferVS->SetData(&mUboVS, (VkDeviceSize)sizeof(mUboVS));
-	mpUniformBufferVS->UnMap();
-}
-
-void VulkanRenderer::viewChanged()
-{
-	updateUBO();
-}
-
-///////////////////////////////
-void VulkanRenderer::setupDescriptorPool()
-{
-	// We need to tell the API the number of max. requested descriptors per type
-
-	// This example only uses one descriptor type (uniform buffer) and only requests one descriptor of this type
-	std::vector<VkDescriptorPoolSize> descriptorPoolSizes;
-	descriptorPoolSizes.push_back(VulkanInitializers::DescriptorPoolSize(VkDescriptorType::VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, NUM_DESCRIPTOR_SETS));
-
-	// For additional types you need to add new entries in the type count list
-	// E.g. for two combined image samplers :
-	// typeCounts[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-	// typeCounts[1].descriptorCount = 2;
-
-	// Create the global descriptor pool
-	// All descriptors used in this example are allocated from this pool
-	mpDescriptorPool = GE_ALLOC(VulkanDescriptorPool)(mpDevice, NUM_DESCRIPTOR_SETS, descriptorPoolSizes);
-}
-
-void VulkanRenderer::setupDescriptorSet()
-{
-	// Setup layout of descriptors used in this example
-	// Basically connects the different shader stages to descriptors for binding uniform buffers, image samplers, etc.
-	// So every shader binding should map to one descriptor set layout binding
-
-	// Binding 0: Uniform buffer (Vertex shader)
-	std::vector<VkDescriptorSetLayoutBinding> descriptorSetLayoutBindings;
-	descriptorSetLayoutBindings.push_back(VulkanInitializers::DescriptorSetLayoutBinding(0, VkDescriptorType::VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, VkShaderStageFlagBits::VK_SHADER_STAGE_VERTEX_BIT));
-
-	mpDescriptorSetLayout = GE_ALLOC(VulkanDescriptorSetLayout)(mpDevice, descriptorSetLayoutBindings);
-
-	// Allocate a new descriptor set from the global descriptor pool
-	mpDescriptorSet = GE_ALLOC(VulkanDescriptorSet)(mpDevice, mpDescriptorPool, { mpDescriptorSetLayout });
-
-	// Update the descriptor set determining the shader binding points
-	// For every binding point used in a shader there needs to be one
-	// descriptor set matching that binding point
-
-	// Binding 0 : Uniform buffer
-	//// Binds this uniform buffer to binding point 0
-	std::vector<VkWriteDescriptorSet> writeDescriptorSets;
-	writeDescriptorSets.push_back(VulkanInitializers::WriteDescriptorSet(mpDescriptorSet->GetHandle(), 0, 0, 1, VkDescriptorType::VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, nullptr,
-												&mpUniformBufferVS->GetDescriptorInfo()));
-
-	//vkUpdateDescriptorSets(mpDevice->GetDeviceHandle(), 1, &writeDescriptorSet, 0, nullptr);
-	mpDescriptorSet->Update(writeDescriptorSets, {});
-}
-
-void VulkanRenderer::setupPipeline()
-{
-	// Create the graphics pipeline used in this example
-	// Vulkan uses the concept of rendering pipelines to encapsulate fixed states, replacing OpenGL's complex state machine
-	// A pipeline is then stored and hashed on the GPU making pipeline changes very fast
-	// Note: There are still a few dynamic states that are not directly part of the pipeline (but the info that they are used is)
-
-	// Construct the differnent states making up the pipeline
-
-	// Shaders
-	std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
-	shaderStages.resize(SHADER_COUNT);
-
-	// Vertex shader
-	shaderStages[VERTEX_STAGE] = VulkanInitializers::PipelineShaderStageCreateInfo(VkShaderStageFlagBits::VK_SHADER_STAGE_VERTEX_BIT, mShaderModules[VERTEX_STAGE]->GetHandle(), "main");
-
-	// Fragment shader
-	shaderStages[FRAGMENT_STAGE] = VulkanInitializers::PipelineShaderStageCreateInfo(VkShaderStageFlagBits::VK_SHADER_STAGE_FRAGMENT_BIT, mShaderModules[FRAGMENT_STAGE]->GetHandle(), "main");
-
-	// Vertex input descriptions 
-	// Specifies the vertex input parameters for a pipeline
-
-	// Vertex input binding
-	// This example uses a single vertex input binding at binding point 0 (see vkCmdBindVertexBuffers)
-	VkVertexInputBindingDescription vertexInputBindingDescription =
-		VulkanInitializers::VertexInputBindingDescription(0, sizeof(Vertex), VkVertexInputRate::VK_VERTEX_INPUT_RATE_VERTEX);
-
-	// Inpute attribute bindings describe shader attribute locations and memory layouts
-	std::array<VkVertexInputAttributeDescription, 2> vertexInputAttributs;
-	// These match the following shader layout (see triangle.vert):
-	//	layout (location = 0) in vec3 inPos;
-	//	layout (location = 1) in vec3 inColor;
-
-	vertexInputAttributs[0] = VulkanInitializers::VertexInputAttributeDescription(0, 0, VkFormat::VK_FORMAT_R32G32B32_SFLOAT, OFFSETOF(Vertex, position));
-	vertexInputAttributs[1] = VulkanInitializers::VertexInputAttributeDescription(1, 0, VkFormat::VK_FORMAT_R32G32B32_SFLOAT, OFFSETOF(Vertex, color));
-
-	// Vertex input state used for pipeline creation
-	VkPipelineVertexInputStateCreateInfo pipelineVertexInputStateCreateInfo = 
-		VulkanInitializers::PipelineVertexInputStateCreateInfo(1, &vertexInputBindingDescription, 2, vertexInputAttributs.data());
-
-	// Input assembly state describes how primitives are assembled
-	// This pipeline will assemble vertex data as a triangle lists (though we only use one triangle)
-	VkPipelineInputAssemblyStateCreateInfo pipelineInputAssemblyStateCreateInfo = 
-		VulkanInitializers::PipelineInputAssemblyStateCreateInfo(VkPrimitiveTopology::VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, VK_FALSE);
-
-
-	// Viewport state sets the number of viewports and scissor used in this pipeline
-	// Note: This is actually overriden by the dynamic states (see below)
-	VkPipelineViewportStateCreateInfo pipelineViewportStateCreateInfo =
-		VulkanInitializers::PipelineViewportStateCreateInfo(NUM_VIEWPORTS, nullptr, NUM_SCISSORS, nullptr);
-
-	// Rasterization state
-	VkPipelineRasterizationStateCreateInfo pipelineRasterizationStateCreateInfo =
-		VulkanInitializers::PipelineRasterizationStateCreateInfo(VK_FALSE, VK_FALSE, VkPolygonMode::VK_POLYGON_MODE_FILL, VkCullModeFlagBits::VK_CULL_MODE_BACK_BIT, 
-																VkFrontFace::VK_FRONT_FACE_COUNTER_CLOCKWISE, VK_FALSE,
-															     0, 0, 0, 1.0f);
-	// Set widning depending on who model vertices are arranged
-#if defined(TRIANGLE) || defined(CUBE)
-	pipelineRasterizationStateCreateInfo.frontFace = VkFrontFace::VK_FRONT_FACE_CLOCKWISE;
-#endif
-
-	// Multi sampling state
-	// This example does not make use fo multi sampling (for anti-aliasing), the state must still be set and passed to the pipeline
-	VkPipelineMultisampleStateCreateInfo pipelineMultisampleStateCreateInfo = 
-		VulkanInitializers::PipelineMultisampleStateCreateInfo(VkSampleCountFlagBits::VK_SAMPLE_COUNT_1_BIT, VK_FALSE, 0.0f, nullptr, VK_FALSE, VK_FALSE);
-
-	// Depth and stencil state containing depth and stencil compare and test operations
-	// We only use depth tests and want depth tests and writes to be enabled and compare with less or equal
-
-	VkStencilOpState stencilOpState = 
-		VulkanInitializers::StencilOpState(VkStencilOp::VK_STENCIL_OP_KEEP, VkStencilOp::VK_STENCIL_OP_KEEP, VkStencilOp::VK_STENCIL_OP_KEEP, 
-											VkCompareOp::VK_COMPARE_OP_ALWAYS, 0, 0, 0);
-
-	VkPipelineDepthStencilStateCreateInfo pipelineDepthStencilStateCreateInfo =
-		VulkanInitializers::PipelineDepthStencilStateCreateInfo(VK_TRUE, VK_TRUE, VkCompareOp::VK_COMPARE_OP_LESS_OR_EQUAL, VK_FALSE, VK_FALSE, stencilOpState, stencilOpState, 0, 0);
-
-	// Color blend state describes how blend factors are calculated (if used)
-	// We need one blend attachment state per color attachment (even if blending is not used
-	VkPipelineColorBlendAttachmentState pipelineColorBlendAttachmentState =
-		VulkanInitializers::PipelineColorBlendAttachmentState(VK_FALSE, VkBlendFactor::VK_BLEND_FACTOR_ZERO, VkBlendFactor::VK_BLEND_FACTOR_ZERO, VkBlendOp::VK_BLEND_OP_ADD,
-																VkBlendFactor::VK_BLEND_FACTOR_ZERO, VkBlendFactor::VK_BLEND_FACTOR_ZERO, VkBlendOp::VK_BLEND_OP_ADD, 0xf);
-
-	float blendConstants[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
-
-	VkPipelineColorBlendStateCreateInfo pipelineColorBlendStateCreateInfo =
-		VulkanInitializers::PipelineColorBlendStateCreateInfo(VK_FALSE, VkLogicOp::VK_LOGIC_OP_NO_OP, 1, &pipelineColorBlendAttachmentState, blendConstants);
-
-	// Enable dynamic states
-	// Most states are baked into the pipeline, but there are still a few dynamic states that can be changed within a command buffer
-	// To be able to change these we need do specify which dynamic states will be changed using this pipeline. Their actual states are set later on in the command buffer.
-	// For this example we will set the viewport and scissor using dynamic states
-	std::vector<VkDynamicState> dynamicStateEnables;
-	dynamicStateEnables.push_back(VkDynamicState::VK_DYNAMIC_STATE_VIEWPORT);
-	dynamicStateEnables.push_back(VkDynamicState::VK_DYNAMIC_STATE_SCISSOR);
-
-	VkPipelineDynamicStateCreateInfo pipelineDynamicStateCreateInfo =
-		VulkanInitializers::PipelineDynamicStateCreateInfo(static_cast<uint32_t>(dynamicStateEnables.size()), dynamicStateEnables.data());
-
-	///////////////////
-
-	mpPipelineLayout = GE_ALLOC(VulkanPipelineLayout)(mpDevice, { mpDescriptorSetLayout }, {});
-
-	//// Assign the pipeline states to the pipeline creation info structure
-	mpGraphicsPipeline = GE_ALLOC(VulkanGraphicsPipeline)(mpDevice, mpPipelineCache, shaderStages, pipelineVertexInputStateCreateInfo, pipelineInputAssemblyStateCreateInfo,
-									{}, pipelineViewportStateCreateInfo, pipelineRasterizationStateCreateInfo, pipelineMultisampleStateCreateInfo, 
-									pipelineDepthStencilStateCreateInfo, pipelineColorBlendStateCreateInfo, pipelineDynamicStateCreateInfo,
-									mpPipelineLayout, mpDefaultRenderPass);
-
-	// Shader modules are no longer needed once the graphics pipeline has been created
-	GE_FREE(mShaderModules[VERTEX_STAGE]);
-	GE_FREE(mShaderModules[FRAGMENT_STAGE]);
-}
-
-// Build separate command buffers for every framebuffer image
-// Unlike in OpenGL all rendering commands are recorded once into command buffers that are then resubmitted to the queue
-// This allows to generate work upfront and from multiple threads, one of the biggest advantages of Vulkan
-void VulkanRenderer::buildCommandBuffers()
-{
-	// THE ACTUAL RENDERING IS DONE HERE !!!!
-
-	// Set clear values for all framebuffer attachments with loadOp set to clear
-	// We use two attachments (color and depth) that are cleared at the start of the subpass and as such we need to set clear values for both
-	std::vector<VkClearValue> clearValues;
-	clearValues.resize(2);
-	clearValues[0].color = { { 0.0f, 0.0f, 0.2f, 1.0f } };
-	clearValues[1].depthStencil = { 1.0f, 0 };
-
-	VkRect2D renderArea = VulkanInitializers::Rect2D(VulkanInitializers::Offset2D(0, 0), VulkanInitializers::Extent2D(mWindowWidth, mWindowHeight));
-
-	for (int32_t i = 0; i < mDrawCommandBuffers.size(); ++i)
-	{
-
-		// Begin command buffer recording
-		VK_CHECK_RESULT(mDrawCommandBuffers[i]->Begin());
-
-		resetQuery(i);
-
-		// RenderPass Begin
-		mpDefaultRenderPass->Begin(mDrawCommandBuffers[i]->GetHandle(), mDefaultFrameBuffers[i]->GetHandle(), renderArea, clearValues);
-
-		// Update dynamic viewport state
-		VkViewport viewport = VulkanInitializers::Viewport(0, 0, static_cast<bfloat32_t>(mWindowWidth), static_cast<bfloat32_t>(mWindowHeight), 0.0f, 1.0f);
-		vkCmdSetViewport(mDrawCommandBuffers[i]->GetHandle(), 0, 1, &viewport);
-
-		// Update dynamic scissor state
-		VkRect2D scissor = VulkanInitializers::Rect2D(VulkanInitializers::Offset2D(0, 0), VulkanInitializers::Extent2D(mWindowWidth, mWindowHeight));
-		vkCmdSetScissor(mDrawCommandBuffers[i]->GetHandle(), 0, 1, &scissor);
-
-		beginQuery(i);
-
-		// First Subpass (the only one in this case) - is bound by default
-		// The next subpasses if present must be bound explicitely using: vkCmdNextSubpass(...)
-		{
-			// Bind descriptor sets describing shader binding points
-			vkCmdBindDescriptorSets(mDrawCommandBuffers[i]->GetHandle(), VkPipelineBindPoint::VK_PIPELINE_BIND_POINT_GRAPHICS, mpPipelineLayout->GetHandle(), 0, 1, &mpDescriptorSet->GetHandle(), 0, nullptr);
-
-			// Bind the rendering pipeline
-			// The pipeline (state object) contains all states of the rendering pipeline, binding it will set all the states specified at pipeline creation time
-			vkCmdBindPipeline(mDrawCommandBuffers[i]->GetHandle(), VkPipelineBindPoint::VK_PIPELINE_BIND_POINT_GRAPHICS, mpGraphicsPipeline->GetHandle());
-
-			// Bind triangle vertex buffer (contains position and colors)
-			VkDeviceSize offsets[1] = { 0 };
-			vkCmdBindVertexBuffers(mDrawCommandBuffers[i]->GetHandle(), VERTEX_BUFFER_BIND_ID, 1, &mpVertices->GetHandle(), offsets);
-
-//#if defined(USE_INDEX_BUFFER) // Draw indexed
-			// Bind triangle index buffer
-	//		vkCmdBindIndexBuffer(mDrawCommandBuffers[i]->GetHandle(), mpIndices->GetHandle(), 0, VK_INDEX_TYPE_UINT32);
-
-			// Draw indexed triangle
-	//		vkCmdDrawIndexed(mDrawCommandBuffers[i]->GetHandle(), mIndicesCount, 1, 0, 0, 1);
-//#else // Draw
-			vkCmdDraw(mDrawCommandBuffers[i]->GetHandle(), 3, 1, 0, 0); // DRAW TRIANGLE
-		//	vkCmdDraw(mDrawCommandBuffers[i]->GetHandle(), 12 * 3, 1, 0, 0); // DRAW CUBE
-//#endif // USE_INDEX_BUFFER
-		}
-
-		endQuery(i);
-
-		// RenderPass End
-		mpDefaultRenderPass->End(mDrawCommandBuffers[i]->GetHandle());
-
-		// End command buffer recording
-		// Ending the render pass will add an implicit barrier transitioning the frame buffer color attachment to 
-		// VK_IMAGE_LAYOUT_PRESENT_SRC_KHR for presenting it to the windowing system
-		VK_CHECK_RESULT(mDrawCommandBuffers[i]->End());
-	}
-}
-#endif
 
 void VulkanRenderer::setupSubmitInfo()
 {
+	assert(mDrawCommandBuffers.size() > 0);
+	assert(mCurrentBufferIdx < mDrawCommandBuffers.size());
+	assert(mpPresentCompleteSemaphore != nullptr);
+	assert(mpRenderCompleteSemaphore != nullptr);
+
+	auto pCrrDrawCommandBuffer = mDrawCommandBuffers[mCurrentBufferIdx];
+	assert(pCrrDrawCommandBuffer != nullptr);
+
 	/** @brief Pipeline stages used to wait at for graphics queue submissions */
 	mSubmitPipelineStages = VkPipelineStageFlagBits::VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 
 	// The submit info structure specifices a command buffer queue submission batch
-	mSubmitInfo = VulkanInitializers::SubmitInfo(1, &mDrawCommandBuffers[mCurrentBufferIdx]->GetHandle(), 1, &mpPresentCompleteSemaphore->GetHandle(), &mSubmitPipelineStages, 1, &mpRenderCompleteSemaphore->GetHandle());
+	mSubmitInfo = VulkanInitializers::SubmitInfo
+	(
+		1, &pCrrDrawCommandBuffer->GetHandle(),
+		1, &mpPresentCompleteSemaphore->GetHandle(),
+		&mSubmitPipelineStages,
+		1, &mpRenderCompleteSemaphore->GetHandle()
+	);
 }
 
 void VulkanRenderer::setupPipelineStats()
 {
 #ifdef PIPELINE_STATS
+	assert(mpDevice != nullptr);
+
 	mPipelineStatNames = {
 			"Input assembly vertex count        ",
 			"Input assembly primitives count    ",
@@ -929,8 +457,13 @@ void VulkanRenderer::setupPipelineStats()
 		VkQueryPipelineStatisticFlagBits::VK_QUERY_PIPELINE_STATISTIC_CLIPPING_PRIMITIVES_BIT |
 		VkQueryPipelineStatisticFlagBits::VK_QUERY_PIPELINE_STATISTIC_FRAGMENT_SHADER_INVOCATIONS_BIT;
 
-	mpQueryPool = GE_ALLOC(VulkanQueryPool)(mpDevice, VkQueryType::VK_QUERY_TYPE_PIPELINE_STATISTICS, 
-		static_cast<uint32_t>(mPipelineStats.size()), pipelineStatsFlags);
+	mpQueryPool = GE_ALLOC(VulkanQueryPool)
+	(
+		mpDevice,
+		VkQueryType::VK_QUERY_TYPE_PIPELINE_STATISTICS, 
+		static_cast<uint32_t>(mPipelineStats.size()),
+		pipelineStatsFlags
+	);
 	assert(mpQueryPool != nullptr);
 #endif
 }
@@ -939,6 +472,8 @@ void VulkanRenderer::setupPipelineStats()
 void VulkanRenderer::getQueryResults()
 {
 #ifdef PIPELINE_STATS
+	assert(mpQueryPool != nullptr);
+
 	uint32_t count = static_cast<uint32_t>(mPipelineStats.size());
 	VkQueryResultFlags flags = VkQueryResultFlagBits::VK_QUERY_RESULT_64_BIT;// | VkQueryResultFlagBits::VK_QUERY_RESULT_WAIT_BIT;
 
@@ -954,264 +489,47 @@ void VulkanRenderer::getQueryResults()
 #endif
 }
 
-void VulkanRenderer::resetQuery(uint32_t currentBufferId)
+void VulkanRenderer::resetQuery(uint32_t currentBufferIdx)
 {
 #ifdef PIPELINE_STATS
-	mpQueryPool->ResetQuery(mDrawCommandBuffers[currentBufferId]->GetHandle(), static_cast<uint32_t>(mPipelineStats.size()));
+	assert(mpQueryPool != nullptr);
+
+	mpQueryPool->ResetQuery(mDrawCommandBuffers[currentBufferIdx]->GetHandle(), static_cast<uint32_t>(mPipelineStats.size()));
 #endif
 }
 
-void VulkanRenderer::beginQuery(uint32_t currentBufferId)
+void VulkanRenderer::beginQuery(uint32_t currentBufferIdx)
 {
 #ifdef PIPELINE_STATS
-	mpQueryPool->BeginQuery(mDrawCommandBuffers[currentBufferId]->GetHandle());
+	assert(mpQueryPool != nullptr);
+	auto pCrrDrawCommandBuffer = mDrawCommandBuffers[currentBufferIdx];
+	assert(pCrrDrawCommandBuffer != nullptr);
+
+	mpQueryPool->BeginQuery(pCrrDrawCommandBuffer->GetHandle());
 #endif
 }
 
-void VulkanRenderer::endQuery(uint32_t currentBufferId)
+void VulkanRenderer::endQuery(uint32_t currentBufferIdx)
 {
 #ifdef PIPELINE_STATS
-	mpQueryPool->EndQuery(mDrawCommandBuffers[currentBufferId]->GetHandle());
+	assert(mpQueryPool != nullptr);
+	auto pCrrDrawCommandBuffer = mDrawCommandBuffers[currentBufferIdx];
+	assert(pCrrDrawCommandBuffer != nullptr);
+
+	mpQueryPool->EndQuery(pCrrDrawCommandBuffer->GetHandle());
  #endif
 }
 
-void VulkanRenderer::RenderFrame()
+void VulkanRenderer::RenderFrame(RenderQueue* pRenderQueue, RenderPass* pRenderPass)
 {
-#ifndef NEW_GRAPHICS
-	viewChanged();
-
-	Draw();
-
-	getQueryResults();
-#endif
-}
-
-void VulkanRenderer::UpdateFrame(bfloat32_t deltaTime)
-{
-	//TODO
-}
-
-void VulkanRenderer::BeginFrame()
-{
-	//TODO
-}
-
-void VulkanRenderer::EndFrame()
-{
-	// TODO
-}
-
-#ifndef NEW_GRAPHICS
-void VulkanRenderer::Draw()
-{
-	// HERE THE FRAME IS JUST PRESENTED TO THE GRAPHICS QUEUE
-	// THE ACTUAL RENDERING IS DONE WHEN THE COMMAND BUFFER IS BUILT/ALL COMMANDS RECORDED
-
 	if (false == mIsPrepared)
 		return;
 
-	// Get next image in the swap chain (back/front buffer)
-	// updates mCurrentBuffer
-	PrepareFrame();
-
-	// Use a fence to wait until the command buffer has finished execution before using it again
-	VK_CHECK_RESULT(mWaitFences[mCurrentBufferIdx]->WaitIdle(VK_TRUE, UINT64_MAX));
-	VK_CHECK_RESULT(mWaitFences[mCurrentBufferIdx]->Reset());
-
-	// account for the new value of mCurrentBufferIdx
-	mSubmitInfo.pCommandBuffers = &mDrawCommandBuffers[mCurrentBufferIdx]->GetHandle();
-	
-	// Submit to the graphics queue
-	VK_CHECK_RESULT(mpDevice->GetMainGraphicsQueue()->Submit(1, &mSubmitInfo, mWaitFences[mCurrentBufferIdx]->GetHandle()));
-
-	// Present the current buffer to the swap chain
-	// Pass the semaphore signaled by the command buffer submission from the submit info as the wait semaphore for swap chain presentation
-	// This ensures that the image is not presented to the windowing system until all commands have been submitted
-	PresentFrame();
-}
-#endif
-
-void VulkanRenderer::SubmitFrame()
-{
-	// HERE THE FRAME IS JUST SUBMITED TO THE GRAPHICS QUEUE
-	// THE IMAGE IS PRESENTED TO THE SWAPCHAIN
-	// THE ACTUAL RENDERING IS DONE WHEN THE COMMAND BUFFER IS BUILT/ALL COMMANDS RECORDED
-
-	if (false == mIsPrepared)
-		return;
-
-	// Get next image in the swap chain (back/front buffer)
-	// updates mCurrentBuffer
-	PrepareFrame();
-
-	// Use a fence to wait until the command buffer has finished execution before using it again
-	VK_CHECK_RESULT(mWaitFences[mCurrentBufferIdx]->WaitIdle(VK_TRUE, UINT64_MAX));
-	VK_CHECK_RESULT(mWaitFences[mCurrentBufferIdx]->Reset());
-
-	// account for the new value of mCurrentBufferIdx
-	mSubmitInfo.pCommandBuffers = &mDrawCommandBuffers[mCurrentBufferIdx]->GetHandle();
-
-	// Submit to the graphics queue
-	VK_CHECK_RESULT(mpDevice->GetMainGraphicsQueue()->Submit(1, &mSubmitInfo, mWaitFences[mCurrentBufferIdx]->GetHandle()));
-
-	// Present the current buffer to the swap chain
-	// Pass the semaphore signaled by the command buffer submission from the submit info as the wait semaphore for swap chain presentation
-	// This ensures that the image is not presented to the windowing system until all commands have been submitted
-	PresentFrame();
-}
-
-void VulkanRenderer::PrepareFrame()
-{
-	// Acquire the next image from the swap chain - we get the next image index
-	VkResult res = mpDevice->AcquireNextImage(&mCurrentBufferIdx, mpPresentCompleteSemaphore->GetHandle());
-
-	// Recreate the swapchain if it's no longer compatible with the surface (OUT_OF_DATE) or no longer optimal for presentation (SUBOPTIMAL)
-	if ((res == VkResult::VK_ERROR_OUT_OF_DATE_KHR) || (res == VkResult::VK_SUBOPTIMAL_KHR))
-	{
-		WindowResize();
-	}
-	else
-	{
-		VK_CHECK_RESULT(res);
-	}
-}
-
-void VulkanRenderer::PresentFrame()
-{
-	// Return the image to the swap chain for presentation
-	VkPresentInfoKHR presentInfo = 
-		VulkanInitializers::PresentInfo(1, &mpDevice->GetSwapChainHandle(), 1, &mpRenderCompleteSemaphore->GetHandle(), &mCurrentBufferIdx);
-
-	VkResult res = VkResult::VK_SUCCESS;
-	if (mpDevice->IsPresentQueueSupported()) // separate present queue
-	{
-		mpDevice->GetPresentQueue()->Present(presentInfo);
-	}
-	else // graphics and present queue are the same
-	{
-		res = mpDevice->GetMainGraphicsQueue()->Present(presentInfo);
-	}
-	if (false == ((res == VkResult::VK_SUCCESS) || (res == VkResult::VK_SUBOPTIMAL_KHR)))
-	{
-		if (res == VkResult::VK_ERROR_OUT_OF_DATE_KHR)
-		{
-			// Swap chain is no longer compatible with the surface and needs to be recreated
-			WindowResize();
-			return;
-		}
-		else
-		{
-			VK_CHECK_RESULT(res);
-		}
-	}
-	// wait until queue is idle
-	VK_CHECK_RESULT(mpDevice->GetMainGraphicsQueue()->WaitIdle());
-}
-
-VulkanDevice* VulkanRenderer::GetDevice() const
-{
-	return mpDevice;
-}
-
-///////////////////////
-
-void VulkanRenderer::DrawObject(RenderQueue::Renderable* pRenderable, uint32_t currentBufferIdx)
-{
-	assert(pRenderable != nullptr);
-	assert(pRenderable->pGeometryNode != nullptr);
-
-	auto& geoPrimitives = pRenderable->pGeometryNode->GetGeometricPrimitives();
-
-	// draw geometric primitives
-	for (auto& primitive : geoPrimitives)
-	{
-		if (primitive)
-		{
-			//bind material
-			Bind(pRenderable->pMaterial, primitive, currentBufferIdx);
-
-
-			//bind vertex format
-			GADRVertexFormat* gadrVertexFormat = Bind(primitive->GetVertexFormat());
-
-			// bind vertex buffer
-			GADRVertexBuffer* gadrVertexBuffer = Bind(primitive->GetVertexBuffer());
-
-
-			VkDeviceSize offsets[1] = { 0 };
-			vkCmdBindVertexBuffers(mDrawCommandBuffers[currentBufferIdx]->GetHandle(), VERTEX_BUFFER_BIND_ID, 1, &(gadrVertexBuffer->GetVkBuffer()->GetHandle()), offsets);
-
-			if (primitive->IsIndexed())
-			{
-				// bind index buffer
-				GADRIndexBuffer* gadrIndexBuffer = Bind(primitive->GetIndexBuffer());
-
-				VkIndexType vkIndexType = GADRIndexBuffer::IndexTypeToVulkanIndexType(primitive->GetIndexBuffer()->GetIndexType());
-				vkCmdBindIndexBuffer(mDrawCommandBuffers[currentBufferIdx]->GetHandle(), gadrIndexBuffer->GetVkBuffer()->GetHandle(), 0, vkIndexType);
-
-				// draw indexed
-				// 1 instance as we do not do instance drawing
-				vkCmdDrawIndexed(mDrawCommandBuffers[currentBufferIdx]->GetHandle(), primitive->GetIndexBuffer()->GetIndexCount(), 1, 0, 0, 1);
-			}
-			else
-			{
-				// draw
-				// 1 instance as we do not do instance drawing
-				vkCmdDraw(mDrawCommandBuffers[currentBufferIdx]->GetHandle(), primitive->GetVertexBuffer()->GetVertexCount(), 1, 0, 0);
-			}
-		}
-	}
-}
-
-void VulkanRenderer::DrawGeometry(GeometryNode* pGeometryNode, uint32_t currentBufferIdx)
-{
-	assert(pGeometryNode != nullptr);
-
-	auto& geoPrimitives = pGeometryNode->GetGeometricPrimitives();
-
-	// draw geometric primitives
-	for (auto& primitive : geoPrimitives)
-	{
-		if (primitive)
-		{
-			//bind vertex format
-			GADRVertexFormat* gadrVertexFormat = Bind(primitive->GetVertexFormat());
-
-			// bind vertex buffer
-			GADRVertexBuffer* gadrVertexBuffer = Bind(primitive->GetVertexBuffer());
-
-
-			VkDeviceSize offsets[1] = { 0 };
-			vkCmdBindVertexBuffers(mDrawCommandBuffers[currentBufferIdx]->GetHandle(), VERTEX_BUFFER_BIND_ID, 1, &(gadrVertexBuffer->GetVkBuffer()->GetHandle()), offsets);
-
-			if (primitive->IsIndexed())
-			{
-				// bind index buffer
-				GADRIndexBuffer* gadrIndexBuffer = Bind(primitive->GetIndexBuffer());
-				
-				vkCmdBindIndexBuffer(mDrawCommandBuffers[currentBufferIdx]->GetHandle(), gadrIndexBuffer->GetVkBuffer()->GetHandle(), 0, VK_INDEX_TYPE_UINT32);
-
-				// draw indexed
-				// 1 instance as we do not do instance drawing
-				vkCmdDrawIndexed(mDrawCommandBuffers[currentBufferIdx]->GetHandle(), primitive->GetIndexBuffer()->GetIndexCount(), 1, 0, 0, 1);
-			}
-			else
-			{
-				// draw
-				// 1 instance as we do not do instance drawing
-				vkCmdDraw(mDrawCommandBuffers[currentBufferIdx]->GetHandle(), primitive->GetVertexBuffer()->GetVertexCount(), 1, 0, 0);
-			}
-		}
-	}
-}
-
-void VulkanRenderer::Render(RenderQueue* pRenderQueue, RenderPass* pRenderPass)
-{
 	assert(pRenderQueue != nullptr);
 	assert(pRenderPass != nullptr);
 
-	mpRenderQueue = pRenderQueue;
-	mpRenderPass = pRenderPass;
+	//	mpRenderQueue = pRenderQueue;
+	//	mpRenderPass = pRenderPass;
 
 	BeginFrame();
 
@@ -1220,8 +538,11 @@ void VulkanRenderer::Render(RenderQueue* pRenderQueue, RenderPass* pRenderPass)
 	EndFrame();
 }
 
-void VulkanRenderer::Update(Camera* pCamera, bfloat32_t deltaTime)
+void VulkanRenderer::UpdateFrame(Camera* pCamera, float32_t deltaTime)
 {
+	if (false == mIsPrepared)
+		return;
+
 	assert(mpRenderQueue != nullptr);
 	assert(mpRenderPass != nullptr);
 
@@ -1234,42 +555,668 @@ void VulkanRenderer::Update(Camera* pCamera, bfloat32_t deltaTime)
 	getQueryResults();
 }
 
+void VulkanRenderer::BeginFrame()
+{
+	//TODO
+}
+
+void VulkanRenderer::EndFrame()
+{
+	// TODO
+}
+
+void VulkanRenderer::SubmitFrame()
+{
+	// HERE THE FRAME IS JUST SUBMITED TO THE GRAPHICS QUEUE
+	// THE IMAGE IS PRESENTED TO THE SWAPCHAIN
+	// THE ACTUAL RENDERING IS DONE WHEN THE COMMAND BUFFER IS BUILT/ALL COMMANDS RECORDED
+
+	if (false == mIsPrepared)
+		return;
+
+	assert(mpDevice != nullptr);
+
+	// Get next image in the swap chain (back/front buffer)
+	// updates mCurrentBuffer
+	PrepareFrame();
+
+	// we do the checks after we acquire the new mCurrentBufferIdx of the current swapchain image
+	// done in PrepareFrame()
+
+	auto pCrrDrawCommandBuffer = mDrawCommandBuffers[mCurrentBufferIdx];
+	assert(pCrrDrawCommandBuffer != nullptr);
+	auto pCrrWaitFence = mWaitFences[mCurrentBufferIdx];
+	assert(pCrrWaitFence != nullptr);
+
+	auto pQueue = mpDevice->GetGraphicsQueue();
+	assert(pQueue != nullptr);
+
+	// Use a fence to wait until the command buffer has finished execution before using it again
+	VK_CHECK_RESULT(pCrrWaitFence->WaitIdle(VK_TRUE, UINT64_MAX));
+	VK_CHECK_RESULT(pCrrWaitFence->Reset());
+
+	// account for the new value of mCurrentBufferIdx
+	mSubmitInfo.pCommandBuffers = &pCrrDrawCommandBuffer->GetHandle();
+
+	// Submit to the graphics queue
+	VK_CHECK_RESULT(pQueue->Submit(1, &mSubmitInfo, pCrrWaitFence->GetHandle()));
+
+	// Present the current buffer to the swap chain
+	// Pass the semaphore signaled by the command buffer submission from the submit info as the wait semaphore for swap chain presentation
+	// This ensures that the image is not presented to the windowing system until all commands have been submitted
+	PresentFrame();
+}
+
+void VulkanRenderer::PrepareFrame()
+{
+	assert(mpDevice != nullptr);
+	assert(mpPresentCompleteSemaphore != nullptr);
+
+	// Acquire the next image from the swap chain - we get the next image index
+	VkResult res = mpDevice->AcquireNextImage(&mCurrentBufferIdx, mpPresentCompleteSemaphore->GetHandle());
+
+	// Recreate the swapchain if it's no longer compatible with the surface (OUT_OF_DATE) or no longer optimal for presentation (SUBOPTIMAL)
+	if ((res == VkResult::VK_ERROR_OUT_OF_DATE_KHR) || (res == VkResult::VK_SUBOPTIMAL_KHR))
+	{
+		OnWindowResize();
+	}
+	else
+	{
+		VK_CHECK_RESULT(res);
+	}
+}
+
+void VulkanRenderer::PresentFrame()
+{
+	assert(mpDevice != nullptr);
+	assert(mpRenderCompleteSemaphore != nullptr);
+
+	// Return the image to the swap chain for presentation
+	VkPresentInfoKHR presentInfo = 
+		VulkanInitializers::PresentInfo(1, &mpDevice->GetSwapChainHandle(), 1, &mpRenderCompleteSemaphore->GetHandle(), &mCurrentBufferIdx);
+
+	auto pQueue = mpDevice->GetGraphicsQueue();
+	assert(pQueue != nullptr);
+
+	VkResult res = VkResult::VK_SUCCESS;
+	if (mpDevice->IsPresentQueueSupported()) // separate present queue
+	{
+		pQueue = mpDevice->GetPresentQueue();
+		assert(pQueue != nullptr);
+
+		res = pQueue->Present(presentInfo);
+	}
+	else // graphics and present queue are the same
+	{
+		res = pQueue->Present(presentInfo);
+	}
+	if (false == ((res == VkResult::VK_SUCCESS) || (res == VkResult::VK_SUBOPTIMAL_KHR)))
+	{
+		if (res == VkResult::VK_ERROR_OUT_OF_DATE_KHR)
+		{
+			// Swap chain is no longer compatible with the surface and needs to be recreated
+			OnWindowResize();
+			return;
+		}
+		else
+		{
+			VK_CHECK_RESULT(res);
+		}
+	}
+	// wait until queue is idle
+	VK_CHECK_RESULT(pQueue->WaitIdle());
+}
+
+///////////////////////
+
+void VulkanRenderer::DrawObject(RenderQueue::Renderable* pRenderable, uint32_t currentBufferIdx)
+{
+	if (false == mIsPrepared)
+		return;
+
+	assert(pRenderable != nullptr);
+
+	auto pGeoNode = pRenderable->pGeometryNode;
+	assert(pGeoNode != nullptr);
+
+	auto pCrrDrawCommandBuffer = mDrawCommandBuffers[currentBufferIdx];
+	assert(pCrrDrawCommandBuffer != nullptr);
+
+	//TODO - fix
+	BindShaderBindings(currentBufferIdx, mDescriptorSetDataCollection[0].pDescriptorSet, mPipelineDataCollection[0].pPipelineLayout, mPipelineDataCollection[0].pGraphicsPipeline);
+
+	VisualComponent* pVisComp = pGeoNode->GetComponent<VisualComponent>();
+	assert(pVisComp != nullptr);
+
+	// update dynamic states if any
+	auto& dynamicState = pVisComp->GetDynamicState();
+
+	if (dynamicState.HasStates())
+	{
+		UpdateDynamicStates(dynamicState, currentBufferIdx);
+	}
+
+	//bind material
+	/*if (pRenderable->pMaterial)
+	{
+		Bind(pRenderable->pMaterial, currentBufferIdx);
+	}*/
+
+	// draw geometric primitives
+	auto& geoPrimitives = pGeoNode->GetGeometricPrimitives();
+
+
+	for (auto& primitive : geoPrimitives)
+	{
+		if (primitive)
+		{
+			//bind vertex format
+			GADRVertexFormat* gadrVertexFormat = Bind(primitive->GetVertexFormat());
+			assert(gadrVertexFormat != nullptr);
+
+			// bind vertex buffer
+			GADRVertexBuffer* gadrVertexBuffer = Bind(primitive->GetVertexBuffer());
+			assert(gadrVertexBuffer != nullptr);
+
+			VkDeviceSize offsets[1] = { 0 };
+			vkCmdBindVertexBuffers(pCrrDrawCommandBuffer->GetHandle(), VERTEX_BUFFER_BIND_ID, 1, &(gadrVertexBuffer->GetVkBuffer()->GetHandle()), offsets);
+
+			if (primitive->IsIndexed())
+			{
+				// bind index buffer
+				GADRIndexBuffer* gadrIndexBuffer = Bind(primitive->GetIndexBuffer());
+				assert(gadrIndexBuffer != nullptr);
+
+				VkIndexType vkIndexType = GADRIndexBuffer::IndexTypeToVulkanIndexType(primitive->GetIndexBuffer()->GetIndexType());
+				vkCmdBindIndexBuffer(pCrrDrawCommandBuffer->GetHandle(), gadrIndexBuffer->GetVkBuffer()->GetHandle(), 0, vkIndexType);
+
+				// draw indexed
+				// 1 instance as we do not do instance drawing
+				vkCmdDrawIndexed(pCrrDrawCommandBuffer->GetHandle(), primitive->GetIndexBuffer()->GetIndexCount(), 1, 0, 0, 1);
+			}
+			else
+			{
+				// draw
+				// 1 instance as we do not do instance drawing
+				vkCmdDraw(pCrrDrawCommandBuffer->GetHandle(), primitive->GetVertexBuffer()->GetVertexCount(), 1, 0, 0);
+			}
+		}
+	}
+}
+
+void VulkanRenderer::ComputeGraphicsResources(RenderQueue* pRenderQueue, RenderPass* pRenderPass)
+{
+	if (false == mIsPrepared)
+		return;
+
+	assert(pRenderQueue != nullptr);
+	assert(pRenderPass != nullptr);
+
+	mpRenderQueue = pRenderQueue;
+	mpRenderPass = pRenderPass;
+
+	auto renderableList = mpRenderQueue->GetRenderables(RenderQueue::RenderableType::GE_RT_OPAQUE);
+
+	mpRenderQueue->Each(renderableList,
+		[&, this](RenderQueue::Renderable* pRenderable)
+		{
+			assert(pRenderable != nullptr);
+
+			auto pGeoNode = pRenderable->pGeometryNode;
+			assert(pGeoNode != nullptr);
+
+			auto pVisComp = pGeoNode->GetComponent<VisualComponent>();
+			assert(pVisComp != nullptr);
+
+			//TODO - shouldn't be done per primitive
+			pGeoNode->ForEachPrimitive(
+				[this, &pVisComp](GeometricPrimitive* pGeoPrimitive)
+				{
+					setupPipeline(pGeoPrimitive, pVisComp);
+				});
+		}
+	);
+}
+
+void VulkanRenderer::setupPipeline(GeometricPrimitive* pGeoPrimitive, VisualComponent* pVisComp)
+{
+	assert(pGeoPrimitive != nullptr);
+	assert(pVisComp != nullptr);
+	assert(mpDevice != nullptr);
+
+	// setup Shader Bindings - uniforms, samplers, etc.
+
+	// setup Shaders
+	const auto& shaders = pVisComp->GetShaders();
+
+	// Shaders
+
+	// pipeline shader stages data
+	std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
+	shaderStages.resize(shaders.size());
+
+	////////// descriptor/uniform map data
+	struct DescriptorSetBindingData
+	{
+		VkShaderStageFlagBits shaderStage;
+		VkDescriptorSetLayoutBinding layoutBinding;
+		VkWriteDescriptorSet writeSet;
+		VkCopyDescriptorSet copySet;
+	};
+	std::unordered_map<VkDescriptorType, std::vector<DescriptorSetBindingData>> descriptorSetBindingMap;
+	/////////
+
+	size_t i = 0;
+	for (auto iter = shaders.begin(); iter != shaders.end(); ++ iter)
+	{
+		auto shader = iter->second;
+		if (shader)
+		{
+			auto parser = shader->GetGLSLParser();
+			assert(parser != nullptr);
+
+			// COMPUTE DESCRIPTOR SET INFO
+
+			VkShaderStageFlagBits shaderStage = VulkanUtils::ShaderStageToVulkanShaderStage(shader->GetShaderStage());
+
+			// uniform buffer info
+			if (parser->GetUniformBlock().IsValid())
+			{
+				// uniform data
+				GADRUniformBuffer* pGadrUniformBuffer = nullptr;
+				if (pVisComp->HasUniformBuffers()) //get available one
+				{
+					pGadrUniformBuffer = Get(pVisComp->GetUniformBuffer(shader->GetShaderStage()));
+				}
+				else
+				{
+					//otherwise make one of our own
+					//pVisComp->AddUniformBuffer();
+
+				}
+				assert(pGadrUniformBuffer != nullptr);
+
+				// descritpro metadata
+				VkDescriptorType descriptorType = VkDescriptorType::VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+
+				DescriptorSetBindingData descriptorSetBindingData{};
+
+				int32_t uboBinding = parser->GetUniformBlock().binding;
+
+				// So every shader binding should map to one descriptor set layout binding
+				VkDescriptorSetLayoutBinding descriptorSetLayoutBinding{};
+				descriptorSetLayoutBinding.binding = uboBinding; // taken from the shader
+				descriptorSetLayoutBinding.descriptorType = descriptorType;
+				descriptorSetLayoutBinding.descriptorCount = 1;
+				descriptorSetLayoutBinding.stageFlags = shaderStage;
+				descriptorSetBindingData.layoutBinding = descriptorSetLayoutBinding;
+
+				VkWriteDescriptorSet writeDescriptorSet = VulkanInitializers::WriteDescriptorSet
+				(
+					VK_NULL_HANDLE,
+					uboBinding,
+					0, 1,
+					descriptorType,
+					nullptr, &(pGadrUniformBuffer->GetVKBuffer()->GetDescriptorInfo())
+				);
+
+				descriptorSetBindingData.writeSet = writeDescriptorSet;
+
+				descriptorSetBindingMap[descriptorType] = { descriptorSetBindingData };
+			}
+
+			// pipeline shader state setup
+			auto GADRShader = Get(shader);
+			assert(GADRShader != nullptr);
+
+			auto refVkShader = GADRShader->GetVkShaderModule();
+			assert(refVkShader != nullptr);
+
+			shaderStages[i++] = VulkanInitializers::PipelineShaderStageCreateInfo
+			(
+				shaderStage,
+				refVkShader->GetHandle(),
+				SHADER_ENTRY_POINT
+			);
+		}
+	}
+
+	// setup Textures - TODO
+
+
+	////////////////////////////////////
+
+	//// setup Descriptor pool
+	{
+		std::vector<VkDescriptorPoolSize> poolSizes;
+
+		for (auto iter = descriptorSetBindingMap.begin(); iter != descriptorSetBindingMap.end(); ++ iter)
+		{
+			auto descriptorType = iter->first;
+			uint32_t descriptorCount = static_cast<uint32_t>(iter->second.size());
+
+			VkDescriptorPoolSize descriptorPoolSize{};
+			descriptorPoolSize.type = descriptorType;
+			descriptorPoolSize.descriptorCount = descriptorCount;
+
+			poolSizes.push_back(descriptorPoolSize);
+		}
+
+		//////////////
+
+		// TODO - properly compute the number of allowed decriptot sets from this descriptor pool
+		uint32_t descriptorSetMaxCount = poolSizes.size();
+
+		// Create the global descriptor pool
+		// All descriptors used in this example are allocated from this pool
+		if (mpDescriptorPool == nullptr)
+		{
+			mpDescriptorPool = GE_ALLOC(VulkanDescriptorPool)(mpDevice, descriptorSetMaxCount, poolSizes);
+			assert(mpDescriptorPool != nullptr);
+		}
+		///////////
+	}
+
+	// setup Descriptor sets
+	{
+		// Basically connects the different shader stages to descriptors for binding uniform buffers, image samplers, etc.
+		std::vector<VkDescriptorSetLayoutBinding> layoutBindings;
+
+		for (auto iter = descriptorSetBindingMap.begin(); iter != descriptorSetBindingMap.end(); ++iter)
+		{
+			auto descriptorType = iter->first;
+			auto& descritptorSetBidingDataCollection = iter->second;
+
+			for (auto& data : descritptorSetBidingDataCollection)
+			{
+				layoutBindings.push_back(data.layoutBinding);
+			}
+		}
+
+		DescriptorSetData descriptorData{};
+
+		descriptorData.pDescriptorSetLayout = GE_ALLOC(VulkanDescriptorSetLayout)(mpDevice, layoutBindings);
+		assert(descriptorData.pDescriptorSetLayout != nullptr);
+
+		// Allocate a new descriptor set from the global descriptor pool
+		descriptorData.pDescriptorSet = GE_ALLOC(VulkanDescriptorSet)(mpDevice, mpDescriptorPool, { descriptorData.pDescriptorSetLayout });
+		assert(descriptorData.pDescriptorSet != nullptr);
+
+		// Update the descriptor set determining the shader binding points
+		// For every binding point used in a shader there needs to be one
+		// descriptor set matching that binding point
+		std::vector<VkWriteDescriptorSet> writeDescriptorSets;
+
+		for (auto iter = descriptorSetBindingMap.begin(); iter != descriptorSetBindingMap.end(); ++iter)
+		{
+			auto descriptorType = iter->first;
+			auto& descritptorSetBidingDataCollection = iter->second;
+
+			for (auto& data : descritptorSetBidingDataCollection)
+			{
+				// set descriptor set handle
+				data.writeSet.dstSet = descriptorData.pDescriptorSet->GetHandle();
+
+				writeDescriptorSets.push_back(data.writeSet);
+			}
+		}
+
+		descriptorData.pDescriptorSet->Update(writeDescriptorSets, {});
+
+		mDescriptorSetDataCollection.push_back(descriptorData);
+	}	
+	////////////
+
+	// setup vertex format
+	GADRVertexFormat* gadrVertexFormat = Get(pGeoPrimitive->GetVertexFormat());
+	assert(gadrVertexFormat != nullptr);
+
+	Shader* pVertexShader = pVisComp->GetShader(Shader::ShaderStage::GE_SS_VERTEX);
+	assert(pVertexShader != nullptr);
+
+	GLSLShaderParser* pGlslParser = pVertexShader->GetGLSLParser();
+	assert(pGlslParser != nullptr);
+
+	auto shaderAttribs = pGlslParser->GetVertexAttributes();
+
+	// update attribute locations based on the current used vertex shader
+	auto inputAttribs = gadrVertexFormat->GetVkInputAttributes();
+
+	// we must have the same number of attributes (shader data vs input data)
+	assert(shaderAttribs.size() == inputAttribs.size());
+
+	std::vector<VkVertexInputAttributeDescription> updatedInputAttribs(inputAttribs.size());
+
+	size_t index = 0;
+	auto inputAttIter = inputAttribs.begin();
+	auto shaderAttIter = shaderAttribs.begin();
+	for (; inputAttIter != inputAttribs.end(); ++inputAttIter, ++shaderAttIter)
+	{
+		auto& refAtt = updatedInputAttribs[index];
+		refAtt = inputAttribs[inputAttIter->first];
+		auto refInput = shaderAttIter->second.pInput;
+		if (refInput)
+			refAtt.location = refInput->location;
+
+		index++;
+	}
+
+	// setup vertex input
+	GADRVertexBuffer* gadrVertexBuffer = Get(pGeoPrimitive->GetVertexBuffer());
+	assert(gadrVertexBuffer != nullptr);
+
+	const auto& inputBinding = gadrVertexBuffer->GetVkInputBinding();
+
+	VkPrimitiveTopology vulkanTopology = VulkanUtils::PrimitiveTopologyToVulkanTopolgy(pGeoPrimitive->GetTopology());
+
+
+	/////////////////////////////////
+	VkPipelineVertexInputStateCreateInfo pipelineVertexInputStateCreateInfo =
+		VulkanInitializers::PipelineVertexInputStateCreateInfo(1, &inputBinding, static_cast<uint32_t>(updatedInputAttribs.size()), updatedInputAttribs.data());
+
+	// Input assembly state describes how primitives are assembled
+	// This pipeline will assemble vertex data as a triangle lists (though we only use one triangle)
+	auto restartPrimitve = pGeoPrimitive->GetIndexBuffer()->GetIsRestartPrimitive();
+
+	VkPipelineInputAssemblyStateCreateInfo pipelineInputAssemblyStateCreateInfo =
+		VulkanInitializers::PipelineInputAssemblyStateCreateInfo(vulkanTopology, restartPrimitve);
+
+
+	////////////////////////////////////
+
+	auto& dynamicState = pVisComp->GetDynamicState();
+
+	// Viewport state sets the number of viewports and scissor used in this pipeline
+	// Note: This is actually overriden by the dynamic states (see below)
+	VkPipelineViewportStateCreateInfo pipelineViewportStateCreateInfo{};
+
+	// if viewport and scisosrs are part of dynamic state, we don't handlle them here!
+	if (dynamicState.HasStates())
+	{
+		pipelineViewportStateCreateInfo = VulkanInitializers::PipelineViewportStateCreateInfo(MIN_NUM_VIEWPORTS, nullptr, MIN_NUM_SCISSORS, nullptr);
+	}
+	else
+	{
+		VkViewport viewport{};
+		viewport.x = 0;
+		viewport.y = 0;
+		viewport.width = static_cast<float32_t>(GetWindowWidth());
+		viewport.height = static_cast<float32_t>(GetWindowHeight());
+		viewport.minDepth = 0.0f;
+		viewport.maxDepth = 1.0f;
+
+		VkRect2D scissor{};
+		scissor.offset = VkOffset2D { 0, 0 };
+		scissor.extent = VkExtent2D{ GetWindowWidth(), GetWindowHeight() };
+
+		pipelineViewportStateCreateInfo = VulkanInitializers::PipelineViewportStateCreateInfo(1, &viewport, 1, &scissor);
+	}
+
+	// Rasterization state
+	VkPolygonMode vulkanPolygonMode = VulkanUtils::PrimitivePolygonModeToVulkanPolygonMode(pGeoPrimitive->GetPolygonMode());
+	VkFrontFace vulkanFaceWinding = VulkanUtils::PrimitiveFaceWindingToVulkanFaceWinding(pGeoPrimitive->GetFaceWinding());
+	VkCullModeFlagBits vulkanCullMode = VulkanUtils::FaceCullModeToVulkanFaceCullMode(pVisComp->GetCullFaceState().GetCullMode());
+
+
+	VkPipelineRasterizationStateCreateInfo pipelineRasterizationStateCreateInfo =
+		VulkanInitializers::PipelineRasterizationStateCreateInfo(VK_FALSE, VK_FALSE, vulkanPolygonMode, vulkanCullMode,
+			vulkanFaceWinding, VK_FALSE, 0, 0, 0, RASTER_MIN_LINE_WIDTH);
+
+	// Multi sampling state
+	// This example does not make use fo multi sampling (for anti-aliasing), the state must still be set and passed to the pipeline
+	VkPipelineMultisampleStateCreateInfo pipelineMultisampleStateCreateInfo =
+		VulkanInitializers::PipelineMultisampleStateCreateInfo(MIN_NUM_SAMPLES, VK_FALSE, 0.0f, nullptr, VK_FALSE, VK_FALSE);
+
+	// Depth and stencil state containing depth and stencil compare and test operations
+	// We only use depth tests and want depth tests and writes to be enabled and compare with less or equal
+	auto& depthStencilState = pVisComp->GetDepthStencilState();
+
+	auto depthEnabled = depthStencilState.GetIsDepthEnabled();
+	auto depthWritable = depthStencilState.GetIsDepthWritable();
+	auto depthCompareOp = VulkanUtils::CompareOpToVulkanCompareOp(depthStencilState.GetDepthCompareOp());
+
+	VkStencilOpState stencilOpState{};
+	auto stencilEnabled = depthStencilState.GetIsStencilEnabled();
+
+	if (stencilEnabled)
+	{
+		stencilOpState.failOp = VulkanUtils::StencilOpToVulkanStencilOp(depthStencilState.GetStencilFailOp());
+		stencilOpState.passOp = VulkanUtils::StencilOpToVulkanStencilOp(depthStencilState.GetStencilPassDepthPassOp());
+		stencilOpState.depthFailOp = VulkanUtils::StencilOpToVulkanStencilOp(depthStencilState.GetStencilPassDepthFailOp());
+		stencilOpState.compareOp = VulkanUtils::CompareOpToVulkanCompareOp(depthStencilState.GetStencilCompareOp());
+		stencilOpState.compareMask = depthStencilState.GetStencilCompareMask();
+		stencilOpState.writeMask = depthStencilState.GetStencilWriteMask();
+		stencilOpState.reference = depthStencilState.GetStencilReference();
+	}
+
+	// NOTE! Depth can be writable only if enabled!
+	VkPipelineDepthStencilStateCreateInfo pipelineDepthStencilStateCreateInfo =
+		VulkanInitializers::PipelineDepthStencilStateCreateInfo(depthEnabled, depthEnabled && depthWritable, depthCompareOp, VK_FALSE, stencilEnabled, stencilOpState, stencilOpState, 0, 0);
+
+	// Color blend state describes how blend factors are calculated (if used)
+	// We need one blend attachment state per color attachment (even if blending is not used)
+	auto& colorBlendState = pVisComp->GetColorBlendState();
+
+	auto blendEnabled = colorBlendState.GetIsBlendEnabled();
+
+	// NOTE! We need one blend attachment state per color attachment (even if blending is not used)
+	auto srcColorBlendFactor = VulkanUtils::BlendFactorToVulkanBlendFactor(colorBlendState.GetSrcColorBlendFactor());
+	auto dstColorBlendFactor = VulkanUtils::BlendFactorToVulkanBlendFactor(colorBlendState.GetDstColorBlendFactor());
+	auto colorBlendOp = VulkanUtils::BlendOpToVulkanBlendOp(colorBlendState.GetColorBlendOp());
+	auto srcAlphaBlendFactor = VulkanUtils::BlendFactorToVulkanBlendFactor(colorBlendState.GetSrcAlphaBlendFactor());
+	auto dstAlphaBlendFactor = VulkanUtils::BlendFactorToVulkanBlendFactor(colorBlendState.GetDstAlphaBlendFactor());
+	auto alphaBlendOp = VulkanUtils::BlendOpToVulkanBlendOp(colorBlendState.GetAlphaBlendOp());
+	auto colorWriteMask = colorBlendState.GetColorWriteMask();
+
+	VkPipelineColorBlendAttachmentState	pipelineColorBlendAttachmentState{};
+	pipelineColorBlendAttachmentState.blendEnable = blendEnabled;
+	pipelineColorBlendAttachmentState.srcColorBlendFactor = srcColorBlendFactor;
+	pipelineColorBlendAttachmentState.dstColorBlendFactor = dstColorBlendFactor;
+	pipelineColorBlendAttachmentState.colorBlendOp = colorBlendOp;
+	pipelineColorBlendAttachmentState.srcAlphaBlendFactor = srcAlphaBlendFactor;
+	pipelineColorBlendAttachmentState.dstAlphaBlendFactor = dstAlphaBlendFactor;
+	pipelineColorBlendAttachmentState.alphaBlendOp = alphaBlendOp;
+	pipelineColorBlendAttachmentState.colorWriteMask = colorWriteMask;
+
+	auto constantColor = colorBlendState.GetConstantColor();
+
+	VkPipelineColorBlendStateCreateInfo pipelineColorBlendStateCreateInfo =
+		VulkanInitializers::PipelineColorBlendStateCreateInfo(VK_FALSE, VkLogicOp::VK_LOGIC_OP_NO_OP, 1, &pipelineColorBlendAttachmentState, &constantColor[0]);
+
+	// Enable dynamic states
+	// Most states are baked into the pipeline, but there are still a few dynamic states that can be changed within a command buffer
+	// To be able to change these we need do specify which dynamic states will be changed using this pipeline. Their actual states are set later on in the command buffer.
+	// For this example we will set the viewport and scissor using dynamic states
+	VkPipelineDynamicStateCreateInfo pipelineDynamicStateCreateInfo{};
+	std::vector<VkDynamicState> vulkanDynamicStates;
+
+	if (dynamicState.HasStates())
+	{
+		auto dynamicStates = dynamicState.GetStates();
+		vulkanDynamicStates.resize(dynamicStates.size());
+
+		for (size_t i = 0; i < vulkanDynamicStates.size(); ++i)
+		{
+			vulkanDynamicStates[i] = VulkanUtils::DynamicStateToVulkanDynamicState(dynamicStates[i]);
+		}
+
+		pipelineDynamicStateCreateInfo = VulkanInitializers::PipelineDynamicStateCreateInfo(static_cast<uint32_t>(vulkanDynamicStates.size()), vulkanDynamicStates.data());
+	}
+	else
+	{
+		pipelineDynamicStateCreateInfo = VulkanInitializers::PipelineDynamicStateCreateInfo(0, nullptr);
+	}
+
+	///////////////////
+	{
+		PipelineData pipelineData{};
+
+		pipelineData.pPipelineLayout = GE_ALLOC(VulkanPipelineLayout)
+			(
+				mpDevice,
+				{ mDescriptorSetDataCollection[0].pDescriptorSetLayout }, {}
+		);
+		assert(pipelineData.pPipelineLayout != nullptr);
+
+		//// Assign the pipeline states to the pipeline creation info structure
+		pipelineData.pGraphicsPipeline = GE_ALLOC(VulkanGraphicsPipeline)
+			(
+				mpDevice,
+				GetPipelineCache(),
+				shaderStages,
+				pipelineVertexInputStateCreateInfo, pipelineInputAssemblyStateCreateInfo, {},
+				pipelineViewportStateCreateInfo, pipelineRasterizationStateCreateInfo,
+				pipelineMultisampleStateCreateInfo, pipelineDepthStencilStateCreateInfo,
+				pipelineColorBlendStateCreateInfo, pipelineDynamicStateCreateInfo,
+				pipelineData.pPipelineLayout, GetDefaultRenderPass()
+				);
+		assert(pipelineData.pGraphicsPipeline != nullptr);
+
+		mPipelineDataCollection.push_back(pipelineData);
+	}
+}
+
 void VulkanRenderer::UpdateUniformBuffers(RenderQueue::Renderable* pRenderable, Camera* pCamera)
 {
+	if (false == mIsPrepared)
+		return;
+
 	assert(pRenderable != nullptr);
-	assert(pRenderable->pMaterial != nullptr);
+	assert(pRenderable->pGeometryNode != nullptr);
 	assert(pCamera != nullptr);
 
-	auto uniformBuffer = pRenderable->pMaterial->GetUniformBuffer();
+	VisualComponent* pVisComp = pRenderable->pGeometryNode->GetComponent<VisualComponent>();
+	assert(pVisComp != nullptr);
 
-	switch (uniformBuffer->GetUniformUsage())
+	auto shaders = pVisComp->GetShaders();
+	for (auto iter = shaders.begin(); iter != shaders.end(); ++iter)
 	{
-		case UniformBuffer::UniformUsage::UU_PVM:
+		auto shaderStage = iter->first;
+		auto uniformBuffer = pVisComp->GetUniformBuffer(shaderStage);
+
+		if (uniformBuffer)
 		{
-			// matrix setup
-		//	uniformBuffer->Uniforms.projectionMatrix = pCamera->GetProjectionMatrix();
-		//	uniformBuffer->Uniforms.viewMatrix = pCamera->GetViewMatrix();
-		//	uniformBuffer->Uniforms.modelMatrix = glm::mat4(1.0f);
+			if (uniformBuffer->HasUniform(GLSLShaderTypes::UniformType::GE_UT_PVM_MATRIX4))
+			{
+				uniformBuffer->SetUniform(GLSLShaderTypes::UniformType::GE_UT_PVM_MATRIX4, pCamera->GetProjectionViewMatrix());	
 
-			uniformBuffer->Uniforms.PVM = pCamera->GetProjectionViewMatrix(); // NOTE! Model Matrix is identity for now
+				Bind(uniformBuffer);
+			}
+
 		}
-		break;
 	}
-	
-	//bind uniform buffer
-	GADRUniformBuffer* gadrUniformBuffer = Bind(uniformBuffer);
-	assert(gadrUniformBuffer != nullptr);
-
-	gadrUniformBuffer->UpdateData(uniformBuffer);
-
 }
 
 void VulkanRenderer::BindShaderBindings(uint32_t currentBufferIdx, VulkanDescriptorSet* pDescriptorSet,
 					VulkanPipelineLayout* pPipelineLayout, VulkanGraphicsPipeline* pGraphicsPipeline)
 {
+	if (false == mIsPrepared)
+		return;
+
 	assert(pDescriptorSet != nullptr);
 	assert(pPipelineLayout != nullptr);
 	assert(pGraphicsPipeline != nullptr);
+	assert(mDrawCommandBuffers[currentBufferIdx] != nullptr);
 
 	// Bind descriptor sets describing shader binding points
 	vkCmdBindDescriptorSets(mDrawCommandBuffers[currentBufferIdx]->GetHandle(), VkPipelineBindPoint::VK_PIPELINE_BIND_POINT_GRAPHICS, pPipelineLayout->GetHandle(), 0, 1, &pDescriptorSet->GetHandle(), 0, nullptr);
@@ -1288,15 +1235,17 @@ void VulkanRenderer::DrawSceneToCommandBuffer()
 
 	// Set clear values for all framebuffer attachments with loadOp set to clear
 	// We use two attachments (color and depth) that are cleared at the start of the subpass and as such we need to set clear values for both
-	std::vector<VkClearValue> clearValues;
-	clearValues.resize(2);
+	std::vector<VkClearValue> clearValues(2);
 	clearValues[0].color = { { 0.0f, 0.0f, 0.2f, 1.0f } };
 	clearValues[1].depthStencil = { 1.0f, 0 };
 
-	VkRect2D renderArea = VulkanInitializers::Rect2D(VulkanInitializers::Offset2D(0, 0), VulkanInitializers::Extent2D(mWindowWidth, mWindowHeight));
+	VkRect2D renderArea{};
+	renderArea.offset = VkOffset2D { 0, 0 };
+	renderArea.extent = VkExtent2D { mWindowWidth, mWindowHeight };
 
 	for (int32_t i = 0; i < mDrawCommandBuffers.size(); ++i)
 	{
+		assert(mDrawCommandBuffers[i] != nullptr);
 
 		// Begin command buffer recording
 		VK_CHECK_RESULT(mDrawCommandBuffers[i]->Begin());
@@ -1305,14 +1254,6 @@ void VulkanRenderer::DrawSceneToCommandBuffer()
 
 		// RenderPass Begin
 		mpDefaultRenderPass->Begin(mDrawCommandBuffers[i]->GetHandle(), mDefaultFrameBuffers[i]->GetHandle(), renderArea, clearValues);
-
-		// Update dynamic viewport state
-		VkViewport viewport = VulkanInitializers::Viewport(0, 0, static_cast<bfloat32_t>(mWindowWidth), static_cast<bfloat32_t>(mWindowHeight), 0.0f, 1.0f);
-		vkCmdSetViewport(mDrawCommandBuffers[i]->GetHandle(), 0, 1, &viewport);
-
-		// Update dynamic scissor state
-		VkRect2D scissor = VulkanInitializers::Rect2D(VulkanInitializers::Offset2D(0, 0), VulkanInitializers::Extent2D(mWindowWidth, mWindowHeight));
-		vkCmdSetScissor(mDrawCommandBuffers[i]->GetHandle(), 0, 1, &scissor);
 
 		beginQuery(i);
 
@@ -1330,15 +1271,77 @@ void VulkanRenderer::DrawSceneToCommandBuffer()
 	}
 }
 
+void VulkanRenderer::UpdateDynamicStates(const DynamicState& dynamicState, uint32_t currentBufferIdx)
+{
+	if (false == mIsPrepared)
+		return;
+
+	auto pCrrDrawCommandBuffer = mDrawCommandBuffers[currentBufferIdx];
+	assert(pCrrDrawCommandBuffer != nullptr);
+
+	auto dynStates = dynamicState.GetStates();
+	std::vector<VkDynamicState> dynamicStateEnables;
+	dynamicStateEnables.resize(dynStates.size());
+
+	for (size_t i = 0; i < dynamicStateEnables.size(); ++i)
+	{
+		dynamicStateEnables[i] = VulkanUtils::DynamicStateToVulkanDynamicState(dynStates[i]);
+	}
+
+
+	for (auto& state : dynamicStateEnables)
+	{
+		switch (state)
+		{
+		case VkDynamicState::VK_DYNAMIC_STATE_VIEWPORT:
+		{
+			VkViewport viewport{};
+			viewport.x = 0;
+			viewport.y = 0;
+			viewport.width = static_cast<float32_t>(GetWindowWidth());
+			viewport.height = static_cast<float32_t>(GetWindowHeight());
+			viewport.minDepth = 0.0f;
+			viewport.maxDepth = 1.0f;
+
+			vkCmdSetViewport(pCrrDrawCommandBuffer->GetHandle(), 0, 1, &viewport);
+		}
+		break;
+		case VkDynamicState::VK_DYNAMIC_STATE_SCISSOR:
+		{
+			VkRect2D scissor{};
+			scissor.offset = VkOffset2D{ 0, 0 };
+			scissor.extent = VkExtent2D{ GetWindowWidth(), GetWindowHeight() };
+
+			vkCmdSetScissor(pCrrDrawCommandBuffer->GetHandle(), 0, 1, &scissor);
+		}
+		break;
+
+		//TODO other cases
+
+		default:
+			LOG_ERROR("Invalid dynamic state!");
+		}
+	}
+}
+
 /////////////////////////////////////
 
+VulkanDevice* VulkanRenderer::GetDevice() const
+{
+	return mpDevice;
+}
 
-VulkanPipelineCache* VulkanRenderer::GetVkPipelineCache() const
+VulkanPipelineCache* VulkanRenderer::GetPipelineCache() const
 {
 	return mpPipelineCache;
 }
 
-VulkanRenderPass* VulkanRenderer::GetVkDefaultRenderPass() const
+VulkanRenderPass* VulkanRenderer::GetDefaultRenderPass() const
 {
 	return mpDefaultRenderPass;
+}
+
+VulkanCommandPool* VulkanRenderer::GetCommandPool() const
+{
+	return mpCommandPool;
 }

@@ -1,8 +1,8 @@
 #ifndef GRAPHICS_COMPONENTS_NODE_COMPONENT_HPP
 #define GRAPHICS_COMPONENTS_NODE_COMPONENT_HPP
 
-#include "Foundation/TypeDefs.hpp"
-#include "Foundation/RTTI.hpp"
+#include "Foundation/Object.hpp"
+#include <string>
 
 namespace GraphicsEngine
 {
@@ -10,19 +10,24 @@ namespace GraphicsEngine
 	{
 		class Node;
 
-		class NodeComponent : public RTTI
+		/* NodeComponent is the base class for every component a scene graph node wants to have */
+		class NodeComponent : public Object
 		{
 			GE_RTTI(GraphicsEngine::Graphics::NodeComponent)
 
 		public:
 			NodeComponent();
+			explicit NodeComponent(const std::string& name);
 			virtual ~NodeComponent();
 
-			virtual void Start() {};
-			virtual void Update(bfloat32_t deltaTime) {};
+			virtual void Start();
+			virtual void Update(float32_t deltaTime);
 
-			// to be overriden by derived classes
-			virtual const char_t* GetName() const;
+			virtual void OnAttach();
+			virtual void OnDettach();
+
+			virtual const std::string& GetName() const;
+			void SetName(const std::string& name);
 
 			Node* GetNode() const;
 			void SetNode(Node* pNode);
@@ -30,9 +35,11 @@ namespace GraphicsEngine
 			bool_t GetIsEnabled() const;
 			void SetIsEnabled(bool_t isEnabled);
 
-
-
 		private:
+			void Create();
+			void Destroy();
+
+			std::string mName;
 			Node* mpNode;
 			bool_t mIsEnabled;
 		};

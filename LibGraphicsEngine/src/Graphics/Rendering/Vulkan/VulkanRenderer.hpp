@@ -1,5 +1,5 @@
-#ifndef GRAPHICS_RENDERING_VULKAN_RENDERER_HPP
-#define GRAPHICS_RENDERING_VULKAN_RENDERER_HPP
+#ifndef GRAPHICS_RENDERING_VULKAN_VULKAN_RENDERER_HPP
+#define GRAPHICS_RENDERING_VULKAN_VULKAN_RENDERER_HPP
 
 #ifdef _WIN32
 #ifndef VK_USE_PLATFORM_WIN32_KHR
@@ -7,28 +7,11 @@
 #endif // VK_USE_PLATFORM_WIN32_KHR
 #endif // _WIN32
 
-#define NEW_GRAPHICS
-
 #include "AppConfig.hpp"
 
-#include "Graphics/Camera/Camera.hpp"
+#include "Graphics/Rendering/Vulkan/Common/VulkanObject.hpp"
 #include "Graphics/Rendering/Renderer.hpp"
-
-#include "vulkan/vulkan.h"
-
-#ifndef NEW_GRAPHICS
-#include "glm/common.hpp"
-#include "glm/vec2.hpp"
-#include "glm/vec3.hpp"
-#include "glm/mat4x4.hpp"
 #include <vector>
-#include <cstdint>
-
-//// GLSLS Debug ////
-#include "glslang/glslang/Include/ResourceLimits.h"
-#include "glslang/glslang/Public/ShaderLang.h"
-////
-#endif
 
 namespace GraphicsEngine
 {
@@ -39,8 +22,11 @@ namespace GraphicsEngine
 
 	namespace Graphics
 	{
+		class Camera;
+
 		class VulkanDevice;
 		class VulkanBuffer;
+		class VulkanCommandPool;
 		class VulkanCommandBuffer;
 		class VulkanFrameBuffer;
 		class VulkanFrameBufferAttachment;
@@ -56,7 +42,10 @@ namespace GraphicsEngine
 		class VulkanGraphicsPipeline;
 		class VulkanQueryPool;
 
-		class VulkanRenderer : public Renderer
+		class GeometricPrimitive; // TODO
+		class VisualComponent;
+
+		class VulkanRenderer : public VulkanObject, public Renderer
 		{
 			GE_RTTI(GraphicsEngine::Graphics::VulkanRenderer)
 
@@ -67,20 +56,15 @@ namespace GraphicsEngine
 			virtual void Init(Platform::GE_Window* pWindow) override;
 			virtual void Terminate() override;
 
-			virtual void RenderFrame() override;
-			virtual void UpdateFrame(bfloat32_t deltaTime) override;
+			virtual void RenderFrame(RenderQueue* pRenderQueue, RenderPass* pRenderPass) override;
+			virtual void UpdateFrame(Camera* pCamera, float32_t deltaTime) override;
 			virtual void SubmitFrame() override;
 
-
-			virtual void WindowResize(uint32_t width = 0, uint32_t height = 0) override;
-
-
-			VulkanDevice* GetDevice() const;
+			virtual void OnWindowResize(uint32_t width = 0, uint32_t height = 0) override;
 
 			/////////////////////////////////
 
-			virtual void Render(RenderQueue* pRenderQueue, RenderPass* pRenderPass) override;
-			virtual void Update(Camera* pCamera, bfloat32_t deltaTime) override;
+			virtual void ComputeGraphicsResources(RenderQueue* pRenderQueue, RenderPass* pRenderPass) override;
 
 			virtual void UpdateUniformBuffers(RenderQueue::Renderable* pRenderable, Camera* pCamera) override;
 
@@ -88,24 +72,26 @@ namespace GraphicsEngine
 			virtual void BindShaderBindings(uint32_t currentBufferIdx, VulkanDescriptorSet* pDescriptorSet,
 				VulkanPipelineLayout* pPipelineLayout, VulkanGraphicsPipeline* pGraphicsPipeline);
 
-			void DrawSceneToCommandBuffer();
-
 			virtual void DrawObject(RenderQueue::Renderable* pRenderable, uint32_t currentBufferIdx) override;
-			virtual void DrawGeometry(GeometryNode* pGeometryNode, uint32_t currentBufferIdx) override;
+
+			virtual void UpdateDynamicStates(const DynamicState& dynamicState, uint32_t currentBufferIdx) override;
 
 			//////////////////////////////
 
-			VulkanPipelineCache* GetVkPipelineCache() const;
-			VulkanRenderPass* GetVkDefaultRenderPass() const;
+			VulkanDevice* GetDevice() const;
+			VulkanPipelineCache* GetPipelineCache() const;
+			VulkanRenderPass* GetDefaultRenderPass() const;
+			VulkanCommandPool* GetCommandPool() const;
 
 		private:
 			void Prepare();
 
-			void setupDefaultDepthStencil();
 			void setupDefaultRenderPass();
 			void setupDefaultFrameBuffer();
 
+			void setupDrawCommandPool();
 			void setupDrawCommandBuffers();
+
 			void setupSynchronizationPrimitives();
 			void setupPipelineCache();
 			void setupSubmitInfo();
@@ -113,35 +99,17 @@ namespace GraphicsEngine
 			void setupPipelineStats();
 			void getQueryResults();
 
-			void resetQuery(uint32_t currentBufferId);
-			void beginQuery(uint32_t currentBufferId);
-			void endQuery(uint32_t currentBufferId);
+			void resetQuery(uint32_t currentBufferIdx);
+			void beginQuery(uint32_t currentBufferIdx);
+			void endQuery(uint32_t currentBufferIdx);
+
+			void DrawSceneToCommandBuffer();
 
 			virtual void BeginFrame() override;
 			virtual void EndFrame() override;
 
-			////////////// Particular functions dependent on scene content
-#ifndef NEW_GRAPHICS
-			void setupScene();
-			void setupVertexBuffers();
-			void setupUniformBuffers();
-			void updateUBO();
-			void setupShaders();
-			void setupTextures();
-			void setupDescriptorPool();
-			void setupDescriptorSet();
-			void setupPipeline();
-			void buildCommandBuffers();
-#endif
-			//////////////
-
 			void PrepareFrame();
 			void PresentFrame();
-
-#ifndef NEW_GRAPHICS
-			void Draw(); //TODO - remove
-			virtual void viewChanged();
-#endif
 
 		private:
 			NO_COPY_NO_MOVE(VulkanRenderer)
@@ -150,9 +118,6 @@ namespace GraphicsEngine
 
 			// Device
 			VulkanDevice* mpDevice;
-
-			// DepthStencil Buffer attachment
-			VulkanFrameBufferAttachment* mpDepthStencil;
 
 			// Default framebuffers
 			std::vector<VulkanFrameBuffer*> mDefaultFrameBuffers;
@@ -170,6 +135,9 @@ namespace GraphicsEngine
 			// Fences
 			// Used to check the completion of queue operations (e.g. command buffer execution)
 			std::vector<VulkanFence*> mWaitFences;
+
+			// command pool for rendering commands
+			VulkanCommandPool* mpCommandPool;
 
 			// Command buffers used for rendering
 			std::vector<VulkanCommandBuffer*> mDrawCommandBuffers;
@@ -205,70 +173,33 @@ namespace GraphicsEngine
 				bool overlay = false;
 			} mSettings;
 
-#ifndef NEW_GRAPHICS
-			// Shader modules
-			std::vector<VulkanShaderModule*> mShaderModules;
 
-			// Descriptor set pool
+
+			///////////////////////////////////
+			void setupPipeline(GeometricPrimitive* pGeoPrimitive, VisualComponent* pVisComp);
+
+			// 1 descriptor pool is enough for all needs
 			VulkanDescriptorPool* mpDescriptorPool;
 
-			// The descriptor set stores the resources bound to the binding points in a shader
-			// It connects the binding points of the different shaders with the buffers and images used for those bindings
-			VulkanDescriptorSet* mpDescriptorSet;
-
-			// The descriptor set layout describes the shader binding layout (without actually referencing descriptor)
-			// Like the pipeline layout it's pretty much a blueprint and can be used with different descriptor sets as long as their layout matches
-			VulkanDescriptorSetLayout* mpDescriptorSetLayout;
-
-
-			///////////// SPECIFICS APP DEPENDENT
-				// Vertex layout used in this example
-			struct Vertex {
-				float position[3];
-				float color[3];
+			struct DescriptorSetData
+			{
+				// 1 per object/effect (render pass)
+				VulkanDescriptorSetLayout* pDescriptorSetLayout;
+				VulkanDescriptorSet* pDescriptorSet;
 			};
 
-			// Vertex buffer
-			VulkanBuffer* mpVertices;
+			std::vector<DescriptorSetData> mDescriptorSetDataCollection;
 
-			// Index buffer
-			VulkanBuffer* mpIndices;
-			uint32_t mIndicesCount;
+			struct PipelineData
+			{
+				// 1 pipeline per effect (render pass)
+				VulkanPipelineLayout* pPipelineLayout;
+				VulkanGraphicsPipeline* pGraphicsPipeline;
+			};
 
-			// Uniform buffer block object/
-			VulkanBuffer* mpUniformBufferVS;
-
-			// For simplicity we use the same uniform block layout as in the shader:
-			//
-			//	layout(set = 0, binding = 0) uniform UBO
-			//	{
-			//		mat4 projectionMatrix;
-			//		mat4 modelMatrix;
-			//		mat4 viewMatrix;
-			//	} ubo;
-			//
-			// This way we can just memcopy the ubo data to the ubo
-			// Note: You should use data types that align with the GPU in order to avoid manual padding (vec4, mat4)
-			struct {
-				glm::mat4 projectionMatrix;
-				glm::mat4 modelMatrix;
-				glm::mat4 viewMatrix;
-			} mUboVS;
-
-
-			// The pipeline layout is used by a pipline to access the descriptor sets 
-			// It defines interface (without binding any actual data) between the shader stages used by the pipeline and the shader resources
-			// A pipeline layout can be shared among multiple pipelines as long as their interfaces match
-			VulkanPipelineLayout* mpPipelineLayout;
-
-			// Pipelines (often called "pipeline state objects") are used to bake all states that affect a pipeline
-			// While in OpenGL every state can be changed at (almost) any time, Vulkan requires to layout the graphics (and compute) pipeline states upfront
-			// So for each combination of non-dynamic pipeline states you need a new pipeline (there are a few exceptions to this not discussed here)
-			// Even though this adds a new dimension of planing ahead, it's a great opportunity for performance optimizations by the driver
-			VulkanGraphicsPipeline* mpGraphicsPipeline;
-#endif
+			std::vector<PipelineData> mPipelineDataCollection;
 		};
 	}
 }
 
-#endif /* GRAPHICS_RENDERING_VULKAN_RENDERER_HPP */
+#endif /* GRAPHICS_RENDERING_VULKAN_VULKAN_RENDERER_HPP */

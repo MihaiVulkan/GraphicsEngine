@@ -36,6 +36,8 @@ void VulkanBufferView::Create(const VkBufferViewCreateInfo& bufferViewCreateInfo
 
 void VulkanBufferView::Destroy()
 {
+	assert(mpDevice != nullptr);
+
 	if (mHandle)
 	{
 		vkDestroyBufferView(mpDevice->GetDeviceHandle(), mHandle, nullptr);

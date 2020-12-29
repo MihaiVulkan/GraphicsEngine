@@ -1,8 +1,7 @@
-#ifndef GRAPHICS_RENDERING_VULKAN_INSTANCE_HPP
-#define GRAPHICS_RENDERING_VULKAN_INSTANCE_HPP
+#ifndef GRAPHICS_RENDERING_VULKAN_INTERNAL_VULKAN_INSTANCE_HPP
+#define GRAPHICS_RENDERING_VULKAN_INTERNAL_VULKAN_INSTANCE_HPP
 
-#include "Foundation/TypeDefs.hpp"
-#include "vulkan/vulkan.h"
+#include "Graphics/Rendering/Vulkan/Common/VulkanObject.hpp"
 #include <vector>
 
 namespace GraphicsEngine
@@ -38,8 +37,10 @@ namespace GraphicsEngine
 
 			*This wrapper also selects a targgeted Vulakn Version!
 		*/
-		class VulkanInstance
+		class VulkanInstance : public VulkanObject
 		{
+			GE_RTTI(GraphicsEngine::Graphics::VulkanInstance)
+
 		public:
 			VulkanInstance();
 			explicit VulkanInstance(const char_t* pTitle, bool_t enableValidation);
@@ -61,4 +62,4 @@ namespace GraphicsEngine
 	}
 }
 
-#endif // GRAPHICS_RENDERING_VULKAN_INSTANCE_HPP
+#endif // GRAPHICS_RENDERING_VULKAN_INTERNAL_VULKAN_INSTANCE_HPP

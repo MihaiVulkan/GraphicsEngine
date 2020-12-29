@@ -20,16 +20,13 @@ LiniarAllocator::LiniarAllocator(uint64_t totalSize)
 
 LiniarAllocator::~LiniarAllocator()
 {
-	if (mpMemoryBuffer)
-	{
-		::free(mpMemoryBuffer);
-	}
-	mpMemoryBuffer = nullptr;
-	mOffset = 0;
+	Terminate();
 }
 
-void LiniarAllocator::Init()
+void LiniarAllocator::Init(uint64_t totalSize)
 {
+	mTotalSize = totalSize;
+
 	mpMemoryBuffer = ::malloc(mTotalSize);
 }
 
@@ -38,6 +35,17 @@ void LiniarAllocator::Reset()
 	mOffset = 0;
 	mUsed = 0;
 	mPeak = 0;
+}
+
+void LiniarAllocator::Terminate()
+{
+	if (mpMemoryBuffer)
+	{
+		::free(mpMemoryBuffer);
+		mpMemoryBuffer = nullptr;
+
+		Reset();
+	}
 }
 
 void* LiniarAllocator::Allocate(uint64_t size, uint64_t alignment)
@@ -71,5 +79,6 @@ void* LiniarAllocator::Allocate(uint64_t size, uint64_t alignment)
 void LiniarAllocator::Free(void* ptr)
 {
 	// This allocator does not support this operation!
-	assert(false && "Use Reset() method");
+	// Do nothing
+	//assert(false && "Use Reset() method");
 }

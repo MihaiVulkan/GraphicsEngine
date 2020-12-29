@@ -1,8 +1,7 @@
-#ifndef GRAPHICS_RENDERING_RENDERPASSES_RENDER_PASS_HPP
-#define GRAPHICS_RENDERING_RENDERPASSES_RENDER_PASS_HPP
+#ifndef GRAPHICS_RENDERING_RENDER_PASSES_RENDER_PASS_HPP
+#define GRAPHICS_RENDERING_RENDER_PASSES_RENDER_PASS_HPP
 
-#include "Foundation/TypeDefs.hpp"
-#include "Foundation/RTTI.hpp"
+#include "Foundation/Object.hpp"
 
 namespace GraphicsEngine
 {
@@ -12,7 +11,7 @@ namespace GraphicsEngine
 		class RenderQueue;
 		class Camera;
 
-		class RenderPass : public RTTI
+		class RenderPass : public Object
 		{
 			GE_RTTI(GraphicsEngine::Graphics::RenderPass)
 
@@ -21,11 +20,11 @@ namespace GraphicsEngine
 			virtual ~RenderPass();
 
 			virtual void Render(Renderer* pRenderer, RenderQueue* pRenderQueue, uint32_t currentBufferIdx) {}
-			virtual void Update(Renderer* pRenderer, RenderQueue* pRenderQueue, Camera* pCamera, bfloat32_t deltaTime) {}
+			virtual void Update(Renderer* pRenderer, RenderQueue* pRenderQueue, Camera* pCamera, float32_t deltaTime) {}
 
 		private:
 		};
 	}
 }
 
-#endif // GRAPHICS_RENDERING_RENDERPASSES_DEAFULT_RENDER_PASS_HPP
+#endif // GRAPHICS_RENDERING_RENDER_PASSES_RENDER_PASS_HPP

@@ -1,8 +1,7 @@
-#ifndef GRAPHICS_RENDERING_VULKAN_RENDERPASS_HPP
-#define GRAPHICS_RENDERING_VULKAN_RENDERPASS_HPP
+#ifndef GRAPHICS_RENDERING_VULKAN_INTERNAL_VULKAN_RENDER_PASS_HPP
+#define GRAPHICS_RENDERING_VULKAN_INTERNAL_VULKAN_RENDER_PASS_HPP
 
-#include "Foundation/TypeDefs.hpp"
-#include "vulkan/vulkan.h"
+#include "Graphics/Rendering/Vulkan/Common/VulkanObject.hpp"
 #include <vector>
 
 namespace GraphicsEngine
@@ -40,30 +39,35 @@ namespace GraphicsEngine
 			subpasses to record commands for that subpass, and then ending the render pass instance.
 		
 		*/
-		class VulkanRenderPass
+		class VulkanRenderPass : public VulkanObject
 		{
+			GE_RTTI(GraphicsEngine::Graphics::VulkanRenderPass)
+
 		public:
 			VulkanRenderPass();
-			explicit VulkanRenderPass(VulkanDevice* pDevice, const std::vector<VulkanRenderPassAttachment*>& attachments, const std::vector<VulkanSubPass*>& subPasses,
-				const std::vector<VkSubpassDependency>& subPassDependencies);
+			explicit VulkanRenderPass(VulkanDevice* pDevice, 
+					const std::vector<VkAttachmentDescription>& attachmentDescriptions,
+					const std::vector<VkSubpassDescription>& subPassDescriptions,
+					const std::vector<VkSubpassDependency>& subPassDependencies);
 			virtual ~VulkanRenderPass();
 
 			void Begin(VkCommandBuffer commandBufferHandle, VkFramebuffer frameBufferHandle, const VkRect2D& renderArea, const std::vector<VkClearValue>& clearValues,
-				VkSubpassContents contents = VK_SUBPASS_CONTENTS_INLINE);
+				VkSubpassContents contents = VkSubpassContents::VK_SUBPASS_CONTENTS_INLINE);
 			void End(VkCommandBuffer commandBufferHandle);
 
 			const VkRenderPass& GetHandle() const;
 
 		private:
-			void Create(const std::vector<VulkanRenderPassAttachment*>& attachments, const std::vector<VulkanSubPass*>& subPasses,
-				const std::vector<VkSubpassDependency>& subPassDependencies);
+			void Create(const std::vector<VkAttachmentDescription>& attachmentDescriptions,
+							const std::vector<VkSubpassDescription>& subPassDescriptions,
+							const std::vector<VkSubpassDependency>& subPassDependencies);
 			void Destroy();
 
 			VulkanDevice* mpDevice;
-			VkRenderPass mRenderPassHandle;
+			VkRenderPass mHandle;
 
 		};
 	}
 }
 
-#endif // GRAPHICS_RENDERING_VULKAN_RENDERPASS_HPP
+#endif // GRAPHICS_RENDERING_VULKAN_INTERNAL_VULKAN_RENDER_PASS_HPP

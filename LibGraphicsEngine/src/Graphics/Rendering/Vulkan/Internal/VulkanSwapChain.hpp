@@ -1,8 +1,7 @@
-#ifndef GRAPHICS_RENDERING_VULKAN_SWAPCHAIN_HPP
-#define GRAPHICS_RENDERING_VULKAN_SWAPCHAIN_HPP
+#ifndef GRAPHICS_RENDERING_VULKAN_INTERNAL_VULKAN_SWAP_CHAIN_HPP
+#define GRAPHICS_RENDERING_VULKAN_INTERNAL_VULKAN_SWAP_CHAIN_HPP
 
-#include "Foundation/TypeDefs.hpp"
-#include "vulkan/vulkan.h"
+#include "Graphics/Rendering/Vulkan/Common/VulkanObject.hpp"
 #include <vector>
 
 namespace GraphicsEngine
@@ -10,7 +9,7 @@ namespace GraphicsEngine
 	namespace Graphics
 	{
 		class VulkanDevice;
-		class VulkanFrameBufferAttachment;
+		class VulkanSwapChainBuffer;
 
 		/*
 			*Wrapper for VkSwapchainKHR object*
@@ -22,11 +21,15 @@ namespace GraphicsEngine
 			multiview/stereoscopic-3D surfaces) is displayed at a time, but multiple images can be queued for presentation. 
 			An application renders to the image, and then queues the image for presentation to the surface.
 
+			The swapchain images (color) have an image view corespondent used by the VKFramebuffer object. 
+
 			A native window cannot be associated with more than one non-retired swapchain at a time. Further, swapchains cannot 
 			be created for native windows that have a non-Vulkan graphics API surface associated with them.
 		*/
-		class VulkanSwapChain
+		class VulkanSwapChain : public VulkanObject
 		{
+			GE_RTTI(GraphicsEngine::Graphics::VulkanSwapChain)
+
 		public:
 			VulkanSwapChain();
 			explicit VulkanSwapChain(VulkanDevice* pDevice);
@@ -37,26 +40,30 @@ namespace GraphicsEngine
 			void Reset();
 
 			const VkSwapchainKHR& GetHandle() const;
-			uint32_t GetSwapChainImageCount() const;
-			const std::vector<VulkanFrameBufferAttachment*>& GetSwapChainBuffers() const;
+			const std::vector<VulkanSwapChainBuffer*>& GetSwapChainColorBuffers() const;
+			uint32_t GetSwapChainColorBufferCount() const;
+			VulkanSwapChainBuffer* GetSwapChainDepthStencilBuffer() const;
 
 		private:
 			void Create();
 			void Destroy();
 
+			void CreateSwapChain();
+			void CreateSwapChainBuffers();
+			void DestroyOldSwapChain();
+			void DestroySwapChainBuffers();
+
 			VulkanDevice* mpDevice;
 
 			// Handle to the current swap chain, required for recreation 
 			VkSwapchainKHR mHandle;
+			VkSwapchainKHR mOldHandle;
 
-			// Swapchain image count
-			uint32_t mSwapChainImageCount;
-
-			// Swapchain buffers
-			std::vector<VulkanFrameBufferAttachment*> mSwapChainBuffers;
-
+			// Swapchain buffers = image + image view: color + depth
+			std::vector<VulkanSwapChainBuffer*> mSwapChainColorBuffers;
+			VulkanSwapChainBuffer* mpDepthStencilBuffer;
 		};
 	}
 }
 
-#endif // GRAPHICS_RENDERING_VULKAN_SWAPCHAIN_HPP
+#endif // GRAPHICS_RENDERING_VULKAN_INTERNAL_VULKAN_SWAP_CHAIN_HPP

@@ -1,7 +1,7 @@
 #include "VulkanRenderPass.hpp"
 #include "VulkanDevice.hpp"
-#include "VulkanRenderPassAttachment.hpp"
-#include "VulkanSubPass.hpp"
+//#include "VulkanRenderPassAttachment.hpp"
+//#include "VulkanSubPass.hpp"
 #include "VulkanInitializers.hpp"
 #include "VulkanHelpers.hpp"
 
@@ -10,15 +10,16 @@ using namespace GraphicsEngine::Graphics;
 
 VulkanRenderPass::VulkanRenderPass()
 	: mpDevice(nullptr)
-	, mRenderPassHandle(VK_NULL_HANDLE)
+	, mHandle(VK_NULL_HANDLE)
 {}
 
-VulkanRenderPass::VulkanRenderPass(VulkanDevice* pDevice, const std::vector<VulkanRenderPassAttachment*>& attachments, const std::vector<VulkanSubPass*>& subPasses,
+VulkanRenderPass::VulkanRenderPass(VulkanDevice* pDevice, const std::vector<VkAttachmentDescription>& attachmentDescriptions,
+									const std::vector<VkSubpassDescription>& subPassDescriptions,
 									const std::vector<VkSubpassDependency>& subPassDependencies)
 	: mpDevice(pDevice)
-	, mRenderPassHandle(VK_NULL_HANDLE)
+	, mHandle(VK_NULL_HANDLE)
 {
-	Create(attachments, subPasses, subPassDependencies);
+	Create(attachmentDescriptions, subPassDescriptions, subPassDependencies);
 }
 
 VulkanRenderPass::~VulkanRenderPass()
@@ -26,42 +27,28 @@ VulkanRenderPass::~VulkanRenderPass()
 	Destroy();
 }
 
-void VulkanRenderPass::Create(const std::vector<VulkanRenderPassAttachment*>& attachments, const std::vector<VulkanSubPass*>& subPasses,
-							const std::vector<VkSubpassDependency>& subPassDependencies)
+void VulkanRenderPass::Create(const std::vector<VkAttachmentDescription>& attachmentDescriptions,
+							const std::vector<VkSubpassDescription>& subPassDescriptions,
+						const std::vector<VkSubpassDependency>& subPassDependencies)
 {
 	assert(mpDevice != nullptr);
 	
-	std::vector<VkAttachmentDescription> attachmentDescriptions;
-	attachmentDescriptions.resize(attachments.size());
-	std::vector<VkSubpassDescription> subpassDescriptions;
-	subpassDescriptions.resize(subPasses.size());
-
-
-	// Collect the needed data
-	for (uint32_t i = 0; i < attachments.size(); ++i)
-	{
-		attachmentDescriptions[i] = attachments[i]->GetAttachmentDescription();
-	}
-
-	for (uint32_t i = 0; i < subPasses.size(); ++i)
-	{
-		subpassDescriptions[i] = subPasses[i]->GetSubpassDescription();
-	}
-
 	VkRenderPassCreateInfo renderPassCreateInfo =
 		VulkanInitializers::RenderPassCreateInfo(static_cast<uint32_t>(attachmentDescriptions.size()), attachmentDescriptions.data(),
-												static_cast<uint32_t>(subpassDescriptions.size()), subpassDescriptions.data(),
+												static_cast<uint32_t>(subPassDescriptions.size()), subPassDescriptions.data(),
 												static_cast<uint32_t>(subPassDependencies.size()), subPassDependencies.data());
 
-	VK_CHECK_RESULT(vkCreateRenderPass(mpDevice->GetDeviceHandle(), &renderPassCreateInfo, nullptr, &mRenderPassHandle));
+	VK_CHECK_RESULT(vkCreateRenderPass(mpDevice->GetDeviceHandle(), &renderPassCreateInfo, nullptr, &mHandle));
 }
 
 void VulkanRenderPass::Destroy()
 {
-	if (mRenderPassHandle)
+	assert(mpDevice != nullptr);
+
+	if (mHandle)
 	{
-		vkDestroyRenderPass(mpDevice->GetDeviceHandle(), mRenderPassHandle, nullptr);
-		mRenderPassHandle = VK_NULL_HANDLE;
+		vkDestroyRenderPass(mpDevice->GetDeviceHandle(), mHandle, nullptr);
+		mHandle = VK_NULL_HANDLE;
 	}
 
 	if (mpDevice)
@@ -74,7 +61,7 @@ void VulkanRenderPass::Begin(VkCommandBuffer commandBufferHandle, VkFramebuffer 
 							 VkSubpassContents contents)
 {
 	VkRenderPassBeginInfo renderPassBeginInfo =
-		VulkanInitializers::RenderPassBeginInfo(mRenderPassHandle, frameBufferHandle, renderArea, static_cast<uint32_t>(clearValues.size()), clearValues.data());
+		VulkanInitializers::RenderPassBeginInfo(mHandle, frameBufferHandle, renderArea, static_cast<uint32_t>(clearValues.size()), clearValues.data());
 
 	vkCmdBeginRenderPass(commandBufferHandle, &renderPassBeginInfo, contents);
 }
@@ -86,5 +73,5 @@ void VulkanRenderPass::End(VkCommandBuffer commandBufferHandle)
 
 const VkRenderPass& VulkanRenderPass::GetHandle() const
 {
-	return mRenderPassHandle;
+	return mHandle;
 }

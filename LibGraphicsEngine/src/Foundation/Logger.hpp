@@ -17,10 +17,10 @@
 //}
 
 #ifdef ENABLE_LOG
-	#define LOG_ERROR(args, ...) do { printf(args, ##__VA_ARGS__); printf(" FILE: %s, FUNC: %s, LINE: %ld \n", __FILE__, __FUNCTION__, __LINE__); } while (0);
-	#define LOG_WARNING(args, ...) do { printf(args, ##__VA_ARGS__); printf(" FILE: %s, FUNC: %s, LINE: %ld \n", __FILE__, __FUNCTION__, __LINE__); } while (0);
-	#define LOG_DEBUG(args, ...) do { printf(args, ##__VA_ARGS__); printf(" FUNC: %s, LINE: %ld \n",  __FUNCTION__, __LINE__); } while (0);
-	#define LOG_INFO(args, ...) do { printf(args, ##__VA_ARGS__); printf("\n");/*printf(" FUNC: %s \n", __FUNCTION__);*/ } while (0);
+	#define LOG_ERROR(args, ...) do { printf(args, ##__VA_ARGS__); printf("\nFILE: %s, FUNC: %s, LINE: %ld \n\n", __FILE__, __FUNCTION__, __LINE__); fflush(stdout); } while (0);
+	#define LOG_WARNING(args, ...) do { printf(args, ##__VA_ARGS__); printf("\nFILE: %s, FUNC: %s, LINE: %ld \n\n", __FILE__, __FUNCTION__, __LINE__); } while (0);
+	#define LOG_DEBUG(args, ...) do { printf(args, ##__VA_ARGS__); printf("\nFILE: %s, FUNC: %s, LINE: %ld \n\n", __FILE__, __FUNCTION__, __LINE__); } while (0);
+	#define LOG_INFO(args, ...) do { printf(args, ##__VA_ARGS__); printf("\n\n"); } while (0);
 #else
 	#define	LOG_ERROR(...) do{}while(0);
 	#define	LOG_WARNING(...) do{}while(0);

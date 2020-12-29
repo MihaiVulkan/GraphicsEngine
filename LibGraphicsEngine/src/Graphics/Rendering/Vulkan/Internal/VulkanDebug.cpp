@@ -157,7 +157,7 @@ namespace GraphicsEngine
 				}
 			}
 
-			void BeginRegion(VkCommandBuffer cmdbufferHandle, const char_t* pMarkerName, bfloat32_t color[4])
+			void BeginRegion(VkCommandBuffer cmdbufferHandle, const char_t* pMarkerName, float32_t color[4])
 			{
 				// Check for valid function pointer (may not be present if not running in a debugging application)
 				if (pfnCmdDebugMarkerBegin)
@@ -167,7 +167,7 @@ namespace GraphicsEngine
 				}
 			}
 
-			void Insert(VkCommandBuffer cmdbufferHandle, const char_t* pMarkerName, bfloat32_t color[4])
+			void Insert(VkCommandBuffer cmdbufferHandle, const char_t* pMarkerName, float32_t color[4])
 			{
 				// Check for valid function pointer (may not be present if not running in a debugging application)
 				if (pfnCmdDebugMarkerInsert)

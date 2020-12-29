@@ -36,6 +36,8 @@ void VulkanFence::Create(VkFenceCreateFlags flags)
 
 void VulkanFence::Destroy()
 {
+	assert(mpDevice != nullptr);
+
 	if (mHandle)
 	{
 		vkDestroyFence(mpDevice->GetDeviceHandle(), mHandle, nullptr);
@@ -50,16 +52,22 @@ void VulkanFence::Destroy()
 
 VkResult VulkanFence::Reset()
 {
+	assert(mpDevice != nullptr);
+
 	return vkResetFences(mpDevice->GetDeviceHandle(), 1, &mHandle);
 }
 
 VkResult VulkanFence::WaitIdle(VkBool32 waitAll, uint64_t timeout)
 {
+	assert(mpDevice != nullptr);
+
 	return vkWaitForFences(mpDevice->GetDeviceHandle(), 1, &mHandle, waitAll, timeout);
 }
 
 VkResult VulkanFence::GetStatus() const
 {
+	assert(mpDevice != nullptr);
+
 	return vkGetFenceStatus(mpDevice->GetDeviceHandle(), mHandle);
 }
 

@@ -80,9 +80,9 @@ void Timer::Run()
 	{
 		// Timeout
 
-		bfloat64_t timeDiff = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - mStartTime).count();
+		float64_t timeDiff = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - mStartTime).count();
 	
-		if (timeDiff >= static_cast<bfloat64_t>(mTimeOutInterval))
+		if (timeDiff >= static_cast<float64_t>(mTimeOutInterval))
 		{
 			if (mOnTimeOut)
 				mOnTimeOut();

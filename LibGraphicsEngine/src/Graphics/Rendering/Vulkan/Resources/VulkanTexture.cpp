@@ -47,26 +47,26 @@ void GADRTexture::Destroy()
 	//TODO
 }
 
-VkImageType GADRTexture::TypeToVulkanType(const Texture::Type& type) const
+VkImageType GADRTexture::TypeToVulkanType(const Texture::TextureType& type) const
 {
 	VkImageType vulkanImageType = VkImageType::VK_IMAGE_TYPE_MAX_ENUM;
 
 	switch (type)
 	{
-	case Texture::Type::TEX_1D:
-	case Texture::Type::TEX_1D_ARRAY:
+	case Texture::TextureType::GE_TT_1D:
+	case Texture::TextureType::GE_TT_1D_ARRAY:
 		vulkanImageType = VkImageType::VK_IMAGE_TYPE_1D;
 		break;
-	case Texture::Type::TEX_2D:
-	case Texture::Type::TEX_2D_ARRAY:
-	case Texture::Type::TEX_CUBEMAP: // a cubemap is formed from 6 faces, each face a 2d map
+	case Texture::TextureType::GE_TT_2D:
+	case Texture::TextureType::GE_TT_2D_ARRAY:
+	case Texture::TextureType::GE_TT_CUBEMAP: // a cubemap is formed from 6 faces, each face a 2d map
 		vulkanImageType = VkImageType::VK_IMAGE_TYPE_2D;
 		break;
-	case Texture::Type::TEX_3D:
-	case Texture::Type::TEX_3D_ARRAY:
+	case Texture::TextureType::GE_TT_3D:
+	case Texture::TextureType::GE_TT_3D_ARRAY:
 		vulkanImageType = VkImageType::VK_IMAGE_TYPE_3D;
 		break;
-	case Texture::Type::TEX_COUNT:
+	case Texture::TextureType::GE_TT_COUNT:
 	default:
 		LOG_ERROR("Invalid Vulkan Image Type!");
 	}
@@ -85,22 +85,22 @@ VkSamplerAddressMode GADRTexture::WrapModeToVulkanWrapMode(const Texture::WrapMo
 
 	switch (wrapMode)
 	{
-	case Texture::WrapMode::WM_REPEAT:
+	case Texture::WrapMode::GE_WM_REPEAT:
 		vulkanWrapMode = VkSamplerAddressMode::VK_SAMPLER_ADDRESS_MODE_REPEAT;
 		break;
-	case Texture::WrapMode::WM_MIRROR_REPEAT:
+	case Texture::WrapMode::GE_WM_MIRROR_REPEAT:
 		vulkanWrapMode = VkSamplerAddressMode::VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT;
 		break;
-	case Texture::WrapMode::WM_CLAMP_TO_EDGE:
+	case Texture::WrapMode::GE_WM_CLAMP_TO_EDGE:
 		vulkanWrapMode = VkSamplerAddressMode::VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
 		break;
-	case Texture::WrapMode::WM_MIRROR_CLAMP_TO_EDGE:
+	case Texture::WrapMode::GE_WM_MIRROR_CLAMP_TO_EDGE:
 		vulkanWrapMode = VkSamplerAddressMode::VK_SAMPLER_ADDRESS_MODE_MIRROR_CLAMP_TO_EDGE;
 		break;
-	case Texture::WrapMode::WM_CLAMP_TO_BORDER:
+	case Texture::WrapMode::GE_WM_CLAMP_TO_BORDER:
 		vulkanWrapMode = VkSamplerAddressMode::VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
 		break;
-	case Texture::WrapMode::WM_COUNT:
+	case Texture::WrapMode::GE_WM_COUNT:
 		default:
 			LOG_ERROR("Invalid Vulkan Wrap Mode!");
 	}
@@ -113,13 +113,13 @@ VkFilter GADRTexture::FilterModeToVulkanFilterMode(const Texture::FilterMode& fi
 	VkFilter vulkanFilterMode = VkFilter::VK_FILTER_MAX_ENUM;
 	switch (filterMode)
 	{
-	case Texture::FilterMode::FM_NEAREST:
+	case Texture::FilterMode::GE_FM_NEAREST:
 		vulkanFilterMode = VkFilter::VK_FILTER_NEAREST;
 		break;
-	case Texture::FilterMode::FM_LINEAR:
+	case Texture::FilterMode::GE_FM_LINEAR:
 		vulkanFilterMode = VkFilter::VK_FILTER_LINEAR;
 		break;
-	case Texture::FilterMode::FM_COUNT:
+	case Texture::FilterMode::GE_FM_COUNT:
 	default:
 		LOG_ERROR("Invalid Vulkan Filter Mode!");
 	}
@@ -132,13 +132,13 @@ VkSamplerMipmapMode GADRTexture::MipMapModeToVulkanMipMapMode(const Texture::Mip
 	VkSamplerMipmapMode vulkanMipMapMode = VkSamplerMipmapMode::VK_SAMPLER_MIPMAP_MODE_MAX_ENUM;
 	switch (mipMapMode)
 	{
-	case Texture::MipMapMode::MM_NEAREST:
+	case Texture::MipMapMode::GE_MM_NEAREST:
 		vulkanMipMapMode = VkSamplerMipmapMode::VK_SAMPLER_MIPMAP_MODE_NEAREST;
 		break;
-	case Texture::MipMapMode::MM_LINEAR:
+	case Texture::MipMapMode::GE_MM_LINEAR:
 		vulkanMipMapMode = VkSamplerMipmapMode::VK_SAMPLER_MIPMAP_MODE_LINEAR;
 		break;
-	case Texture::MipMapMode::MM_COUNT:
+	case Texture::MipMapMode::GE_MM_COUNT:
 	default:
 		LOG_ERROR("Invalid Vulkan MipMap Mode!");
 	}

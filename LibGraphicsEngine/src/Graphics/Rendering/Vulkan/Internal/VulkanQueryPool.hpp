@@ -1,8 +1,7 @@
-#ifndef GRAPHICS_RENDERING_VULKAN_QUERY_POOL_HPP
-#define GRAPHICS_RENDERING_VULKAN_QUERY_POOL_HPP
+#ifndef GRAPHICS_RENDERING_VULKAN_INTERNAL_VULKAN_QUERY_POOL_HPP
+#define GRAPHICS_RENDERING_VULKAN_INTERNAL_VULKAN_QUERY_POOL_HPP
 
-#include "Foundation/TypeDefs.hpp"
-#include "vulkan/vulkan.h"
+#include "Graphics/Rendering/Vulkan/Common/VulkanObject.hpp"
 #include <vector>
 
 namespace GraphicsEngine
@@ -27,8 +26,10 @@ namespace GraphicsEngine
 
 		*/
 
-		class VulkanQueryPool
+		class VulkanQueryPool : public VulkanObject
 		{
+			GE_RTTI(GraphicsEngine::Graphics::VulkanQueryPool)
+
 		public:
 			VulkanQueryPool();
 			explicit VulkanQueryPool(VulkanDevice* pDevice, VkQueryType queryType, uint32_t queryCount, VkQueryPipelineStatisticFlags pipelineStatistics, 
@@ -54,4 +55,4 @@ namespace GraphicsEngine
 	}
 }
 
-#endif // GRAPHICS_RENDERING_VULKAN_QUERY_POOL_HPP
+#endif // GRAPHICS_RENDERING_VULKAN_INTERNAL_VULKAN_QUERY_POOL_HPP

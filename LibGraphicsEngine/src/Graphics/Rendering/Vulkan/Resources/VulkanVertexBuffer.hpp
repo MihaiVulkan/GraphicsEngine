@@ -1,5 +1,5 @@
-#ifndef GRAPHICS_RENDERING_VULKAN_RESOURCES_VERTEX_BUFFER_HPP
-#define GRAPHICS_RENDERING_VULKAN_RESOURCES_VERTEX_BUFFER_HPP
+#ifndef GRAPHICS_RENDERING_VULKAN_RESOURCES_VULKAN_VERTEX_BUFFER_HPP
+#define GRAPHICS_RENDERING_VULKAN_RESOURCES_VULKAN_VERTEX_BUFFER_HPP
 
 #include "VulkanResource.hpp"
 #include "Graphics/Rendering/Resources/VertexBuffer.hpp"
@@ -22,9 +22,7 @@ namespace GraphicsEngine
 			explicit GADRVertexBuffer(Renderer* pRenderer, VertexBuffer* pVertexBuffer);
 			virtual ~GADRVertexBuffer();
 
-			void Bind() const;
-
-			const VertexBuffer::Usage& GetUsage() const;
+			const Buffer::BufferUsage& GetBufferUsage() const;
 			const VertexBuffer::InputRate& GetInputRate() const;
 
 			VulkanBuffer* GetVkBuffer() const;
@@ -47,4 +45,4 @@ namespace GraphicsEngine
 	}
 }
 
-#endif // GRAPHICS_RENDERING_VULKAN_RESOURCES_VERTEX_BUFFER_HPP
+#endif // GRAPHICS_RENDERING_VULKAN_RESOURCES_VULKAN_VERTEX_BUFFER_HPP

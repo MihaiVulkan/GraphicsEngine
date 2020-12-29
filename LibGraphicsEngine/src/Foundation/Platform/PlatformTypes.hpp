@@ -12,8 +12,6 @@
 #include "InputDef.hpp"
 #include <functional>
 
-#define USE_FUNCTOR
-
 namespace GraphicsEngine
 {
 	namespace Platform
@@ -22,41 +20,22 @@ namespace GraphicsEngine
 		class GE_Window;
 
 		// Callbacks
-#ifdef USE_FUNCTOR
 	// Window
-		typedef std::function<void(GE_Window* pWindow, bool isFocused)> GE_InputWindowFocusFN;
-		typedef std::function<void(GE_Window* pWindow, int xPos, int yPos)> GE_InputWindowPosFN;
-		typedef std::function<void(GE_Window* pWindow, unsigned int width, unsigned int height)> GE_InputWindowSizeFN;
-		typedef std::function<void(GE_Window* pWindow, bool isMinimized)> GE_InputWindowMinimizeFN;
-		typedef std::function<void(GE_Window* pWindow, bool isMaximized)> GE_InputWindowMaximizeFN;
+		typedef std::function<void(GE_Window* pWindow, bool_t isFocused)> GE_InputWindowFocusFN;
+		typedef std::function<void(GE_Window* pWindow, int32_t xPos, int32_t yPos)> GE_InputWindowPosFN;
+		typedef std::function<void(GE_Window* pWindow, uint32_t width, uint32_t height)> GE_InputWindowSizeFN;
+		typedef std::function<void(GE_Window* pWindow, bool_t isMinimized)> GE_InputWindowMinimizeFN;
+		typedef std::function<void(GE_Window* pWindow, bool_t isMaximized)> GE_InputWindowMaximizeFN;
 		typedef std::function<void(GE_Window* pWindow)> GE_WindowRefreshFN;
 		typedef std::function<void(GE_Window* pWindow)> GE_WindowCloseFN;
 
 		// Input
-		typedef std::function<void(GE_Window* pWindow, int button, int action, int mods)> GE_MouseButtonFN;
-		typedef std::function<void(GE_Window* pWindow, int xPos, int yPos)> GE_MouseMoveFN;
-		typedef std::function<void(GE_Window* pWindow, double xOffset, double yOffset)> GE_MouseScollFN;
-		typedef std::function<void(GE_Window* pWindow, bool isEntered)> GE_MouseEnterWindowFN;
+		typedef std::function<void(GE_Window* pWindow, int32_t button, int32_t action, int32_t mods)> GE_MouseButtonFN;
+		typedef std::function<void(GE_Window* pWindow, int32_t xPos, int32_t yPos)> GE_MouseMoveFN;
+		typedef std::function<void(GE_Window* pWindow, float64_t xOffset, float64_t yOffset)> GE_MouseScollFN;
+		typedef std::function<void(GE_Window* pWindow, bool_t isEntered)> GE_MouseEnterWindowFN;
 
-		typedef std::function<void(GE_Window* pWindow, int key, int scancode, int action, int mods)> GE_KeyFN;
-#else
-// Window
-		typedef void (*GE_InputWindowFocusFN) (GE_Window* pWindow, bool isFocused);
-		typedef void (*GE_InputWindowPosFN) (GE_Window* pWindow, int xPos, int yPos);
-		typedef void (*GE_InputWindowSizeFN) (GE_Window* pWindow, unsigned int width, unsigned int height);
-		typedef void (*GE_InputWindowMinimizeFN) (GE_Window* pWindow, bool isMinimized);
-		typedef void (*GE_InputWindowMaximizeFN) (GE_Window* pWindow, bool isMaximized);
-		typedef void (*GE_WindowRefreshFN) (GE_Window* pWindow);
-		typedef void (*GE_WindowCloseFN) (GE_Window* pWindow);
-
-		// Input
-		typedef void (*GE_MouseButtonFN) (GE_Window* pWindow, int button, int action, int mods);
-		typedef void (*GE_MouseMoveFN) (GE_Window* pWindow, int xPos, int yPos);
-		typedef void (*GE_MouseScollFN) (GE_Window* pWindow, double xOffset, double yOffset);
-		typedef void (*GE_MouseEnterWindowFN) (GE_Window* pWindow, bool isEntered);
-
-		typedef void (*GE_KeyFN) (GE_Window* pWindow, int key, int scancode, int action, int mods);
-#endif
+		typedef std::function<void(GE_Window* pWindow, int32_t key, int32_t scancode, int32_t action, int32_t mods)> GE_KeyFN;
 
 		// Flags
 
@@ -90,21 +69,21 @@ namespace GraphicsEngine
 		class GE_Window
 		{
 		public:
-			char* pTitle;
-			unsigned int flags;
-			unsigned int width;
-			unsigned int height;
+			char_t* pTitle;
+			uint32_t flags;
+			uint32_t width;
+			uint32_t height;
 
-			bool isMinimized;
-			bool isMaximized;
-			bool autoMinimize;
-			bool shouldClose;
+			bool_t isMinimized;
+			bool_t isMaximized;
+			bool_t autoMinimize;
+			bool_t shouldClose;
 
-			bool           stickyKeys;
-			bool           stickyMouseButtons;
+			bool_t           stickyKeys;
+			bool_t           stickyMouseButtons;
 
-			char           mouseButtons[GE_MOUSE_BUTTON_LAST + 1];
-			char           keys[GE_KEY_LAST + 1];
+			char_t           mouseButtons[GE_MOUSE_BUTTON_LAST + 1];
+			char_t           keys[GE_KEY_LAST + 1];
 
 			struct {
 				GE_InputWindowFocusFN onWindowFocus;

@@ -24,6 +24,9 @@ namespace GraphicsEngine
 			virtual void Visit(std::function<void(Node*)> callback) override;
 
 		private:
+			void Create();
+			void Destroy();
+
 			Camera* mpCamera;
 
 			bool_t mIsMainCamera;

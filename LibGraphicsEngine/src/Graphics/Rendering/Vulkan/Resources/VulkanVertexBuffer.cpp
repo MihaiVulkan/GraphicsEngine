@@ -1,6 +1,6 @@
 #include "VulkanVertexBuffer.hpp"
+#include "Graphics/Rendering/Vulkan/Common/VulkanCommon.hpp"
 #include "Graphics/Rendering/Vulkan/VulkanRenderer.hpp"
-#include "Graphics/Rendering/Vulkan/Internal/VulkanCommon.hpp"
 #include "Graphics/Rendering/Vulkan/Internal/VulkanDevice.hpp"
 #include "Graphics/Rendering/Vulkan/Internal/VulkanBuffer.hpp"
 #include "Graphics/Rendering/Vulkan/Internal/VulkanInitializers.hpp"
@@ -41,8 +41,9 @@ void GADRVertexBuffer::Create(Renderer* pRenderer)
 	auto format = mpVertexBuffer->GetFormat();
 	assert(format != nullptr);
 
-	mInputBinding =
-		VulkanInitializers::VertexInputBindingDescription(VERTEX_BUFFER_BIND_ID, format->GetTotalStride(), vulkanInputRate);
+	mInputBinding.binding = VERTEX_BUFFER_BIND_ID;
+	mInputBinding.stride = format->GetVertexTotalStride();
+	mInputBinding.inputRate = vulkanInputRate;
 
 	// pRenderer must be a pointer to VulkanRenderer otherwise the cast will fail!
 	VulkanRenderer* pVulkanRenderer = dynamic_cast<VulkanRenderer*>(pRenderer);
@@ -51,15 +52,26 @@ void GADRVertexBuffer::Create(Renderer* pRenderer)
 	VulkanDevice* pDevice = pVulkanRenderer->GetDevice();
 	assert(pDevice != nullptr);
 
+
 	// Create a host-visible buffer to copy the vertex data to (staging buffer)
-	VulkanBuffer* pStagingVertices = GE_ALLOC(VulkanBuffer)(pDevice,
+	VulkanBuffer* pStagingVertices = GE_ALLOC(VulkanBuffer)
+	(
+		pDevice,
 		VkMemoryPropertyFlagBits::VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VkMemoryPropertyFlagBits::VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-		VkBufferUsageFlagBits::VK_BUFFER_USAGE_TRANSFER_SRC_BIT, mpVertexBuffer->GetSize(), mpVertexBuffer->GetData());
+		VkBufferUsageFlagBits::VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+		mpVertexBuffer->GetSize(), mpVertexBuffer->GetData()
+	);
+
 	assert(pStagingVertices != nullptr);
 
 	// Create a device local buffer to which the (host local) vertex data will be copied and which will be used for rendering
-	mpVulkanBuffer = GE_ALLOC(VulkanBuffer)(pDevice, VkMemoryPropertyFlagBits::VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-		VkBufferUsageFlagBits::VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VkBufferUsageFlagBits::VK_BUFFER_USAGE_TRANSFER_DST_BIT, mpVertexBuffer->GetSize());
+	mpVulkanBuffer = GE_ALLOC(VulkanBuffer)
+	(
+		pDevice,
+		VkMemoryPropertyFlagBits::VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+		VkBufferUsageFlagBits::VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VkBufferUsageFlagBits::VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+		mpVertexBuffer->GetSize()
+	);
 	assert(mpVulkanBuffer != nullptr);
 
 
@@ -72,7 +84,7 @@ void GADRVertexBuffer::Create(Renderer* pRenderer)
 	}
 	else // graphics and present queue are the same
 	{
-		pStagingVertices->CopyTo(mpVulkanBuffer, pDevice->GetMainGraphicsQueue());
+		pStagingVertices->CopyTo(mpVulkanBuffer, pDevice->GetGraphicsQueue());
 	}
 	GE_FREE(pStagingVertices);
 }
@@ -88,14 +100,6 @@ void GADRVertexBuffer::Destroy()
 }
 
 
-void GADRVertexBuffer::Bind() const
-{
-	if (mpVulkanBuffer)
-	{
-		//TODO
-	}
-}
-
 VulkanBuffer* GADRVertexBuffer::GetVkBuffer() const
 {
 	return mpVulkanBuffer;
@@ -106,11 +110,11 @@ const VkVertexInputBindingDescription& GADRVertexBuffer::GetVkInputBinding() con
 	return mInputBinding;
 }
 
-const VertexBuffer::Usage& GADRVertexBuffer::GetUsage() const
+const Buffer::BufferUsage& GADRVertexBuffer::GetBufferUsage() const
 {
 	assert(mpVertexBuffer != nullptr);
 
-	return mpVertexBuffer->GetUsage();
+	return mpVertexBuffer->GetBufferUsage();
 }
 
 const VertexBuffer::InputRate& GADRVertexBuffer::GetInputRate() const
@@ -126,13 +130,13 @@ VkVertexInputRate GADRVertexBuffer::InputRateToVulkanInputRate(const VertexBuffe
 
 	switch (inputRate)
 	{
-	case VertexBuffer::InputRate::IR_VERTEX:
+	case VertexBuffer::InputRate::GE_IR_VERTEX:
 		vulkanInputRate = VkVertexInputRate::VK_VERTEX_INPUT_RATE_VERTEX;
 		break;
-	case VertexBuffer::InputRate::IR_INSTANCE:
+	case VertexBuffer::InputRate::GE_IR_INSTANCE:
 		vulkanInputRate = VkVertexInputRate::VK_VERTEX_INPUT_RATE_INSTANCE;
 		break;
-	case VertexBuffer::InputRate::IR_COUNT:
+	case VertexBuffer::InputRate::GE_IR_COUNT:
 	default:
 		LOG_ERROR("Invalid Vulkan Vertex Buffer Input Rate!");
 	}

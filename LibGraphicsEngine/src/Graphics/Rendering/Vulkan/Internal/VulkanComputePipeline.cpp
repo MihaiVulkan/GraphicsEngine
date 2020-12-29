@@ -13,19 +13,19 @@ VulkanComputePipeline::VulkanComputePipeline()
 	, mHandle(VK_NULL_HANDLE)
 {}
 
-VulkanComputePipeline::VulkanComputePipeline(VulkanDevice* pDevice, VulkanPipelineCache* pCache, const VkPipelineShaderStageCreateInfo& shaderStage,
-											 VulkanPipelineLayout* pLayout, VkPipeline basePipelineHandle, int32_t basePipelineIndex, VkPipelineCreateFlags flags)
+VulkanComputePipeline::VulkanComputePipeline(VulkanDevice* pDevice, VkPipelineCache cacheHandle, const VkPipelineShaderStageCreateInfo& shaderStage,
+											 VkPipelineLayout layoutHandle, VkPipeline basePipelineHandle, int32_t basePipelineIndex, VkPipelineCreateFlags flags)
 	: mpDevice(pDevice)
 	, mHandle(VK_NULL_HANDLE)
 {
 	assert(mpDevice != nullptr);
-	assert(pCache != nullptr);
-	assert(pLayout != nullptr);
+	assert(cacheHandle != VK_NULL_HANDLE);
+	assert(layoutHandle != VK_NULL_HANDLE);
 
 	VkComputePipelineCreateInfo computePipelineCreateInfo =
-			VulkanInitializers::ComputePipelineCreateInfo(shaderStage, pLayout->GetHandle(), basePipelineHandle, basePipelineIndex, flags);
+			VulkanInitializers::ComputePipelineCreateInfo(shaderStage, layoutHandle, basePipelineHandle, basePipelineIndex, flags);
 
-	Create(pCache, computePipelineCreateInfo);
+	Create(cacheHandle, computePipelineCreateInfo);
 }
 
 VulkanComputePipeline::~VulkanComputePipeline()
@@ -33,13 +33,18 @@ VulkanComputePipeline::~VulkanComputePipeline()
 	Destroy();
 }
 
-void VulkanComputePipeline::Create(VulkanPipelineCache* pCache, const VkComputePipelineCreateInfo& computePipelineCreateInfo)
+void VulkanComputePipeline::Create(VkPipelineCache cacheHandle, const VkComputePipelineCreateInfo& computePipelineCreateInfo)
 {
-	VK_CHECK_RESULT(vkCreateComputePipelines(mpDevice->GetDeviceHandle(), pCache->GetHandle(), 1, &computePipelineCreateInfo, nullptr, &mHandle));
+	assert(mpDevice != nullptr);
+	assert(cacheHandle != nullptr);
+
+	VK_CHECK_RESULT(vkCreateComputePipelines(mpDevice->GetDeviceHandle(), cacheHandle, 1, &computePipelineCreateInfo, nullptr, &mHandle));
 }
 
 void VulkanComputePipeline::Destroy()
 {
+	assert(mpDevice != nullptr);
+
 	vkDestroyPipeline(mpDevice->GetDeviceHandle(), mHandle, nullptr);
 }
 

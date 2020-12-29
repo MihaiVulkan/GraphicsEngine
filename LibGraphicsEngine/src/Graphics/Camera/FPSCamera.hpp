@@ -7,6 +7,7 @@ namespace GraphicsEngine
 {
 	namespace Graphics
 	{
+		/* FPS Camera */
 		class FPSCamera : public Camera
 		{
 			GE_RTTI(GraphicsEngine::Graphics::FPSCamera)
@@ -14,33 +15,33 @@ namespace GraphicsEngine
 		public:
 			enum class CAMERA_DIRECTIONS : uint8_t
 			{
-				CD_FORWARD = 0,
-				CD_BACKWARD,
-				CD_RIGHT,
-				CD_LEFT,
-				CD_UP,
-				CD_DOWN,
-				CD_COUNT
+				GE_CD_FORWARD = 0,
+				GE_CD_BACKWARD,
+				GE_CD_RIGHT,
+				GE_CD_LEFT,
+				GE_CD_UP,
+				GE_CD_DOWN,
+				GE_CD_COUNT
 			};
 
 			FPSCamera();
 			explicit FPSCamera(const std::string& name);
 			virtual ~FPSCamera();
 
-			void UpdateOrientationWithMouse(bfloat32_t dx, bfloat32_t dy);
-			void UpdatePositionWithKeyboard(bfloat32_t value, const FPSCamera::CAMERA_DIRECTIONS& dir);
+			void UpdateOrientationWithMouse(float32_t dx, float32_t dy);
+			void UpdatePositionWithKeyboard(float32_t value, const FPSCamera::CAMERA_DIRECTIONS& dir);
 
 
-			bfloat32_t GetPitch() const;
-			bfloat32_t GetYaw() const;
+			float32_t GetPitch() const;
+			float32_t GetYaw() const;
 
 
 		private:
 			NO_COPY_NO_MOVE(FPSCamera);
 
 			// ORIENTATION - Euler Angles
-			bfloat32_t mPitch; // around OX axis
-			bfloat32_t mYaw; // around OY axis
+			float32_t mPitch; // around OX axis
+			float32_t mYaw; // around OY axis
 
 			bool_t mUseConstraints;
 		};

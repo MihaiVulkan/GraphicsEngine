@@ -31,12 +31,13 @@ void VulkanCommandPool::Create(const VkCommandPoolCreateInfo& commandPoolCreateI
 {
 	assert(mpDevice != nullptr);
 
-
 	VK_CHECK_RESULT(vkCreateCommandPool(mpDevice->GetDeviceHandle(), &commandPoolCreateInfo, nullptr, &mHandle));
 }
 
 void VulkanCommandPool::Destroy()
 {
+	assert(mpDevice != nullptr);
+
 	if (mHandle)
 	{
 		vkDestroyCommandPool(mpDevice->GetDeviceHandle(), mHandle, nullptr);
@@ -51,11 +52,15 @@ void VulkanCommandPool::Destroy()
 
 VkResult VulkanCommandPool::Reset(VkCommandPoolResetFlags flags)
 {
+	assert(mpDevice != nullptr);
+
 	return vkResetCommandPool(mpDevice->GetDeviceHandle(), mHandle, flags);
 }
 
 void VulkanCommandPool::Trim(VkCommandPoolTrimFlags flags)
 {
+	assert(mpDevice != nullptr);
+
 	vkTrimCommandPool(mpDevice->GetDeviceHandle(), mHandle, flags);
 }
 

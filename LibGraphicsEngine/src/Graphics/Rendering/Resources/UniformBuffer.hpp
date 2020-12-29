@@ -1,63 +1,62 @@
 #ifndef GRAPHICS_RENDERING_RESOURCES_UNIFORM_BUFFER_HPP
 #define GRAPHICS_RENDERING_RESOURCES_UNIFORM_BUFFER_HPP
 
-#include "Resource.hpp"
+#include "Buffer.hpp"
+#include "Graphics/ShaderTools/GLSL/GLSLShaderTypes.hpp"
+#include "Foundation/Variant.hpp"
 #include "glm/mat4x4.hpp"
+#include <unordered_map>
 
 namespace GraphicsEngine
 {
 	namespace Graphics
 	{
 		// UniformBuffer - used to store uniform data among shaders to pass to a specific Graphics API
-		class UniformBuffer : public Resource
+		class UniformBuffer : public Buffer
 		{
 			GE_RTTI(GraphicsEngine::Graphics::UniformBuffer)
 
 		public:
-			enum class Usage : uint8_t
+			struct Uniform
 			{
-				U_STATIC = 0,
-				U_DYNAMIC,
-				U_COUNT
+				Variant data;
+				std::size_t size;
 			};
 
-			//TODO, work on this
-			enum class UniformUsage : uint8_t
-			{
-				UU_PVM = 0,
-				UU_PVM_MAT,
-				UU_TEX,
-				UU_PVM_TEX,
-				UU_COUNT
-			};
-
-			// TODO - make generic, improve
-			// Uniform structs
-			// layout as in vertex shader
-			struct Uniforms
-			{
-			//	glm::mat4 projectionMatrix;
-			//	glm::mat4 modelMatrix;
-			//	glm::mat4 viewMatrix;
-
-				glm::mat4 PVM;
-
-				// others
-			} Uniforms;
+			typedef std::unordered_map<GLSLShaderTypes::UniformType, Uniform> UniformMap;
 
 			UniformBuffer();
-			explicit UniformBuffer(UniformUsage uniformUsage);
 			virtual ~UniformBuffer();
 
-			const UniformBuffer::UniformUsage& GetUniformUsage() const;
+			void AddUniform(GLSLShaderTypes::UniformType type);
+
+			Variant GetUniform(GLSLShaderTypes::UniformType type) const;
+
+			template <typename T>
+			void SetUniform(GLSLShaderTypes::UniformType type, const T& val)
+			{
+				assert(type < GLSLShaderTypes::UniformType::GE_UT_COUNT);
+
+				auto iter = mUniformMap.find(type);
+
+				if (iter != mUniformMap.end())
+				{
+					auto& ref = iter->second;
+					bool_t ret = ref.data.SetValue(val);
+					ref.size = sizeof(T);
+
+					mIsUniformMapUpdated = ret;
+				}
+				else
+				{
+					LOG_ERROR("Uniform type not found!");
+					mIsUniformMapUpdated = false;
+				}
+			}
+
+			bool_t HasUniform(GLSLShaderTypes::UniformType type) const;
 
 			void* GetData();
-
-			//void* GetData() const;
-			//void SetData(void* pData, uint32_t size);
-			//const uint32_t& GetSize() const;
-
-			uint32_t GetSize() const;
 
 
 		private:
@@ -65,11 +64,9 @@ namespace GraphicsEngine
 			void Create();
 			void Destroy();
 
-			void SetupUniforms();
-
-			UniformUsage mUniformUsage;
-			//void* mpData;
-			//uint32_t mSize;
+			UniformMap mUniformMap;
+			bool_t mIsUniformMapSizeChanged;
+			bool_t mIsUniformMapUpdated;
 		};
 	}
 }

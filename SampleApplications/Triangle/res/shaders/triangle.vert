@@ -1,18 +1,13 @@
 #version 450
-
-layout (location = 0) in vec3 inPos;
-layout (location = 1) in vec3 inColor;
+layout (location = 0) in vec3 a_position;
+layout (location = 1) in vec3 a_color;
 
 layout (binding = 0) uniform UBO 
 {
-//	mat4 projectionMatrix;
-//	mat4 modelMatrix;
-//	mat4 viewMatrix;
-
 	mat4 PVM;
 } ubo;
 
-layout (location = 0) out vec3 outColor;
+layout (location = 0) out vec3 v_color;
 
 out gl_PerVertex 
 {
@@ -25,8 +20,7 @@ void main()
 {
 	gl_PointSize = 10;
 
-	outColor = inColor;
-	//gl_Position = ubo.projectionMatrix * ubo.viewMatrix * ubo.modelMatrix * vec4(inPos.xyz, 1.0);
+	v_color = a_color;
 
-	gl_Position = ubo.PVM * vec4(inPos.xyz, 1.0);
+	gl_Position = ubo.PVM * vec4(a_position.xyz, 1.0);
 }

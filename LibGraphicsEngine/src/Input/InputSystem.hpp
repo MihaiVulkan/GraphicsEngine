@@ -22,29 +22,33 @@ namespace GraphicsEngine
 		GE_RTTI(GraphicsEngine::InputSystem)
 
 	public:
-		enum class GE_InputMode : uint8_t
+		enum class InputMode : uint8_t
 		{
-			GE_Standrd = 0,
-			GE_LookAt,
-			GE_FPS,
-			GE_Invalid
+			GE_IM_STANDARD = 0,
+			GE_IM_LOOK_AT,
+			GE_IM_FPS,
+			GE_IM_COUNT
 		};
 
 		InputSystem();
+		explicit InputSystem(Platform::GE_Window* pWindow, Graphics::Camera* pCamera, InputSystem::InputMode inputMode);
 		virtual ~InputSystem();
 
-		void Init(Platform::GE_Window* pWindow, Graphics::Camera* pCamera, GE_InputMode inputMode);
-
-		void UpdateContinuousInput(bfloat32_t deltaTime);
-		void UpdateFPSInput(bfloat32_t deltaTime);
+		void UpdateContinuousInput(float32_t deltaTime);
+		void UpdateFPSInput(float32_t deltaTime);
 
 	private:
 		NO_COPY_NO_MOVE(InputSystem)
 
+		void Init();
+		void Terminate();
+
+		void UpdateCursorPos();
+
 		Platform::GE_Window* mpWindow;
 		Graphics::Camera* mpCamera;
 
-		GE_InputMode mInputMode;
+		InputMode mInputMode;
 		bool_t mIsCursorCapured;
 	};
 }

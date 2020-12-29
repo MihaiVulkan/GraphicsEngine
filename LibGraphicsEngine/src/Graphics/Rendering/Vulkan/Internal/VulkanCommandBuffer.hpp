@@ -1,8 +1,7 @@
-#ifndef GRAPHICS_RENDERING_VULKAN_COMMAND_BUFFER_HPP
-#define GRAPHICS_RENDERING_VULKAN_COMMAND_BUFFER_HPP
+#ifndef GRAPHICS_RENDERING_VULKAN_INTERNAL_VULKAN_COMMAND_BUFFER_HPP
+#define GRAPHICS_RENDERING_VULKAN_INTERNAL_VULKAN_COMMAND_BUFFER_HPP
 
-#include "Foundation/TypeDefs.hpp"
-#include "vulkan/vulkan.h"
+#include "Graphics/Rendering/Vulkan/Common/VulkanObject.hpp"
 #include <vector>
 
 namespace GraphicsEngine
@@ -45,17 +44,19 @@ namespace GraphicsEngine
 
 			When any primary command buffer that is in the recording or executable state is freed, it then becomes invalid.
 		*/
-		class VulkanCommandBuffer
+		class VulkanCommandBuffer : public VulkanObject
 		{
+			GE_RTTI(GraphicsEngine::Graphics::VulkanCommandBuffer)
+
 		public:
 			VulkanCommandBuffer();
-			explicit VulkanCommandBuffer(VulkanDevice* pDevice, VkCommandBufferLevel level, bool_t begin = false);
+			explicit VulkanCommandBuffer(VulkanDevice* pDevice, VkCommandPool commandPoolHandle, VkCommandBufferLevel level, bool_t begin = false);
 			virtual ~VulkanCommandBuffer();
 
 			VkResult Begin(const VkCommandBufferInheritanceInfo* pInheritanceInfo = nullptr);
 			VkResult End();
 
-			void Flush(VulkanQueue* pQueue, bool_t free = true);
+			void Flush(VulkanQueue* pQueue);
 
 			VkResult Reset(VkCommandBufferResetFlags flags = 0);
 
@@ -68,10 +69,11 @@ namespace GraphicsEngine
 			void Destroy();
 
 			VulkanDevice* mpDevice;
+			VkCommandPool mCommandPoolHandle;
 
 			VkCommandBuffer mHandle;
 		};
 	}
 }
 
-#endif // GRAPHICS_RENDERING_VULKAN_COMMAND_BUFFER_HPP
+#endif // GRAPHICS_RENDERING_VULKAN_INTERNAL_VULKAN_COMMAND_BUFFER_HPP

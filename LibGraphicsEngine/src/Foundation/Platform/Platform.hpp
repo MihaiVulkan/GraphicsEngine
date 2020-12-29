@@ -61,7 +61,7 @@ namespace GraphicsEngine
 
 		void PollEvents(GE_Window* pWindow);
 		void WaitEvents(GE_Window* pWindow);
-		void WaitEventsTimeout(GE_Window* pWindow, bfloat64_t timeout);
+		void WaitEventsTimeout(GE_Window* pWindow, float64_t timeout);
 
 
 		//////////////////////

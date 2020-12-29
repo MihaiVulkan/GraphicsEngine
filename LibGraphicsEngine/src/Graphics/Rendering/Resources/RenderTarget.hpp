@@ -16,30 +16,30 @@ namespace GraphicsEngine
 			GE_RTTI(GraphicsEngine::Graphics::RenderTarget)
 
 			public:
-				enum class Type : uint8_t
+				enum class TargetType : uint8_t
 				{
-					T_COLOR_RGB = 0,
-					T_COLOR_RGBA,
-					T_DEPTH_16,
-					T_DEPTH_24,
-					T_DEPTH_32,
-					T_COUNT
+					GE_TT_COLOR_RGB = 0,
+					GE_TT_COLOR_RGBA,
+					GE_TT_DEPTH_16,
+					GE_TT_DEPTH_24,
+					GE_TT_DEPTH_32,
+					GE_TT_COUNT
 				};
 
-				enum class Output : uint8_t
+				enum class TargetOutput : uint8_t
 				{
-					O_RENDER = 0,
-					O_TEXTURE,
-					O_RENDER_TEXTURE,
-					O_COUNT
+					GE_TO_RENDER = 0,
+					GE_TO_TEXTURE,
+					GE_TO_RENDER_TEXTURE,
+					GE_TO_COUNT
 				};
 
 				RenderTarget();
-				explicit RenderTarget(Type type, Output output, uint32_t width, uint32_t height, bool_t isFloatData);
+				explicit RenderTarget(TargetType type, TargetOutput output, uint32_t width, uint32_t height, bool_t isFloatData);
 				virtual ~RenderTarget();
 
-				const RenderTarget::Type& GetType() const;
-				const RenderTarget::Output& GetOutput() const;
+				const RenderTarget::TargetType& GetType() const;
+				const RenderTarget::TargetOutput& GetOutput() const;
 
 				uint32_t GetWidth() const;
 				uint32_t GetHeight() const;
@@ -50,8 +50,8 @@ namespace GraphicsEngine
 			void Create();
 			void Destroy();
 
-			Type mType;
-			Output mOutput;
+			TargetType mType;
+			TargetOutput mOutput;
 			Texture2D* mpTexture;
 			uint32_t mWidth, mHeight;
 			bool_t mIsFloatData;

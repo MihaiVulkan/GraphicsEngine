@@ -5,11 +5,32 @@ using namespace GraphicsEngine;
 using namespace GraphicsEngine::Graphics;
 
 NodeComponent::NodeComponent()
-	: mpNode(nullptr)
+	: mName(GetClassName_())
+	, mpNode(nullptr)
 	, mIsEnabled(false)
-{}
+{
+	Create();
+}
+
+NodeComponent::NodeComponent(const std::string& name)
+	: mName(name)
+	, mpNode(nullptr)
+	, mIsEnabled(false)
+{
+	Create();
+}
 
 NodeComponent::~NodeComponent()
+{
+	Destroy();
+}
+
+void NodeComponent::Create()
+{
+	//TODO
+}
+
+void NodeComponent::Destroy()
 {
 	mIsEnabled = false;
 
@@ -19,9 +40,34 @@ NodeComponent::~NodeComponent()
 	}
 }
 
-const char_t* NodeComponent::GetName() const
+void NodeComponent::Start()
 {
-	return GetClassName_();
+
+}
+
+void NodeComponent::Update(float32_t deltaTime)
+{
+
+}
+
+void NodeComponent::OnAttach()
+{
+
+}
+
+void NodeComponent::OnDettach()
+{
+
+}
+
+const std::string& NodeComponent::GetName() const
+{
+	return mName;
+}
+
+void NodeComponent::SetName(const std::string& name)
+{
+	mName = name;
 }
 
 Node* NodeComponent::GetNode() const
@@ -31,7 +77,7 @@ Node* NodeComponent::GetNode() const
 
 void NodeComponent::SetNode(Node* pNode)
 {
-	assert(pNode != nullptr);
+	//NOTE pNode can be nullptr
 
 	mpNode = pNode;
 }

@@ -1,4 +1,6 @@
 #include "GeometryNode.hpp"
+#include "Graphics/Components/VisualComponent.hpp"
+#include "Foundation/MemoryManagement/MemoryOperations.hpp"
 #include <algorithm> // std::remove()
 #include <cassert>
 
@@ -7,17 +9,33 @@ using namespace GraphicsEngine::Graphics;
 
 GeometryNode::GeometryNode()
 	: Node()
-{}
+{
+	Create();
+}
 
 GeometryNode::GeometryNode(const std::string& name)
 	: Node(name)
 {
-
+	Create();
 }
 
 GeometryNode::~GeometryNode()
 {
+	Destroy();
+}
+
+void GeometryNode::Create()
+{
+	// TODO - object lifetime management
+	//AttachComponent(GE_ALLOC(VisualComponent));
+}
+
+void GeometryNode::Destroy()
+{
 	mPrimitives.clear();
+
+	// TODO - object lifetime management
+	//GE_FREE(mpVisualComponent);
 }
 
 void GeometryNode::AttachGeometry(GeometricPrimitive* pPrimitive)
@@ -38,6 +56,18 @@ void GeometryNode::DettachGeometry(GeometricPrimitive* pPrimitive)
 void GeometryNode::DettachAllGeometry()
 {
 	mPrimitives.clear();
+}
+
+void GeometryNode::ForEachPrimitive(std::function< void(GeometricPrimitive*) > callback)
+{
+	for (auto& primitive : mPrimitives)
+	{
+		if (primitive)
+		{
+			if (callback)
+				callback(primitive);
+		}
+	}
 }
 
 void GeometryNode::Visit(std::function<void(Node*)> callback)

@@ -182,7 +182,9 @@
     <ClInclude Include="src\Applications\ConsoleApplication.hpp" />
     <ClInclude Include="src\Applications\WindowApplication.hpp" />
     <ClInclude Include="src\Engine.hpp" />
+    <ClInclude Include="src\Foundation\DynamicSingleton.hpp" />
     <ClInclude Include="src\Foundation\FileUtils.hpp" />
+    <ClInclude Include="src\Foundation\FixedSingleton.hpp" />
     <ClInclude Include="src\Foundation\HashUtils.hpp" />
     <ClInclude Include="src\Foundation\Logger.hpp" />
     <ClInclude Include="src\Foundation\MemoryManagement\Allocator.hpp" />
@@ -191,6 +193,7 @@
     <ClInclude Include="src\Foundation\MemoryManagement\MemoryOperations.hpp" />
     <ClInclude Include="src\Foundation\MemoryManagement\MemoryUtility.hpp" />
     <ClInclude Include="src\Foundation\NoCopyNoMove.hpp" />
+    <ClInclude Include="src\Foundation\Object.hpp" />
     <ClInclude Include="src\Foundation\Platform\InputDef.hpp" />
     <ClInclude Include="src\Foundation\Platform\Platform.hpp" />
     <ClInclude Include="src\Foundation\Platform\PlatformInternal.hpp" />
@@ -199,18 +202,22 @@
     <ClInclude Include="src\Foundation\Platform\Win32\Win32Platform.hpp" />
     <ClInclude Include="src\Foundation\Platform\Win32\Win32Types.hpp" />
     <ClInclude Include="src\Foundation\RTTI.hpp" />
-    <ClInclude Include="src\Foundation\Singleton.hpp" />
     <ClInclude Include="src\Foundation\Timer.hpp" />
     <ClInclude Include="src\Foundation\TypeDefs.hpp" />
+    <ClInclude Include="src\Foundation\Variant.hpp" />
     <ClInclude Include="src\GraphicsEngine.hpp" />
+    <ClInclude Include="src\GraphicsEngineInternal.hpp" />
     <ClInclude Include="src\Graphics\Camera\Camera.hpp" />
     <ClInclude Include="src\Graphics\Camera\FPSCamera.hpp" />
     <ClInclude Include="src\Graphics\Components\MaterialComponent.hpp" />
     <ClInclude Include="src\Graphics\Components\NodeComponent.hpp" />
+    <ClInclude Include="src\Graphics\Components\VisualComponent.hpp" />
     <ClInclude Include="src\Graphics\GeometricPrimitives\GeometricPrimitive.hpp" />
     <ClInclude Include="src\Graphics\GraphicsSystem.hpp" />
-    <ClInclude Include="src\Graphics\Rendering\PipelineStates\AlphaState.hpp" />
-    <ClInclude Include="src\Graphics\Rendering\PipelineStates\DepthState.hpp" />
+    <ClInclude Include="src\Graphics\Rendering\PipelineStates\ColorBlendState.hpp" />
+    <ClInclude Include="src\Graphics\Rendering\PipelineStates\CullFaceState.hpp" />
+    <ClInclude Include="src\Graphics\Rendering\PipelineStates\DepthStencilState.hpp" />
+    <ClInclude Include="src\Graphics\Rendering\PipelineStates\DynamicState.hpp" />
     <ClInclude Include="src\Graphics\Rendering\PipelineStates\PipelineState.hpp" />
     <ClInclude Include="src\Graphics\Rendering\Renderer.hpp" />
     <ClInclude Include="src\Graphics\Rendering\RenderPasses\DefaultRenderPass.hpp" />
@@ -227,12 +234,14 @@
     <ClInclude Include="src\Graphics\Rendering\Resources\UniformBuffer.hpp" />
     <ClInclude Include="src\Graphics\Rendering\Resources\VertexBuffer.hpp" />
     <ClInclude Include="src\Graphics\Rendering\Resources\VertexFormat.hpp" />
+    <ClInclude Include="src\Graphics\Rendering\Vulkan\Common\VulkanCommon.hpp" />
+    <ClInclude Include="src\Graphics\Rendering\Vulkan\Common\VulkanObject.hpp" />
+    <ClInclude Include="src\Graphics\Rendering\Vulkan\Common\VulkanUtils.hpp" />
     <ClInclude Include="src\Graphics\Rendering\Vulkan\Internal\VulkanAllocator.hpp" />
     <ClInclude Include="src\Graphics\Rendering\Vulkan\Internal\VulkanBuffer.hpp" />
     <ClInclude Include="src\Graphics\Rendering\Vulkan\Internal\VulkanBufferView.hpp" />
     <ClInclude Include="src\Graphics\Rendering\Vulkan\Internal\VulkanCommandBuffer.hpp" />
     <ClInclude Include="src\Graphics\Rendering\Vulkan\Internal\VulkanCommandPool.hpp" />
-    <ClInclude Include="src\Graphics\Rendering\Vulkan\Internal\VulkanCommon.hpp" />
     <ClInclude Include="src\Graphics\Rendering\Vulkan\Internal\VulkanComputePipeline.hpp" />
     <ClInclude Include="src\Graphics\Rendering\Vulkan\Internal\VulkanDebug.hpp" />
     <ClInclude Include="src\Graphics\Rendering\Vulkan\Internal\VulkanDescriptorPool.hpp" />
@@ -241,7 +250,7 @@
     <ClInclude Include="src\Graphics\Rendering\Vulkan\Internal\VulkanDevice.hpp" />
     <ClInclude Include="src\Graphics\Rendering\Vulkan\Internal\VulkanFence.hpp" />
     <ClInclude Include="src\Graphics\Rendering\Vulkan\Internal\VulkanFrameBuffer.hpp" />
-    <ClInclude Include="src\Graphics\Rendering\Vulkan\Internal\VulkanFrameBufferAttachment.hpp" />
+    <ClInclude Include="src\Graphics\Rendering\Vulkan\Internal\VulkanSwapChainBuffer.hpp" />
     <ClInclude Include="src\Graphics\Rendering\Vulkan\Internal\VulkanGraphicsPipeline.hpp" />
     <ClInclude Include="src\Graphics\Rendering\Vulkan\Internal\VulkanHelpers.hpp" />
     <ClInclude Include="src\Graphics\Rendering\Vulkan\Internal\VulkanImage.hpp" />
@@ -257,19 +266,23 @@
     <ClInclude Include="src\Graphics\Rendering\Vulkan\Internal\VulkanQueryPool.hpp" />
     <ClInclude Include="src\Graphics\Rendering\Vulkan\Internal\VulkanQueue.hpp" />
     <ClInclude Include="src\Graphics\Rendering\Vulkan\Internal\VulkanRenderPass.hpp" />
-    <ClInclude Include="src\Graphics\Rendering\Vulkan\Internal\VulkanRenderPassAttachment.hpp" />
+    <ClInclude Include="src\Graphics\Rendering\Vulkan\Internal\VulkanRenderPassAttachment.hpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClInclude>
     <ClInclude Include="src\Graphics\Rendering\Vulkan\Internal\VulkanSampler.hpp" />
     <ClInclude Include="src\Graphics\Rendering\Vulkan\Internal\VulkanSemaphore.hpp" />
     <ClInclude Include="src\Graphics\Rendering\Vulkan\Internal\VulkanShaderModule.hpp" />
-    <ClInclude Include="src\Graphics\Rendering\Vulkan\Internal\VulkanSubPass.hpp" />
-    <ClInclude Include="src\Graphics\Rendering\Vulkan\Internal\VulkanSurface.hpp" />
-    <ClInclude Include="src\Graphics\Rendering\Vulkan\Internal\VulkanSwapChain.hpp" />
-    <ClInclude Include="src\Graphics\Rendering\Vulkan\Internal\__VulkanAllocation.hpp">
+    <ClInclude Include="src\Graphics\Rendering\Vulkan\Internal\VulkanSubPass.hpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClInclude>
+    <ClInclude Include="src\Graphics\Rendering\Vulkan\Internal\VulkanSurface.hpp" />
+    <ClInclude Include="src\Graphics\Rendering\Vulkan\Internal\VulkanSwapChain.hpp" />
     <ClInclude Include="src\Graphics\Rendering\Vulkan\Resources\VulkanIndexBuffer.hpp" />
     <ClInclude Include="src\Graphics\Rendering\Vulkan\Resources\VulkanMaterial.hpp" />
     <ClInclude Include="src\Graphics\Rendering\Vulkan\Resources\VulkanRenderFrameBuffer.hpp" />
@@ -281,11 +294,12 @@
     <ClInclude Include="src\Graphics\Rendering\Vulkan\Resources\VulkanVertexBuffer.hpp" />
     <ClInclude Include="src\Graphics\Rendering\Vulkan\Resources\VulkanVertexFormat.hpp" />
     <ClInclude Include="src\Graphics\Rendering\Vulkan\VulkanRenderer.hpp" />
-    <ClInclude Include="src\Graphics\Rendering\Vulkan\VulkanUtils.hpp" />
     <ClInclude Include="src\Graphics\SceneGraph\CameraNode.hpp" />
     <ClInclude Include="src\Graphics\SceneGraph\GeometryNode.hpp" />
     <ClInclude Include="src\Graphics\SceneGraph\GroupNode.hpp" />
     <ClInclude Include="src\Graphics\SceneGraph\Node.hpp" />
+    <ClInclude Include="src\Graphics\ShaderTools\GLSL\GLSLShaderTypes.hpp" />
+    <ClInclude Include="src\Graphics\ShaderTools\GLSL\GLSLShaderParser.hpp" />
     <ClInclude Include="src\Input\InputSystem.hpp" />
     <ClInclude Include="src\System.hpp" />
   </ItemGroup>
@@ -299,19 +313,24 @@
     <ClCompile Include="src\Foundation\MemoryManagement\MemoryBenchmark.cpp" />
     <ClCompile Include="src\Foundation\MemoryManagement\MemoryOperations.cpp" />
     <ClCompile Include="src\Foundation\MemoryManagement\MemoryUtility.cpp" />
+    <ClCompile Include="src\Foundation\Object.cpp" />
     <ClCompile Include="src\Foundation\Platform\Platform.cpp" />
     <ClCompile Include="src\Foundation\Platform\Win32\Win32App.cpp" />
     <ClCompile Include="src\Foundation\Platform\Win32\Win32Platform.cpp" />
     <ClCompile Include="src\Foundation\Timer.cpp" />
-    <ClCompile Include="src\GraphicsEngine.cpp" />
+    <ClCompile Include="src\Foundation\Variant.cpp" />
+    <ClCompile Include="src\GraphicsEngineInternal.cpp" />
     <ClCompile Include="src\Graphics\Camera\Camera.cpp" />
     <ClCompile Include="src\Graphics\Camera\FPSCamera.cpp" />
     <ClCompile Include="src\Graphics\Components\MaterialComponent.cpp" />
     <ClCompile Include="src\Graphics\Components\NodeComponent.cpp" />
+    <ClCompile Include="src\Graphics\Components\VisualComponent.cpp" />
     <ClCompile Include="src\Graphics\GeometricPrimitives\GeometricPrimitive.cpp" />
     <ClCompile Include="src\Graphics\GraphicsSystem.cpp" />
-    <ClCompile Include="src\Graphics\Rendering\PipelineStates\AlphaState.cpp" />
-    <ClCompile Include="src\Graphics\Rendering\PipelineStates\DepthState.cpp" />
+    <ClCompile Include="src\Graphics\Rendering\PipelineStates\ColorBlendState.cpp" />
+    <ClCompile Include="src\Graphics\Rendering\PipelineStates\CullFaceState.cpp" />
+    <ClCompile Include="src\Graphics\Rendering\PipelineStates\DepthStencilState.cpp" />
+    <ClCompile Include="src\Graphics\Rendering\PipelineStates\DynamicState.cpp" />
     <ClCompile Include="src\Graphics\Rendering\PipelineStates\PipelineState.cpp" />
     <ClCompile Include="src\Graphics\Rendering\Renderer.cpp" />
     <ClCompile Include="src\Graphics\Rendering\RenderPasses\DefaultRenderPass.cpp" />
@@ -328,6 +347,8 @@
     <ClCompile Include="src\Graphics\Rendering\Resources\UniformBuffer.cpp" />
     <ClCompile Include="src\Graphics\Rendering\Resources\VertexBuffer.cpp" />
     <ClCompile Include="src\Graphics\Rendering\Resources\VertexFormat.cpp" />
+    <ClCompile Include="src\Graphics\Rendering\Vulkan\Common\VulkanObject.cpp" />
+    <ClCompile Include="src\Graphics\Rendering\Vulkan\Common\VulkanUtils.cpp" />
     <ClCompile Include="src\Graphics\Rendering\Vulkan\Internal\VulkanAllocator.cpp" />
     <ClCompile Include="src\Graphics\Rendering\Vulkan\Internal\VulkanBuffer.cpp" />
     <ClCompile Include="src\Graphics\Rendering\Vulkan\Internal\VulkanBufferView.cpp" />
@@ -341,7 +362,7 @@
     <ClCompile Include="src\Graphics\Rendering\Vulkan\Internal\VulkanDevice.cpp" />
     <ClCompile Include="src\Graphics\Rendering\Vulkan\Internal\VulkanFence.cpp" />
     <ClCompile Include="src\Graphics\Rendering\Vulkan\Internal\VulkanFrameBuffer.cpp" />
-    <ClCompile Include="src\Graphics\Rendering\Vulkan\Internal\VulkanFrameBufferAttachment.cpp" />
+    <ClCompile Include="src\Graphics\Rendering\Vulkan\Internal\VulkanSwapChainBuffer.cpp" />
     <ClCompile Include="src\Graphics\Rendering\Vulkan\Internal\VulkanGraphicsPipeline.cpp" />
     <ClCompile Include="src\Graphics\Rendering\Vulkan\Internal\VulkanHelpers.cpp" />
     <ClCompile Include="src\Graphics\Rendering\Vulkan\Internal\VulkanImage.cpp" />
@@ -357,19 +378,23 @@
     <ClCompile Include="src\Graphics\Rendering\Vulkan\Internal\VulkanQueryPool.cpp" />
     <ClCompile Include="src\Graphics\Rendering\Vulkan\Internal\VulkanQueue.cpp" />
     <ClCompile Include="src\Graphics\Rendering\Vulkan\Internal\VulkanRenderPass.cpp" />
-    <ClCompile Include="src\Graphics\Rendering\Vulkan\Internal\VulkanRenderPassAttachment.cpp" />
+    <ClCompile Include="src\Graphics\Rendering\Vulkan\Internal\VulkanRenderPassAttachment.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="src\Graphics\Rendering\Vulkan\Internal\VulkanSampler.cpp" />
     <ClCompile Include="src\Graphics\Rendering\Vulkan\Internal\VulkanSemaphore.cpp" />
     <ClCompile Include="src\Graphics\Rendering\Vulkan\Internal\VulkanShaderModule.cpp" />
-    <ClCompile Include="src\Graphics\Rendering\Vulkan\Internal\VulkanSubPass.cpp" />
-    <ClCompile Include="src\Graphics\Rendering\Vulkan\Internal\VulkanSurface.cpp" />
-    <ClCompile Include="src\Graphics\Rendering\Vulkan\Internal\VulkanSwapChain.cpp" />
-    <ClCompile Include="src\Graphics\Rendering\Vulkan\Internal\__VulkanAllocation.cpp">
+    <ClCompile Include="src\Graphics\Rendering\Vulkan\Internal\VulkanSubPass.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="src\Graphics\Rendering\Vulkan\Internal\VulkanSurface.cpp" />
+    <ClCompile Include="src\Graphics\Rendering\Vulkan\Internal\VulkanSwapChain.cpp" />
     <ClCompile Include="src\Graphics\Rendering\Vulkan\Resources\VulkanIndexBuffer.cpp" />
     <ClCompile Include="src\Graphics\Rendering\Vulkan\Resources\VulkanMaterial.cpp" />
     <ClCompile Include="src\Graphics\Rendering\Vulkan\Resources\VulkanRenderFrameBuffer.cpp" />
@@ -381,11 +406,11 @@
     <ClCompile Include="src\Graphics\Rendering\Vulkan\Resources\VulkanVertexBuffer.cpp" />
     <ClCompile Include="src\Graphics\Rendering\Vulkan\Resources\VulkanVertexFormat.cpp" />
     <ClCompile Include="src\Graphics\Rendering\Vulkan\VulkanRenderer.cpp" />
-    <ClCompile Include="src\Graphics\Rendering\Vulkan\VulkanUtils.cpp" />
     <ClCompile Include="src\Graphics\SceneGraph\CameraNode.cpp" />
     <ClCompile Include="src\Graphics\SceneGraph\GeometryNode.cpp" />
     <ClCompile Include="src\Graphics\SceneGraph\GroupNode.cpp" />
     <ClCompile Include="src\Graphics\SceneGraph\Node.cpp" />
+    <ClCompile Include="src\Graphics\ShaderTools\GLSL\GLSLShaderParser.cpp" />
     <ClCompile Include="src\Input\InputSystem.cpp" />
     <ClCompile Include="src\System.cpp" />
   </ItemGroup>

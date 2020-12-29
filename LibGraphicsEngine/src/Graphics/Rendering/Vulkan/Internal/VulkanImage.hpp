@@ -1,8 +1,7 @@
-#ifndef GRAPHICS_RENDERING_VULKAN_IMAGE_HPP
-#define GRAPHICS_RENDERING_VULKAN_IMAGE_HPP
+#ifndef GRAPHICS_RENDERING_VULKAN_INTERNAL_VULKAN_IMAGE_HPP
+#define GRAPHICS_RENDERING_VULKAN_INTERNAL_VULKAN_IMAGE_HPP
 
-#include "Foundation/TypeDefs.hpp"
-#include "vulkan/vulkan.h"
+#include "Graphics/Rendering/Vulkan/Common/VulkanObject.hpp"
 #include "VulkanAllocator.hpp"
 
 namespace GraphicsEngine
@@ -41,8 +40,10 @@ namespace GraphicsEngine
 			layout is per-image subresource, and separate image subresources of the same image can be in different layouts at the same time with 
 			one exception - depth and stencil aspects of a given image subresource must always be in the same layout.
 		*/
-		class VulkanImage
+		class VulkanImage : public VulkanObject
 		{
+			GE_RTTI(GraphicsEngine::Graphics::VulkanImage)
+
 		public:
 			typedef struct
 			{
@@ -62,8 +63,8 @@ namespace GraphicsEngine
 			VulkanImage();
 			explicit VulkanImage(VulkanDevice* pDevice, VkMemoryPropertyFlags memoryPropertyFlags, 
 				VkImageType imageType, VkFormat format, const VkExtent3D& extent, uint32_t mipLevels, uint32_t arrayLayers, VkSampleCountFlagBits samples,
-				VkImageTiling tiling, VkImageUsageFlags usage, VkSharingMode sharingMode = VK_SHARING_MODE_EXCLUSIVE, uint32_t queueFamilyIndexCount = 0,
-				const uint32_t * pQueueFamilyIndices = nullptr, VkImageLayout initialLayout = VK_IMAGE_LAYOUT_UNDEFINED, VkImageCreateFlags flags = 0);
+				VkImageTiling tiling, VkImageUsageFlags usage, VkSharingMode sharingMode = VkSharingMode::VK_SHARING_MODE_EXCLUSIVE, uint32_t queueFamilyIndexCount = 0,
+				const uint32_t * pQueueFamilyIndices = nullptr, VkImageLayout initialLayout = VkImageLayout::VK_IMAGE_LAYOUT_UNDEFINED, VkImageCreateFlags flags = 0);
 			virtual ~VulkanImage();
 
 
@@ -94,4 +95,4 @@ namespace GraphicsEngine
 	}
 }
 
-#endif // GRAPHICS_RENDERING_VULKAN_IMAGE_HPP
+#endif // GRAPHICS_RENDERING_VULKAN_INTERNAL_VULKAN_IMAGE_HPP

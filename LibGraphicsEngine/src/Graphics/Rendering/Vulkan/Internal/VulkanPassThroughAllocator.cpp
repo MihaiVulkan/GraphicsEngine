@@ -21,8 +21,9 @@ VulkanPassThroughAllocator::~VulkanPassThroughAllocator()
 	// base destructor is called automatically
 }
 
-void VulkanPassThroughAllocator::Alloc(VulkanAllocator::Allocation& outAllocation, VkMemoryPropertyFlags usage, uint32_t memoryTypeIndex, VkDeviceSize size)
+void VulkanPassThroughAllocator::Alloc(VkMemoryPropertyFlags usage, uint32_t memoryTypeIndex, VkDeviceSize size, VulkanAllocator::Allocation& outAllocation)
 {
+	assert(mpDevice != nullptr);
 	assert(memoryTypeIndex < mMemoryTypeAllocationSizes.size());
 
 	mAllocationCount++;
@@ -40,6 +41,7 @@ void VulkanPassThroughAllocator::Alloc(VulkanAllocator::Allocation& outAllocatio
 
 void VulkanPassThroughAllocator::Free(const VulkanAllocator::Allocation& allocation)
 {
+	assert(mpDevice != nullptr);
 	assert(mAllocationCount > 0);
 
 	mAllocationCount--;

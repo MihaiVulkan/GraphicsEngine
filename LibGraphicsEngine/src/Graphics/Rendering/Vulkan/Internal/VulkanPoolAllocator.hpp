@@ -1,12 +1,11 @@
-#ifndef GRAPHICS_RENDERING_VULKAN_POOL_ALLOCATOR_HPP
-#define GRAPHICS_RENDERING_VULKAN_POOL_ALLOCATOR_HPP
+#ifndef GRAPHICS_RENDERING_VULKAN_INTERNAL_VULKAN_POOL_ALLOCATOR_HPP
+#define GRAPHICS_RENDERING_VULKAN_INTERNAL_VULKAN_POOL_ALLOCATOR_HPP
 
 /* Implementation of VUlkanPoolAllcoator based on:
    http://kylehalladay.com/blog/tutorial/2017/12/13/Custom-Allocators-Vulkan.html
    https://github.com/khalladay/VkMaterialSystem/blob/material-instances/VkMaterialSystem/vkh_allocator_pool.cpp
 */
 
-#include "Foundation/TypeDefs.hpp"
 #include "VulkanAllocator.hpp"
 
 namespace GraphicsEngine
@@ -23,13 +22,15 @@ namespace GraphicsEngine
 		*/
 		class VulkanPoolAllocator : public VulkanAllocator
 		{
+			GE_RTTI(GraphicsEngine::Graphics::VulkanPoolAllocator)
+
 		public:
 			VulkanPoolAllocator();
 			explicit VulkanPoolAllocator(VulkanDevice* pDevice);
 			virtual ~VulkanPoolAllocator();
 
-			virtual void Alloc(VulkanAllocator::Allocation& outAllocation, VkMemoryPropertyFlags usage, uint32_t memoryTypeIndex, VkDeviceSize size);
-			virtual void Free(const VulkanAllocator::Allocation& allocation);
+			virtual void Alloc(VkMemoryPropertyFlags usage, uint32_t memoryTypeIndex, VkDeviceSize size, VulkanAllocator::Allocation& outAllocation) override;
+			virtual void Free(const VulkanAllocator::Allocation& allocation) override;
 
 		private:
 			// used to indentify memory block layout
@@ -52,20 +53,19 @@ namespace GraphicsEngine
 			{
 				std::vector<DeviceMemoryBlock> blocks;
 			};
+
 			// adds a new memory block an existing memory pool
 			uint32_t AddBlockToPool(VkDeviceSize size, uint32_t memoryTypeIndex, bool_t fitToAlloc);
 
-			// 
 			void MarkChunkOfMemoryBlockUsed(uint32_t memoryTypeIndex, const BlockSpanIndexPair& indices, VkDeviceSize size);
 
-
-			bool_t FindFreeChunkForAllocation(BlockSpanIndexPair& outIndexPair, uint32_t memoryTypeIndex, VkDeviceSize size, bool_t needsWholePage);
+			bool_t FindFreeChunkForAllocation(uint32_t memoryTypeIndex, VkDeviceSize size, bool_t needsWholePage, BlockSpanIndexPair& outIndexPair);
 
 			// each allocation unit (vkDeviceMmeory) contains several subdivisions/pages
 			// in our implementation
 
 			// page size of each subdivion of an allocation unit
-			uint32_t mPageSize;
+			uint64_t mPageSize;
 			// allocation unit/mmeory block min size - should a multiple of page size
 			VkDeviceSize mMemoryBlockMinSize;
 
@@ -75,4 +75,4 @@ namespace GraphicsEngine
 	}
 }
 
-#endif // GRAPHICS_RENDERING_VULKAN_POOL_ALLOCATOR_HPP
+#endif // GRAPHICS_RENDERING_VULKAN_INTERNAL_VULKAN_POOL_ALLOCATOR_HPP

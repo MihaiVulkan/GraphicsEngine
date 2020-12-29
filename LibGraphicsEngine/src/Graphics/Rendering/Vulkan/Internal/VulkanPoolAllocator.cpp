@@ -18,6 +18,8 @@ VulkanPoolAllocator::VulkanPoolAllocator(VulkanDevice* pDevice)
 	, mPageSize(0)
 	, mMemoryBlockMinSize(0)
 {
+	assert(mpDevice != nullptr);
+
 	const auto& memoryProperties = mpDevice->GetPhysicalDeviceMemoryProperties();
 
 	mMemPools.resize(memoryProperties.memoryTypeCount);
@@ -30,6 +32,8 @@ VulkanPoolAllocator::VulkanPoolAllocator(VulkanDevice* pDevice)
 
 VulkanPoolAllocator::~VulkanPoolAllocator()
 {
+	assert(mpDevice != nullptr);
+
 	for (auto& pool : mMemPools)
 	{
 		for (auto& block : pool.blocks)
@@ -41,7 +45,7 @@ VulkanPoolAllocator::~VulkanPoolAllocator()
 	// base destructor is called automatically
 }
 
-void VulkanPoolAllocator::Alloc(VulkanAllocator::Allocation& outAlloc, VkMemoryPropertyFlags usage, uint32_t memoryTypeIndex, VkDeviceSize size)
+void VulkanPoolAllocator::Alloc(VkMemoryPropertyFlags usage, uint32_t memoryTypeIndex, VkDeviceSize size, VulkanAllocator::Allocation& outAllocation)
 {
 	assert(memoryTypeIndex < mMemoryTypeAllocationSizes.size());
 	assert(memoryTypeIndex < mMemPools.size());
@@ -57,7 +61,7 @@ void VulkanPoolAllocator::Alloc(VulkanAllocator::Allocation& outAlloc, VkMemoryP
 
 	// NOTE! If a memory usage flag different from VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT is used, then we need a different page
 	bool_t needsOwnPage = usage != VkMemoryPropertyFlagBits::VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
-	bool_t found = FindFreeChunkForAllocation(location, memoryTypeIndex, requestedAllocSize, needsOwnPage);
+	bool_t found = FindFreeChunkForAllocation(memoryTypeIndex, requestedAllocSize, needsOwnPage, location);
 
 	if (!found)
 	{
@@ -68,11 +72,11 @@ void VulkanPoolAllocator::Alloc(VulkanAllocator::Allocation& outAlloc, VkMemoryP
 
 	block.pageReserved = needsOwnPage;
 
-	outAlloc.handle = block.mem.handle;
-	outAlloc.size = size;
-	outAlloc.offset = block.layout[location.spanIdx].offset;
-	outAlloc.typeIndex = memoryTypeIndex;
-	outAlloc.id = location.blockIdx;
+	outAllocation.handle = block.mem.handle;
+	outAllocation.size = size;
+	outAllocation.offset = block.layout[location.spanIdx].offset;
+	outAllocation.typeIndex = memoryTypeIndex;
+	outAllocation.id = location.blockIdx;
 
 	MarkChunkOfMemoryBlockUsed(memoryTypeIndex, location, requestedAllocSize);
 }
@@ -117,6 +121,7 @@ void VulkanPoolAllocator::Free(const VulkanAllocator::Allocation& allocation)
 
 uint32_t VulkanPoolAllocator::AddBlockToPool(VkDeviceSize size, uint32_t memoryTypeIndex, bool_t fitToAlloc)
 {
+	assert(mpDevice != nullptr);
 	assert(memoryTypeIndex < mMemPools.size());
 
 	VkDeviceSize newPoolSize = size * 2;
@@ -151,7 +156,7 @@ void VulkanPoolAllocator::MarkChunkOfMemoryBlockUsed(uint32_t memoryTypeIndex, c
 	layout.size -= size;
 }
 
-bool VulkanPoolAllocator::FindFreeChunkForAllocation(BlockSpanIndexPair& outIndexPair, uint32_t memoryTypeIndex, VkDeviceSize size, bool_t needsWholePage)
+bool VulkanPoolAllocator::FindFreeChunkForAllocation(uint32_t memoryTypeIndex, VkDeviceSize size, bool_t needsWholePage, BlockSpanIndexPair& outIndexPair)
 {
 	assert(memoryTypeIndex < mMemPools.size());
 

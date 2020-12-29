@@ -39,8 +39,9 @@ namespace GraphicsEngine
 		uint64_t Used() { return mUsed; }
 		uint64_t Peak() { return mPeak; }
 
-		virtual void Init() = 0;
+		virtual void Init(uint64_t totalSize) = 0;
 		virtual void Reset() = 0;
+		virtual void Terminate() = 0;
 
 		virtual void* Allocate(uint64_t size, uint64_t alignment = 0) = 0;
 		virtual void Free(void* ptr) = 0;

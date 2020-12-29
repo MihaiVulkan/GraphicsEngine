@@ -4,9 +4,8 @@
 #define GRAPHICS_CAMERA_HPP
 
 #include "AppConfig.hpp"
-#include "Foundation/TypeDefs.hpp"
+#include "Foundation/Object.hpp"
 #include "Foundation/NoCopyNoMove.hpp"
-#include "Foundation/RTTI.hpp"
 #include "glm/common.hpp"
 #include "glm/vec3.hpp"
 #include "glm/mat4x4.hpp"
@@ -106,7 +105,8 @@ namespace GraphicsEngine
 {
 	namespace Graphics
 	{
-		class Camera : public RTTI
+		/* Camera base class */
+		class Camera : public Object
 		{
 			GE_RTTI(GraphicsEngine::Graphics::Camera)
 
@@ -118,22 +118,26 @@ namespace GraphicsEngine
 			virtual ~Camera();
 
 			virtual void UpdateViewMatrix();
-			virtual void UpdatePerspectiveProjectionMatrix(uint32_t windowWidth, uint32_t windowHeight);
-			virtual void UpdatePerspectiveProjectionMatrix(int32_t fovy, bfloat32_t aspect, bfloat32_t zNear, bfloat32_t zFar);
-			virtual void UpdateOrthographicProjectionMatrix(bfloat32_t left, bfloat32_t right, bfloat32_t bottom, bfloat32_t top, bfloat32_t zNear, bfloat32_t zFar);
+			virtual void UpdatePerspectiveProjectionMatrix();
+			//virtual void UpdatePerspectiveProjectionMatrix(uint32_t windowWidth, uint32_t windowHeight);
+			virtual void UpdatePerspectiveProjectionMatrix(int32_t fovy, float32_t aspect, float32_t zNear, float32_t zFar);
+			virtual void UpdateOrthographicProjectionMatrix(float32_t left, float32_t right, float32_t bottom, float32_t top, float32_t zNear, float32_t zFar);
 
-				//// Getters ////
+			//// Getters ////
 			const std::string& GetName() const;
 
 			const glm::vec3& GetPosition() const;
-			bfloat32_t GetAltitude() const;
+			float32_t GetAltitude() const;
 			const glm::vec3& GetForward() const;
 			const glm::vec3& GetRight() const;
 			const glm::vec3& GetUp() const;
 
-			/*bfloat32_t GetPitch() const;
-			bfloat32_t GetYaw() const;*/
 			int32_t GetFOV() const;
+
+			float32_t GetAspectRatio() const;
+
+			float32_t GetZNear() const;
+			float32_t GetZFar() const;
 
 
 			const glm::mat4& GetViewMatrix() const;
@@ -143,7 +147,7 @@ namespace GraphicsEngine
 			const glm::mat4& GetInverseViewMatrix() const;
 			const glm::mat4& GetInverseProjectionMatrix() const;
 			const glm::mat4& GetInverseProjectionViewMatrix() const;
-#endif
+#endif // USE_INVERSE_MATRICES
 			//// Setters ////
 			void SetPosition(const glm::vec3& position);
 			void SetAltitude(float altitude);
@@ -154,10 +158,16 @@ namespace GraphicsEngine
 			void SetFOV(int32_t fov);
 			void ResetFOV();
 
-			void SetProjectionMatrix(const glm::mat4& projectionMatrix);
+			void SetAspectRatio(float32_t aspectRatio);
+
+			void SetZNear(float32_t zNear);
+			void SetZFar(float32_t zFar);
+
+			void SetViewMatrix(const glm::mat4& view);
+			void SetProjectionMatrix(const glm::mat4& proj);
 
 		protected:
-			bfloat32_t ComputePerspectiveProjectionCorrectionFactor() const;
+			float32_t ComputePerspectiveProjectionCorrectionFactor() const;
 
 			//// Variables ////
 			std::string mName;
@@ -182,10 +192,12 @@ namespace GraphicsEngine
 
 	// Projection
 			int32_t mFOVy, mInitialFOVy;
-			bfloat32_t mZNear;
-			bfloat32_t mZFar;
+			float32_t mAspectRatio;
+			float32_t mZNear;
+			float32_t mZFar;
 
 			//TODO - add frustum data, cull methods, etc.
+			// or add a CullCmera which culls scene graph nodes based on calculated planes and geometric intersection
 
 		private:
 			NO_COPY_NO_MOVE(Camera);

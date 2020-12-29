@@ -12,6 +12,9 @@ namespace GraphicsEngine
 	{
 		class GeometricPrimitive;
 
+		/* GeometryNoded is a visual/renderable node.
+		   Other visual nodes are: LightNode, TextNode.
+		   All these visual nodes have the VisualComponent. */
 		class GeometryNode : public Node
 		{
 			GE_RTTI(GraphicsEngine::Graphics::GeometryNode)
@@ -25,11 +28,16 @@ namespace GraphicsEngine
 			void DettachGeometry(GeometricPrimitive* pPrimitive);
 			void DettachAllGeometry();
 
+			void ForEachPrimitive(std::function< void(GeometricPrimitive*) > callback);
+
 			virtual void Visit(std::function<void(Node*)> callback) override;
 
 			const std::vector<GeometricPrimitive*>& GetGeometricPrimitives() const;
 
 		private:
+			void Create();
+			void Destroy();
+
 			std::vector<GeometricPrimitive*> mPrimitives;
 		};
 	}

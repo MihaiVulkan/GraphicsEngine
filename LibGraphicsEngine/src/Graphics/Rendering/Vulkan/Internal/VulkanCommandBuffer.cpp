@@ -12,11 +12,13 @@ using namespace GraphicsEngine::Graphics;
 
 VulkanCommandBuffer::VulkanCommandBuffer()
 	: mpDevice(nullptr)
+	, mCommandPoolHandle(VK_NULL_HANDLE)
 	, mHandle(VK_NULL_HANDLE)
 {}
 
-VulkanCommandBuffer::VulkanCommandBuffer(VulkanDevice* pDevice, VkCommandBufferLevel level, bool_t begin)
+VulkanCommandBuffer::VulkanCommandBuffer(VulkanDevice* pDevice, VkCommandPool commandPoolHandle, VkCommandBufferLevel level, bool_t begin)
 	: mpDevice(pDevice)
+	, mCommandPoolHandle(commandPoolHandle)
 	, mHandle(VK_NULL_HANDLE)
 {
 	Create(level, begin);
@@ -30,8 +32,9 @@ VulkanCommandBuffer::~VulkanCommandBuffer()
 void VulkanCommandBuffer::Create(VkCommandBufferLevel level, bool_t begin)
 {
 	assert(mpDevice != nullptr);
+	assert(mCommandPoolHandle != VK_NULL_HANDLE);
 
-	VkCommandBufferAllocateInfo commandBufferAllocateInfo = VulkanInitializers::CommandBufferAllocateInfo(mpDevice->GetCommandPoolHandle(), level, 1);
+	VkCommandBufferAllocateInfo commandBufferAllocateInfo = VulkanInitializers::CommandBufferAllocateInfo(mCommandPoolHandle, level, 1);
 
 	VK_CHECK_RESULT(vkAllocateCommandBuffers(mpDevice->GetDeviceHandle(), &commandBufferAllocateInfo, &mHandle));
 
@@ -44,11 +47,14 @@ void VulkanCommandBuffer::Create(VkCommandBufferLevel level, bool_t begin)
 
 void VulkanCommandBuffer::Destroy()
 {
+	assert(mpDevice != nullptr);
+
 	if (mHandle)
 	{
-		vkFreeCommandBuffers(mpDevice->GetDeviceHandle(), mpDevice->GetCommandPoolHandle(), 1, &mHandle);
+		vkFreeCommandBuffers(mpDevice->GetDeviceHandle(), mCommandPoolHandle, 1, &mHandle);
 		mHandle = VK_NULL_HANDLE;
 	}
+	mCommandPoolHandle = VK_NULL_HANDLE;
 
 	if (mpDevice)
 	{
@@ -68,8 +74,9 @@ VkResult VulkanCommandBuffer::End()
 	return vkEndCommandBuffer(mHandle);
 }
 
-void VulkanCommandBuffer::Flush(VulkanQueue* pQueue, bool_t free)
+void VulkanCommandBuffer::Flush(VulkanQueue* pQueue)
 {
+	assert(mpDevice != nullptr);
 	assert(pQueue != nullptr);
 
 	VK_CHECK_RESULT(End());
@@ -85,11 +92,6 @@ void VulkanCommandBuffer::Flush(VulkanQueue* pQueue, bool_t free)
 
 		//// Wait for the fence to signal that command buffer has finished executing
 		VK_CHECK_RESULT(fence.WaitIdle(VK_TRUE, DEFAULT_FENCE_TIMEOUT));
-	}
-
-	if (free)
-	{
-		Destroy();
 	}
 }
 

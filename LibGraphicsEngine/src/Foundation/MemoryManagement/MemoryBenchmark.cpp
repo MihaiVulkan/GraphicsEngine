@@ -26,7 +26,7 @@ void MemoryBenchmark::SingleAllocation(Allocator* allocatorPtr, uint64_t size, u
 
 	mTimer.Start();
 
-	allocatorPtr->Init();
+	allocatorPtr->Init(1e5);
 
 	for (uint32_t operation = 0; operation < mOperationCount; ++ operation)
 	{
@@ -44,8 +44,9 @@ void MemoryBenchmark::SingleFree(Allocator* allocatorPtr, uint64_t size, uint64_
 	assert(nullptr != allocatorPtr);
 
 	void** allocatedMemory = GE_ALLOC_ARRAY(void*, mOperationCount);
+	assert(allocatedMemory != nullptr);
 
-	allocatorPtr->Init();
+	allocatorPtr->Init(1e5);
 
 	for (uint32_t operation = 0; operation < mOperationCount; ++operation)
 	{
@@ -62,8 +63,8 @@ void MemoryBenchmark::SingleFree(Allocator* allocatorPtr, uint64_t size, uint64_
 
 void MemoryBenchmark::CollectResults(int64_t elapsedTime, uint64_t memoryPeak)
 {
-	bfloat32_t operationsPerSecond = static_cast<bfloat32_t>(mOperationCount) / elapsedTime;
-	bfloat32_t timePerOperation = static_cast<bfloat32_t>(elapsedTime) / mOperationCount;
+	float32_t operationsPerSecond = static_cast<float32_t>(mOperationCount) / elapsedTime;
+	float32_t timePerOperation = static_cast<float32_t>(elapsedTime) / mOperationCount;
 
 	// Print results
 	std::cout << "---------- BENCHMARK --------- " << std::endl;

@@ -36,6 +36,8 @@ void VulkanImageView::Create(const VkImageViewCreateInfo& imageViewCreateInfo)
 
 void VulkanImageView::Destroy()
 {
+	assert(mpDevice != nullptr);
+
 	if (mHandle)
 	{
 		vkDestroyImageView(mpDevice->GetDeviceHandle(), mHandle, nullptr);
@@ -47,7 +49,6 @@ void VulkanImageView::Destroy()
 		mpDevice = nullptr;
 	}
 }
-
 
 const VkImageView& VulkanImageView::GetHandle() const
 {

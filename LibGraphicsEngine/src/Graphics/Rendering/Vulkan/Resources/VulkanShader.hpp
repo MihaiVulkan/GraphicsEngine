@@ -1,5 +1,5 @@
-#ifndef GRAPHICS_RENDERING_VULKAN_RESOURCES_SHADER_HPP
-#define GRAPHICS_RENDERING_VULKAN_RESOURCES_SHADER_HPP
+#ifndef GRAPHICS_RENDERING_VULKAN_RESOURCES_VULKAN_SHADER_HPP
+#define GRAPHICS_RENDERING_VULKAN_RESOURCES_VULKAN_SHADER_HPP
 
 #include "VulkanResource.hpp"
 #include "Graphics/Rendering/Resources/Shader.hpp"
@@ -21,12 +21,10 @@ namespace GraphicsEngine
 			explicit GADRShader(Renderer* pRenderer, Shader* pShader);
 			virtual ~GADRShader();
 
-			//void Bind();
+			Shader* GetShader() const;
 
 			//
 			VulkanShaderModule* GetVkShaderModule() const;
-
-			VkShaderStageFlagBits TypeToVulkanType(const Shader::Type& type) const;
 
 		private:
 			void Create(Renderer* pRenderer);
@@ -39,4 +37,4 @@ namespace GraphicsEngine
 	}
 }
 
-#endif // GRAPHICS_RENDERING_VULKAN_RESOURCES_SHADER_HPP
+#endif // GRAPHICS_RENDERING_VULKAN_RESOURCES_VULKAN_SHADER_HPP

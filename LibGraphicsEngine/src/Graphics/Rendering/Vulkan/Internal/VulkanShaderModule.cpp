@@ -2,8 +2,9 @@
 #include "VulkanDevice.hpp"
 #include "VulkanInitializers.hpp"
 #include "VulkanHelpers.hpp"
-#include "Foundation/MemoryManagement/MemoryOperations.hpp"
 #include "Foundation/FileUtils.hpp"
+#include "Foundation/Logger.hpp"
+#include <string>
 #include <cassert>
 
 
@@ -13,15 +14,15 @@ using namespace GraphicsEngine::Graphics;
 VulkanShaderModule::VulkanShaderModule()
 	: mpDevice(nullptr)
 	, mHandle(VK_NULL_HANDLE)
-	, mShaderType(VkShaderStageFlagBits::VK_SHADER_STAGE_FLAG_BITS_MAX_ENUM)
+	, mShaderStage(VkShaderStageFlagBits::VK_SHADER_STAGE_FLAG_BITS_MAX_ENUM)
 {}
 
-VulkanShaderModule::VulkanShaderModule(VulkanDevice* pDevice, VkShaderStageFlagBits shaderType, const char_t* pPath)
+VulkanShaderModule::VulkanShaderModule(VulkanDevice* pDevice, VkShaderStageFlagBits shaderStage, const std::string& sourcePath)
 	: mpDevice(pDevice)
 	, mHandle(VK_NULL_HANDLE)
-	, mShaderType(shaderType)
+	, mShaderStage(shaderStage)
 {
-	Create(pPath);
+	Create(sourcePath);
 }
 
 VulkanShaderModule::~VulkanShaderModule()
@@ -29,48 +30,47 @@ VulkanShaderModule::~VulkanShaderModule()
 	Destroy();
 }
 
-void VulkanShaderModule::Create(const char_t* pPath)
+void VulkanShaderModule::Create(const std::string& sourcePath)
 {
 	assert(mpDevice != nullptr);
-	assert(pPath != nullptr);
+	assert(sourcePath.empty() == false);
 
 #ifdef USE_GLSLANG
 	glslang::InitializeProcess();
 
 	{
-		uint32_t size = 0;
-		char_t* pShaderCode = FileUtils::ReadFile(pPath, size);
-		assert(pShaderCode != nullptr);
+		std::string shaderCode;
+		FileUtils::ReadFile(sourcePath, shaderCode);
+		assert(shaderCode.empty() == false);
 
 		std::vector<uint32_t> shaderSPV;
-		assert(GLSLtoSPV(mShaderType, pShaderCode, shaderSPV) == true);
+		bool_t res = GLSLtoSPV(sourcePath, mShaderStage, shaderCode, shaderSPV);
+		assert(res == true);
 
 		VkShaderModuleCreateInfo shaderModuleCreateInfo = VulkanInitializers::ShaderModuleCreateInfo(shaderSPV.size() * sizeof(uint32_t), shaderSPV.data());
 
 		VK_CHECK_RESULT(vkCreateShaderModule(mpDevice->GetDeviceHandle(), &shaderModuleCreateInfo, nullptr, &mHandle));
-
-		GE_FREE_ARRAY(pShaderCode);
 	}
 
 	glslang::FinalizeProcess();
 #else
 	{
-		uint32_t size = 0;
-		char_t* pShaderCode = FileUtils::ReadFile(pPath, size);
-		assert(pShaderCode != nullptr);
+		std::string shaderCode;
+		FileUtils::ReadFile(sourcePath, shaderCode);
+		assert(shaderCode.empty() == false);
 
-		VkShaderModuleCreateInfo shaderModuleCreateInfo = VulkanInitializers::ShaderModuleCreateInfo(size * sizeof(uint32_t), (uint32_t*)pShaderCode);
+		VkShaderModuleCreateInfo shaderModuleCreateInfo = VulkanInitializers::ShaderModuleCreateInfo(size * sizeof(uint32_t), (uint32_t*)shaderCode.c_str());
 
 		VK_CHECK_RESULT(vkCreateShaderModule(mpDevice->GetDeviceHandle(), &shaderModuleCreateInfo, nullptr, &mHandle));
-
-		GE_FREE_ARRAY(pShaderCode);
 	}
 #endif // USE_GLSLANG
 }
 
 void VulkanShaderModule::Destroy()
 {
-	mShaderType = {};
+	assert(mpDevice != nullptr);
+
+	mShaderStage = VkShaderStageFlagBits::VK_SHADER_STAGE_FLAG_BITS_MAX_ENUM;
 
 	if (mHandle)
 	{
@@ -89,9 +89,9 @@ const VkShaderModule& VulkanShaderModule::GetHandle() const
 	return mHandle;
 }
 
-VkShaderStageFlagBits VulkanShaderModule::GetShaderType() const
+VkShaderStageFlagBits VulkanShaderModule::GetShaderStage() const
 {
-	return mShaderType;
+	return mShaderStage;
 }
 
 #ifdef USE_GLSLANG
@@ -99,9 +99,9 @@ VkShaderStageFlagBits VulkanShaderModule::GetShaderType() const
 // Compile a given string containing GLSL into SPV for use by VK
 // Return value of false means an error was encountered.
 //
-bool VulkanShaderModule::GLSLtoSPV(VkShaderStageFlagBits shaderType, const char_t* pShader, std::vector<uint32_t>& spirvVec)
+bool VulkanShaderModule::GLSLtoSPV(const std::string& sourcePath, VkShaderStageFlagBits shaderStage, const std::string& shaderSourceCode, std::vector<uint32_t>& SPIRVVecOut)
 {
-	EShLanguage stage = FindLanguage(shaderType);
+	EShLanguage stage = FindLanguage(shaderStage);
 	glslang::TShader shader(stage);
 	glslang::TProgram program;
 	const char_t* shaderStrings[1];
@@ -112,13 +112,13 @@ bool VulkanShaderModule::GLSLtoSPV(VkShaderStageFlagBits shaderType, const char_
 	// Enable SPIR-V and Vulkan rules when parsing GLSL
 	EShMessages messages = (EShMessages)(EShMessages::EShMsgSpvRules | EShMessages::EShMsgVulkanRules);
 
-	shaderStrings[0] = pShader;
+	shaderStrings[0] = shaderSourceCode.c_str();
 	shader.setStrings(shaderStrings, 1);
 
 	if (false == shader.parse(&Resources, 100, false, messages))
 	{
-		puts(shader.getInfoLog());
-		puts(shader.getInfoDebugLog());
+		LOG_ERROR("shader: %s\n %s", sourcePath.c_str(), shader.getInfoLog());
+		LOG_ERROR(shader.getInfoDebugLog());
 		return false;  // something didn't work
 	}
 
@@ -130,16 +130,38 @@ bool VulkanShaderModule::GLSLtoSPV(VkShaderStageFlagBits shaderType, const char_
 
 	if (false == program.link(messages))
 	{
-		puts(shader.getInfoLog());
-		puts(shader.getInfoDebugLog());
-		fflush(stdout);
+		LOG_ERROR("shader: %s\n %s", sourcePath.c_str(), shader.getInfoLog());
+		LOG_ERROR(shader.getInfoDebugLog());
 		return false;
 	}
+
+	////////// Shader Introspection //////////////
+	// NOTE! Can be done ONLY after the program has been linked!
+	/*if (false == program.buildReflection())
+	{
+		LOG_ERROR("shader reflection build failed! Abort!");
+		return false;
+	}*/
+
+	//TODO - see if we can get acess to attribute location, uniform bindids, sampler bindings through shader reflection
+	//LOG_INFO("shader attribute inputs: %d", program.getNumPipeInputs());
+	//LOG_INFO("shader attribute outputs: %d", program.getNumPipeOutputs());
+	//LOG_INFO("shader uniform blocks: %d", program.getNumUniformBlocks());
+
+	//int reflIndex = program.getReflectionIndex("inPos");
+	//LOG_INFO("shader inPos location: %s", program.getPipeInput(reflIndex).name.c_str());
+	//reflIndex = program.getReflectionIndex("inColor");
+	//LOG_INFO("shader inColor location: %s", program.getPipeInput(reflIndex).name.c_str());
+	//reflIndex = program.getReflectionIndex("outColor");
+	//LOG_INFO("shader outColor location: %s", program.getPipeOutput(reflIndex).name.c_str());
+	//
+	//reflIndex = program.getReflectionIndex("UBO");
+	//LOG_INFO("shader UBO binding: %d %s", program.getUniformBlock(reflIndex).getBinding(), program.getUniformBlock(reflIndex).name.c_str());
 
 	glslang::TIntermediate* pProg = program.getIntermediate(stage);
 	assert(nullptr != pProg);
 
-	glslang::GlslangToSpv(*pProg, spirvVec);
+	glslang::GlslangToSpv(*pProg, SPIRVVecOut);
 
 	return true;
 }
@@ -272,7 +294,8 @@ EShLanguage VulkanShaderModule::FindLanguage(const VkShaderStageFlagBits shaderT
 		return EShLanguage::EShLangCompute;
 
 	default:
-		return EShLanguage::EShLangVertex;
+		LOG_ERROR("Invalid shader stage!");
+		return EShLanguage::EShLangCount;
 	}
 }
 #endif // USE_GLSLANG

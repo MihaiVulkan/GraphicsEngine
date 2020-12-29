@@ -26,18 +26,15 @@ namespace GraphicsEngine
 
 	public:
 		GraphicsSystem();
-		explicit GraphicsSystem(const std::string& name, uint32_t width, uint32_t height);
+		explicit GraphicsSystem(Platform::GE_Window* pWindow);
 		virtual ~GraphicsSystem();
 
-		void Run(bfloat32_t deltaTime);
+		void Run(float32_t deltaTime);
 
-		void ComputeRenderQueue();
 
 		void RenderFrame();
-		void UpdateFrame(bfloat32_t deltaTime);
+		void UpdateFrame(float32_t deltaTime);
 		void SubmitFrame();
-
-		Platform::GE_Window* GetWindow();
 
 		Graphics::Renderer* GetRenderer();
 
@@ -50,11 +47,12 @@ namespace GraphicsEngine
 	private:
 		NO_COPY_NO_MOVE(GraphicsSystem)
 
-		void Init(const std::string& name, uint32_t width, uint32_t height);
+		void Init(Platform::GE_Window* pWindow);
 		void Terminate();
 
-		// Window - TODO - only one window for now
-		Platform::GE_Window* mpWindow;
+		void ComputeRenderQueue();
+		void ComputeGraphicsResources();
+
 
 		// Renderer
 		Graphics::Renderer* mpRenderer;

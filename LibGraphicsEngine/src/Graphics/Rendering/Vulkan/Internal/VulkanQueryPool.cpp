@@ -40,6 +40,8 @@ void VulkanQueryPool::Create(const VkQueryPoolCreateInfo& queryPoolInfo)
 
 void VulkanQueryPool::Destroy()
 {
+	assert(mpDevice != nullptr);
+
 	if (mHandle)
 	{
 		vkDestroyQueryPool(mpDevice->GetDeviceHandle(), mHandle, nullptr);

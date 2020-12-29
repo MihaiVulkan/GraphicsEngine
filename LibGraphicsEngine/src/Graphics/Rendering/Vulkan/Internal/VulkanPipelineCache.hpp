@@ -1,8 +1,7 @@
-#ifndef GRAPHICS_RENDERING_VULKAN_PIPELINE_CACHE_HPP
-#define GRAPHICS_RENDERING_VULKAN_PIPELINE_CACHE_HPP
+#ifndef GRAPHICS_RENDERING_VULKAN_INTERNAL_VULKAN_PIPELINE_CACHE_HPP
+#define GRAPHICS_RENDERING_VULKAN_INTERNAL_VULKAN_PIPELINE_CACHE_HPP
 
-#include "Foundation/TypeDefs.hpp"
-#include "vulkan/vulkan.h"
+#include "Graphics/Rendering/Vulkan/Common/VulkanObject.hpp"
 #include <vector>
 
 namespace GraphicsEngine
@@ -23,8 +22,10 @@ namespace GraphicsEngine
 			retrieved from a pipeline cache object.
 
 		*/
-		class VulkanPipelineCache
+		class VulkanPipelineCache : public VulkanObject
 		{
+			GE_RTTI(GraphicsEngine::Graphics::VulkanPipelineCache)
+
 		public:
 			VulkanPipelineCache();
 			explicit VulkanPipelineCache(VulkanDevice* pDevice, std::vector<void*> initialData, VkPipelineCacheCreateFlags flags = 0);
@@ -46,4 +47,4 @@ namespace GraphicsEngine
 	}
 }
 
-#endif // GRAPHICS_RENDERING_VULKAN_PIPELINE_CACHE_HPP
+#endif // GRAPHICS_RENDERING_VULKAN_INTERNAL_VULKAN_PIPELINE_CACHE_HPP

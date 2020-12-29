@@ -8,39 +8,43 @@ namespace GraphicsEngine
 {
 	namespace Graphics
 	{
+		class GLSLShaderParser;
+
 		// Shader - used to store shader data to pass to a specific Graphics API
 		class Shader : public Resource
 		{
 			GE_RTTI(GraphicsEngine::Graphics::Shader)
 
 		public:
-			enum class Type : uint8_t
+			enum class ShaderStage : uint8_t
 			{
-				T_VERTEX = 0,
-				T_TESSELATION_CONTROL,
-				T_TESSELATION_EVALUATION,
-				T_GEOMETRY,
-				T_FRAGMENT,
-				T_ALL_GRAPHICS, // all the above shader types combined (no compute type and no extension types)
-				T_COMPUTE,
-				T_COUNT
+				GE_SS_VERTEX = 0,
+				GE_SS_TESSELATION_CONTROL,
+				GE_SS_TESSELATION_EVALUATION,
+				GE_SS_GEOMETRY,
+				GE_SS_FRAGMENT,
+				GE_SS_ALL_GRAPHICS, // all the above shader types combined (no compute type and no extension types)
+				GE_SS_COMPUTE,
+				GE_SS_COUNT
 			};
 
 			Shader();
-			explicit Shader(Shader::Type type, const char_t* pPath);
+			explicit Shader(const std::string& sourcePath);
 			virtual ~Shader();
 
-			const Shader::Type& GetType() const;
-			const std::string& GetPath() const;
+			const Shader::ShaderStage& GetShaderStage() const;
+			const std::string& GetSourcePath() const;
 
+			GLSLShaderParser* GetGLSLParser() const;
 
 		private:
-			void Create(const char_t* pPath);
+			void Create();
 			void Destroy();
 
-			std::string mPath;
+			Shader::ShaderStage mShaderStage;
+			std::string mSourcePath;
 
-			Shader::Type mType;
+			GLSLShaderParser* mpGLSLParser;
 		};
 	}
 }

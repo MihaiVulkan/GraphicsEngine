@@ -10,24 +10,21 @@
 #include "Foundation/MemoryManagement/MemoryOperations.hpp"
 #include <cassert>
 
-#define NEW_GRAPHICS
-
 using namespace GraphicsEngine;
 using namespace GraphicsEngine::Graphics;
 
 GraphicsSystem::GraphicsSystem()
-	: mpWindow(nullptr)
-	, mpRenderer(nullptr)
-	, mpRenderQueue(nullptr)
-	, mpScene(nullptr)
-	, mpMainCamera(nullptr)
-	, mpRenderPass(nullptr)
+: mpRenderer(nullptr)
+, mpRenderQueue(nullptr)
+, mpScene(nullptr)
+, mpMainCamera(nullptr)
+, mpRenderPass(nullptr)
 {}
 
-GraphicsSystem::GraphicsSystem(const std::string& name, uint32_t width, uint32_t height)
+GraphicsSystem::GraphicsSystem(Platform::GE_Window* pWindow)
 	: GraphicsSystem()
 {
-	Init(name, width, height);
+	Init(pWindow);
 }
 
 GraphicsSystem::~GraphicsSystem()
@@ -35,49 +32,29 @@ GraphicsSystem::~GraphicsSystem()
 	Terminate();
 }
 
-void GraphicsSystem::Init(const std::string& name, uint32_t width, uint32_t height)
+void GraphicsSystem::Init(Platform::GE_Window* pWindow)
 {
-	mpWindow = Platform::CreateWindow(name.c_str(), 0, 0, width, height);
+	assert(pWindow != nullptr);
 
-	// Window Callbacks
-	Platform::RegisterWindowSizeCallback(mpWindow,
-		[this](Platform::GE_Window* pWindow, uint32_t width, uint32_t height)
-		{
-			if (mpRenderer == nullptr || mpMainCamera == nullptr)
-				return;
-
-			if ((false == Platform::IsWindowMinimized(pWindow)) && mpRenderer->IsPrepared())
-			{
-				// update projection matrix as aspect ratio is different on window resize
-				mpMainCamera->UpdatePerspectiveProjectionMatrix(60, width / static_cast<bfloat32_t>(height), 0.1f, 256.0f);
-
-				mpRenderer->WindowResize(width, height);
-
-			}
-		});
-
-
+	//TODO - for now the vulkan renderer supports only one view - viewport
 	// use Vulkan renderer
 #if defined(VULKAN_RENDERER)
 	mpRenderer = GE_ALLOC(VulkanRenderer);
+#else
+	// other
 #endif // VULKAN_RENDERER
 	assert(mpRenderer != nullptr);
 
 	mpMainCamera = GE_ALLOC(FPSCamera)("MainCamera"); //TODO - use FPSCamera by default
 	assert(mpMainCamera != nullptr);
 
-	//TODO - remove hardocodes, use a config
-	mpMainCamera->SetPosition(glm::vec3(0.0f, 0.0f, 2.5f));
-	mpMainCamera->UpdateViewMatrix();
-	mpMainCamera->UpdatePerspectiveProjectionMatrix(60, mpWindow->width / static_cast<bfloat32_t>(mpWindow->height), 0.1f, 256.0f);
+	uint32_t windowWidth = 0, windowHeight = 0;
+	Platform::GetWindowSize(pWindow, &windowWidth, &windowHeight);
 
-#ifndef NEW_GRAPHICS
-	// TODO remove Camera from Renderer 
-	mpRenderer->SetCamera(mpMainCamera);
-#endif
+	mpMainCamera->SetAspectRatio(windowWidth / static_cast<float32_t>(windowHeight));
 
-	mpRenderer->Init(mpWindow);
-
+	// Renderer init
+	mpRenderer->Init(pWindow);
 
 	// RenderQueue
 	mpRenderQueue = GE_ALLOC(RenderQueue);
@@ -101,7 +78,7 @@ void GraphicsSystem::Terminate()
 
 	if (mpScene)
 	{
-		//TODO
+		//TODO - cleaup scene tree
 	}
 
 	if (mpRenderPass)
@@ -118,17 +95,12 @@ void GraphicsSystem::Terminate()
 	{
 		GE_FREE(mpRenderer);
 	}
-
-	if (mpWindow)
-	{
-		Platform::DestroyWindow(mpWindow);
-	}
 }
 
-void GraphicsSystem::Run(bfloat32_t deltaTime)
+void GraphicsSystem::Run(float32_t deltaTime)
 {
-	RenderFrame();
 	UpdateFrame(deltaTime);
+	RenderFrame();
 	SubmitFrame();
 }
 
@@ -137,19 +109,23 @@ void GraphicsSystem::RenderFrame()
 {
 #if defined(VULKAN_RENDERER)
 	// The scene has already been rendered !!!
-	// Nothing to do here for Vulkan API
+	// Nothing to do here for the Vulkan API
 #endif // VULKAN_RENDERER
 }
 
-void GraphicsSystem::UpdateFrame(bfloat32_t deltaTime)
+void GraphicsSystem::UpdateFrame(float32_t deltaTime)
 {
+	assert(mpRenderer != nullptr);
+
 #if defined(VULKAN_RENDERER)
-	mpRenderer->Update(mpMainCamera, deltaTime);
+	mpRenderer->UpdateFrame(mpMainCamera, deltaTime);
 #endif // VULKAN_RENDERER
 }
 
 void GraphicsSystem::SubmitFrame()
 {
+	assert(mpRenderer != nullptr);
+
 #if defined(VULKAN_RENDERER)
 	// here we just submit & present the frame to GPU
 	mpRenderer->SubmitFrame();
@@ -167,17 +143,27 @@ void GraphicsSystem::ComputeRenderQueue()
 		});
 }
 
-Platform::GE_Window* GraphicsSystem::GetWindow()
+void GraphicsSystem::ComputeGraphicsResources()
 {
-	return mpWindow;
+	//NOTE! To be called after the renderqueue has been populated
+
+	assert(mpRenderer != nullptr);
+	assert(mpRenderQueue != nullptr);
+
+	mpRenderer->ComputeGraphicsResources(mpRenderQueue, mpRenderPass);
+
+#if defined(VULKAN_RENDERER)
+	// NOTE! With Vulkan we record all rendering upfront!
+	mpRenderer->RenderFrame(mpRenderQueue, mpRenderPass);
+#endif // VULKAN_RENDERER
 }
 
-Renderer* GraphicsSystem::GetRenderer()
+Graphics::Renderer* GraphicsSystem::GetRenderer()
 {
 	return mpRenderer;
 }
 
-Node* GraphicsSystem::GetScene()
+Graphics::Node* GraphicsSystem::GetScene()
 {
 	return mpScene;
 }
@@ -185,19 +171,21 @@ Node* GraphicsSystem::GetScene()
 void GraphicsSystem::SetScene(Node* pScene)
 {
 	assert(pScene != nullptr);
+	assert(mpMainCamera != nullptr);
 
 	mpScene = pScene;
+
+	// camera update
+	mpMainCamera->UpdateViewMatrix();
+	mpMainCamera->UpdatePerspectiveProjectionMatrix();
 
 	//////// Rendering setup
 	ComputeRenderQueue();
 
-	// NOTE! With Vulkan we record all rendering upfront!
-#if defined(VULKAN_RENDERER)
-	mpRenderer->Render(mpRenderQueue, mpRenderPass);
-#endif // VULKAN_RENDERER
+	ComputeGraphicsResources();
 }
 
-Camera* GraphicsSystem::GetMainCamera()
+Graphics::Camera* GraphicsSystem::GetMainCamera()
 {
 	return mpMainCamera;
 }

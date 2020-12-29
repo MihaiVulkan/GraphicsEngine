@@ -9,7 +9,7 @@ Texture::Texture()
 	, mpData(nullptr)
 {}
 
-Texture::Texture(Texture::Type type, Texture::Format format, Texture::WrapMode wrapMode, Texture::FilterMode filterMode, Texture::MipMapMode mipMapMode,
+Texture::Texture(Texture::TextureType type, Texture::Format format, Texture::WrapMode wrapMode, Texture::FilterMode filterMode, Texture::MipMapMode mipMapMode,
 				uint32_t width, uint32_t height, uint32_t depth, uint32_t mipLevels, uint32_t layerCount)
 	: mTextureData{}
 	, mpData(nullptr)
@@ -46,7 +46,7 @@ bool_t Texture::HasMipMaps() const
 Texture1D::Texture1D()
 {}
 
-Texture1D::Texture1D(Texture::Type type, Texture::Format format, uint32_t width)
+Texture1D::Texture1D(Texture::TextureType type, Texture::Format format, uint32_t width)
 {
 	//TODO
 }
@@ -54,7 +54,7 @@ Texture1D::Texture1D(Texture::Type type, Texture::Format format, uint32_t width)
 Texture1DArray::Texture1DArray()
 {}
 
-Texture1DArray::Texture1DArray(Texture::Type type, Texture::Format format, uint32_t width, uint32_t layerCount)
+Texture1DArray::Texture1DArray(Texture::TextureType type, Texture::Format format, uint32_t width, uint32_t layerCount)
 {
 	//TODO
 }
@@ -62,7 +62,7 @@ Texture1DArray::Texture1DArray(Texture::Type type, Texture::Format format, uint3
 Texture2D::Texture2D()
 {}
 
-Texture2D::Texture2D(Texture::Type type, Texture::Format format, Texture::WrapMode wrapMode, Texture::FilterMode filterMode,
+Texture2D::Texture2D(Texture::TextureType type, Texture::Format format, Texture::WrapMode wrapMode, Texture::FilterMode filterMode,
 	Texture::MipMapMode mipMapMode, uint32_t width, uint32_t height, uint32_t mipLevels)
 {
 	//TODO
@@ -71,7 +71,7 @@ Texture2D::Texture2D(Texture::Type type, Texture::Format format, Texture::WrapMo
 Texture2DArray::Texture2DArray()
 {}
 
-Texture2DArray::Texture2DArray(Texture::Type type, Texture::Format format, Texture::WrapMode wrapMode, Texture::FilterMode filterMode, Texture::MipMapMode mipMapMode,
+Texture2DArray::Texture2DArray(Texture::TextureType type, Texture::Format format, Texture::WrapMode wrapMode, Texture::FilterMode filterMode, Texture::MipMapMode mipMapMode,
 	uint32_t width, uint32_t height, uint32_t mipLevels)
 {
 	//TODO
@@ -80,7 +80,7 @@ Texture2DArray::Texture2DArray(Texture::Type type, Texture::Format format, Textu
 Texture3D::Texture3D()
 {}
 
-Texture3D::Texture3D(Texture::Type type, Texture::Format format, Texture::WrapMode wrapMode, Texture::FilterMode filterMode, Texture::MipMapMode mipMapMode,
+Texture3D::Texture3D(Texture::TextureType type, Texture::Format format, Texture::WrapMode wrapMode, Texture::FilterMode filterMode, Texture::MipMapMode mipMapMode,
 	uint32_t width, uint32_t height, uint32_t depth, uint32_t mipLevels)
 {
 	//TODO
@@ -89,7 +89,7 @@ Texture3D::Texture3D(Texture::Type type, Texture::Format format, Texture::WrapMo
 Texture3DArray::Texture3DArray()
 {}
 
-Texture3DArray::Texture3DArray(Texture::Type type, Texture::Format format, Texture::WrapMode wrapMode, Texture::FilterMode filterMode, Texture::MipMapMode mipMapMode,
+Texture3DArray::Texture3DArray(Texture::TextureType type, Texture::Format format, Texture::WrapMode wrapMode, Texture::FilterMode filterMode, Texture::MipMapMode mipMapMode,
 	uint32_t width, uint32_t height, uint32_t depth, uint32_t mipLevels, uint32_t layerCount)
 {
 	//TODO
@@ -98,7 +98,7 @@ Texture3DArray::Texture3DArray(Texture::Type type, Texture::Format format, Textu
 TextureCubeMap::TextureCubeMap()
 {}
 
-TextureCubeMap::TextureCubeMap(Texture::Type type, Texture::Format format, Texture::WrapMode wrapMode, Texture::FilterMode filterMode, Texture::MipMapMode mipMapMode,
+TextureCubeMap::TextureCubeMap(Texture::TextureType type, Texture::Format format, Texture::WrapMode wrapMode, Texture::FilterMode filterMode, Texture::MipMapMode mipMapMode,
 	uint32_t width, uint32_t height, uint32_t mipLevels)
 {
 	//TODO

@@ -1,5 +1,5 @@
-#ifndef GRAPHICS_RENDERING_VULKAN_DEBUG_HPP
-#define GRAPHICS_RENDERING_VULKAN_DEBUG_HPP
+#ifndef GRAPHICS_RENDERING_VULKAN_INTERNAL_VULKAN_DEBUG_HPP
+#define GRAPHICS_RENDERING_VULKAN_INTERNAL_VULKAN_DEBUG_HPP
 
 #include "Foundation/TypeDefs.hpp"
 #include "vulkan/vulkan.h"
@@ -60,10 +60,10 @@ namespace GraphicsEngine
 			void SetObjectTag(VkDevice deviceHandle, uint64_t object, VkDebugReportObjectTypeEXT objectType, uint64_t tagName, size_t tagSize, const void* pTag);
 
 			// Start a new debug marker region
-			void BeginRegion(VkCommandBuffer cmdbufferHandle, const char_t* pMarkerName, bfloat32_t color[4]);
+			void BeginRegion(VkCommandBuffer cmdbufferHandle, const char_t* pMarkerName, float32_t color[4]);
 
 			// Insert a new debug marker into the command buffer
-			void Insert(VkCommandBuffer cmdbufferHandle, const char_t* pMarkerName, bfloat32_t color[4]);
+			void Insert(VkCommandBuffer cmdbufferHandle, const char_t* pMarkerName, float32_t color[4]);
 
 			// End the current debug marker region
 			void EndRegion(VkCommandBuffer cmdBufferHandle);
@@ -89,4 +89,4 @@ namespace GraphicsEngine
 	}
 }
 
-#endif // GRAPHICS_RENDERING_VULKAN_DEBUG_HPP
+#endif // GRAPHICS_RENDERING_VULKAN_INTERNAL_VULKAN_DEBUG_HPP

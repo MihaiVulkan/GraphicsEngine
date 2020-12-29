@@ -33,7 +33,7 @@ namespace GraphicsEngine
 	//	TerminateFN mOnTerminate;
 	//	RunFN mOnRun;
 
-		virtual void Init(const std::string& name, uint32_t width, uint32_t height);
+		virtual void Init(const std::string& name, uint32_t width = 0, uint32_t height = 0);
 		virtual void Terminate();
 
 		virtual void Run();

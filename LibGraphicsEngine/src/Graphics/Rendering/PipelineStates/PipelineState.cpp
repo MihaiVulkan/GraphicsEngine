@@ -3,6 +3,10 @@
 using namespace GraphicsEngine;
 using namespace GraphicsEngine::Graphics;
 
+PipelineState::PipelineState()
+	: mIsEnabled(false)
+{}
+
 PipelineState::PipelineState(bool_t isEnabled)
 	: mIsEnabled(isEnabled)
 {}
@@ -17,7 +21,7 @@ void PipelineState::SetIsEnabled(bool_t isEnabled)
 	mIsEnabled = isEnabled;
 }
 
-bool_t PipelineState::IsEnabled() const
+bool_t PipelineState::GetIsEnabled() const
 {
 	return mIsEnabled;
 }

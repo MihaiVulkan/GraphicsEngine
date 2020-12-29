@@ -7,13 +7,17 @@ using namespace GraphicsEngine;
 using namespace GraphicsEngine::Graphics;
 
 GeometricPrimitive::GeometricPrimitive()
-	: mTopology(PrimitiveTopology::PT_COUNT)
+	: mTopology(PrimitiveTopology::GE_PT_COUNT)
+	, mFaceWinding(FaceWinding::GE_FW_COUNT)
+	, mPolygonMode(PolygonMode::GE_PM_COUNT)
 	, mpVertexBuffer(nullptr)
 	, mpIndexBuffer(nullptr)
 {}
 
-GeometricPrimitive::GeometricPrimitive(PrimitiveTopology topology)
+GeometricPrimitive::GeometricPrimitive(PrimitiveTopology topology, FaceWinding faceWinding, PolygonMode polygonMode)
 	: mTopology(topology)
+	, mFaceWinding(faceWinding)
+	, mPolygonMode(polygonMode)
 	, mpVertexBuffer(nullptr)
 	, mpIndexBuffer(nullptr)
 {}
@@ -30,12 +34,39 @@ GeometricPrimitive::~GeometricPrimitive()
 		mpVertexBuffer = nullptr;
 	}
 
-	mTopology = PrimitiveTopology::PT_COUNT;
+	mTopology = PrimitiveTopology::GE_PT_COUNT;
+	mFaceWinding = FaceWinding::GE_FW_COUNT;
+	mPolygonMode = PolygonMode::GE_PM_COUNT;
 }
 
-GeometricPrimitive::PrimitiveTopology GeometricPrimitive::GetTopology() const
+const GeometricPrimitive::PrimitiveTopology& GeometricPrimitive::GetTopology() const
 {
 	return mTopology;
+}
+
+void GeometricPrimitive::SetTopology(const GeometricPrimitive::PrimitiveTopology& topology)
+{
+	mTopology = topology;
+}
+
+const GeometricPrimitive::FaceWinding& GeometricPrimitive::GetFaceWinding() const
+{
+	return mFaceWinding;
+}
+
+void GeometricPrimitive::SetFaceWinding(const GeometricPrimitive::FaceWinding& faceWinding)
+{
+	mFaceWinding = faceWinding;
+}
+
+const GeometricPrimitive::PolygonMode& GeometricPrimitive::GetPolygonMode() const
+{
+	return mPolygonMode;
+}
+
+void GeometricPrimitive::SetPolygonMode(const GeometricPrimitive::PolygonMode& polygonMode)
+{
+	mPolygonMode = polygonMode;
 }
 
 VertexFormat* GeometricPrimitive::GetVertexFormat() const

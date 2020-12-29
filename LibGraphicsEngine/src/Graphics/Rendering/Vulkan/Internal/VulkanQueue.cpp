@@ -15,7 +15,7 @@ VulkanQueue::VulkanQueue()
 	, mCreateInfo{}
 {}
 
-VulkanQueue::VulkanQueue(VkQueueFlags typeFlags, uint32_t familyIndex, uint32_t index, bfloat32_t priority, VkDeviceQueueCreateFlags flags)
+VulkanQueue::VulkanQueue(VkQueueFlags typeFlags, uint32_t familyIndex, uint32_t index, float32_t priority, VkDeviceQueueCreateFlags flags)
 	: mHandle(VK_NULL_HANDLE)
 	, mTypeFlags(typeFlags)
 	, mFamilyIndex(familyIndex)
@@ -23,12 +23,22 @@ VulkanQueue::VulkanQueue(VkQueueFlags typeFlags, uint32_t familyIndex, uint32_t 
 	, mPriority(priority)
 	, mCreateInfo{}
 {
-	// NOTE! A VkQueue is created together with the VkDevice logical device
-
-	mCreateInfo = VulkanInitializers::DeviceQueueCreateInfo(familyIndex, 1, &priority, flags);
+	Create(flags);
 }
 
 VulkanQueue::~VulkanQueue()
+{
+	Destroy();
+}
+
+void VulkanQueue::Create(VkDeviceQueueCreateFlags flags)
+{
+	// NOTE! A VkQueue is created together with the VkDevice logical device
+
+	mCreateInfo = VulkanInitializers::DeviceQueueCreateInfo(mFamilyIndex, 1, &mPriority, flags);
+}
+
+void VulkanQueue::Destroy()
 {
 	// NOTE! A VkQueue is destroyed together with the VkDevice logical device
 
@@ -90,7 +100,7 @@ uint32_t VulkanQueue::GetIndex() const
 	return mIndex;
 }
 
-bfloat32_t VulkanQueue::GetPriority() const
+float32_t VulkanQueue::GetPriority() const
 {
 	return mPriority;
 }

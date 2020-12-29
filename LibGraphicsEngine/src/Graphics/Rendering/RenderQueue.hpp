@@ -1,8 +1,7 @@
 #ifndef GRAPHICS_RENDERING_RENDER_QUEUE_HPP
 #define GRAPHICS_RENDERING_RENDER_QUEUE_HPP
 
-#include "Foundation/TypeDefs.hpp"
-#include "Foundation/RTTI.hpp"
+#include "Foundation/Object.hpp"
 #include "glm/mat4x4.hpp"
 #include <list>
 #include <unordered_map>
@@ -17,7 +16,7 @@ namespace GraphicsEngine
 		class GeometryNode;
 		class Material;
 
-		class RenderQueue : public RTTI
+		class RenderQueue : public Object
 		{
 			GE_RTTI(GraphicsEngine::Graphics::RenderQueue)
 
@@ -27,19 +26,19 @@ namespace GraphicsEngine
 				GeometryNode* pGeometryNode;
 				Material* pMaterial;
 				glm::mat4 modelTransform;
-				bfloat64_t distanceFromCamera;
+				float64_t distanceFromCamera;
 			};
 
 			enum class RenderableType : uint8_t
 			{
-				RT_BACKGROUND = 0,
-				RT_OCCLUDER,
-				RT_SHADOW_CASTER,
-				RT_OPAQUE,
-				RT_TRANSLUCENT,
-				RT_SCREEN,
-				RT_DEBUG,
-				RT_COUNT
+				GE_RT_BACKGROUND = 0,
+				GE_RT_OCCLUDER,
+				GE_RT_SHADOW_CASTER,
+				GE_RT_OPAQUE,
+				GE_RT_TRANSLUCENT,
+				GE_RT_SCREEN,
+				GE_RT_DEBUG,
+				GE_RT_COUNT
 			};
 
 			typedef std::list<Renderable> RenderableList;

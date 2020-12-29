@@ -2,12 +2,10 @@
 #include "VulkanDevice.hpp"
 #include "VulkanInstance.hpp"
 #include "VulkanPhysicalDevice.hpp"
-#include "VulkanLogicalDevice.hpp"
 #include "VulkanSurface.hpp"
 #include "VulkanSwapChain.hpp"
+#include "VulkanSwapChainBuffer.hpp"
 #include "VulkanQueue.hpp"
-#include "VulkanFrameBufferAttachment.hpp"
-#include "VulkanCommandPool.hpp"
 #include "VulkanInitializers.hpp"
 #include "VulkanHelpers.hpp"
 #include "VulkanDebug.hpp"
@@ -29,13 +27,10 @@ VulkanDevice::VulkanDevice()
 	, mpLogicalDevice(nullptr)
 	, mpWindow(nullptr)
 	, mpSurface(nullptr)
+	, mpAllocator(nullptr)
 	, mpSwapChain(nullptr)
 	, mSurfaceFormat{}
-	, mDepthFormat{}
-	, mpMainGraphicsQueue(nullptr)
-	, mpPresentQueue(nullptr)
-	, mpCommandPool(nullptr)
-	, mpAllocator(nullptr)
+	, mDepthStencilFormat{}
 	, mEnableValidationLayers(false)
 {}
 
@@ -45,16 +40,13 @@ VulkanDevice::VulkanDevice(Platform::GE_Window* pWindow, bool_t enableValidation
 	, mpLogicalDevice(nullptr)
 	, mpWindow(pWindow)
 	, mpSurface(nullptr)
+	, mpAllocator(nullptr)
 	, mpSwapChain(nullptr)
 	, mSurfaceFormat{}
-	, mDepthFormat{}
-	, mpMainGraphicsQueue(nullptr)
-	, mpPresentQueue(nullptr)
-	, mpCommandPool(nullptr)
-	, mpAllocator(nullptr)
+	, mDepthStencilFormat{}
 	, mEnableValidationLayers(enableValidation)
 {
-	Create(pWindow, enableValidation);
+	Create();
 }
 
 VulkanDevice::~VulkanDevice()
@@ -62,47 +54,39 @@ VulkanDevice::~VulkanDevice()
 	Destroy();
 }
 
-void VulkanDevice::Create(Platform::GE_Window* pWindow, bool_t enableValidation)
+void VulkanDevice::Create()
 {
 	assert(mpWindow != nullptr);
 
 	//// DEVICE ////
 	mpInstance = GE_ALLOC(VulkanInstance)(mpWindow->pTitle, mEnableValidationLayers);
+	assert(mpInstance != nullptr);
 
 	mpSurface = GE_ALLOC(VulkanSurface)(this);
+	assert(mpSurface != nullptr);
 
+	//NOTE! For now we support only one gpu
+	// TODO - multigpu support
 	// internally we select the suitable gpu
 	mpPhysicalDevice = GE_ALLOC(VulkanPhysicalDevice)(this);
+	assert(mpPhysicalDevice != nullptr);
 
 	mpPhysicalDevice->SelectSurfaceFormat(mSurfaceFormat);
-	mDepthFormat = mpPhysicalDevice->SelectDepthFormat();
+	mDepthStencilFormat = mpPhysicalDevice->SelectDepthStencilFormat();
 
 	mpLogicalDevice = GE_ALLOC(VulkanLogicalDevice)(this);
-
-	// Get a graphics queue from the device
-	mpMainGraphicsQueue = mpLogicalDevice->GetQueue(VkQueueFlagBits::VK_QUEUE_GRAPHICS_BIT);
-
-	if (IsPresentQueueSupported())
-	{
-		mpPresentQueue = mpLogicalDevice->GetQueue(VkQueueFlagBits::VK_QUEUE_TRANSFER_BIT);
-	}
-
-	//// SWAPCHAIN ////
-	SetupConnection();
-
-	mpSwapChain = GE_ALLOC(VulkanSwapChain)(this);
+	assert(mpLogicalDevice != nullptr);
 
 	// ALLOCATOR
-#ifdef VULKAN_ALLOCATOR
+#ifdef VULKAN_POOL_ALLOCATOR
 	mpAllocator = GE_ALLOC(VulkanPoolAllocator)(this);
-#else // we just use the fall
+#else // we just use the fallback
 	mpAllocator = GE_ALLOC(VulkanPassThroughAllocator)(this);
-#endif
+#endif // VULKAN_POOL_ALLOCATOR
+	assert(mpAllocator != nullptr);
 
-
-	//// COMMANDS
-	// we create a command pool for graphics commands
-	mpCommandPool = GE_ALLOC(VulkanCommandPool)(this, mpLogicalDevice->GetQueueFamilyIndices().graphics);
+	mpSwapChain = GE_ALLOC(VulkanSwapChain)(this);
+	assert(mpSwapChain != nullptr);
 }
 
 void VulkanDevice::Destroy()
@@ -110,21 +94,12 @@ void VulkanDevice::Destroy()
 	// wait for the device to finish ongoing operations on all owned queues
 	WaitIdle();
 
-	GE_FREE(mpCommandPool);
-
-	GE_FREE(mpAllocator);
-
-	if (IsPresentQueueSupported())
-	{
-		GE_FREE(mpPresentQueue);
-	}
-
-	mpMainGraphicsQueue = nullptr;
-
-	mDepthFormat = {};
+	mDepthStencilFormat = {};
 	mSurfaceFormat = {};
 
 	GE_FREE(mpSwapChain);
+
+	GE_FREE(mpAllocator);
 
 	GE_FREE(mpLogicalDevice);
 	
@@ -137,13 +112,6 @@ void VulkanDevice::Destroy()
 	mpWindow = nullptr;
 }
 
-bool VulkanDevice::GetMemoryTypeFromProperties(uint32_t typeBits, VkMemoryPropertyFlags requirementsMask, uint32_t& typeIndex)
-{
-	assert(mpPhysicalDevice != nullptr);
-
-	return mpPhysicalDevice->GetMemoryType(typeBits, requirementsMask, typeIndex);
-}
-
 void VulkanDevice::SetupConnection()
 {
 	// platform dependent
@@ -152,101 +120,135 @@ void VulkanDevice::SetupConnection()
 
 void VulkanDevice::ResetSwapChain()
 {
+	assert(mpSwapChain != nullptr);
+
 	mpSwapChain->Reset();
 }
 
 VkResult VulkanDevice::AcquireNextImage(uint32_t* pImageIndex, VkSemaphore presentCompleteSemaphoreHandle) const
 {
+	assert(mpSwapChain != nullptr);
+	assert(pImageIndex != nullptr);
+
 	return mpSwapChain->AcquireNextImage(pImageIndex, presentCompleteSemaphoreHandle);
 }
 
 VkResult VulkanDevice::WaitIdle() const
 {
+	assert(mpLogicalDevice != nullptr);
+
 	return mpLogicalDevice->WaitIdle();
 }
 
 void VulkanDevice::UpdateSurfaceCapabilities()
 {
+	assert(mpLogicalDevice != nullptr);
+
 	mpPhysicalDevice->UpdateSurfaceCapabilities();
 }
 
 const VkInstance& VulkanDevice::GetInstanceHandle() const
 {
+	assert(mpInstance != nullptr);
+
 	return mpInstance->GetHandle();
+}
+
+const VkSurfaceKHR& VulkanDevice::GetSurfaceHandle() const
+{
+	assert(mpSurface != nullptr);
+
+	return mpSurface->GetHandle();
 }
 
 const VkPhysicalDevice& VulkanDevice::GetPhysicalDeviceHandle() const
 {
+	assert(mpPhysicalDevice != nullptr);
+
 	return mpPhysicalDevice->GetHandle();
 }
 
 const VkPhysicalDeviceProperties& VulkanDevice::GetPhysicalDeviceProperties() const
 {
+	assert(mpPhysicalDevice != nullptr);
+
 	return mpPhysicalDevice->GetProperties();
 }
 const VkPhysicalDeviceFeatures& VulkanDevice::GetPhysicalDeviceFeatures() const
 {
+	assert(mpPhysicalDevice != nullptr);
+
 	return mpPhysicalDevice->GetFeatures();
 }
 
 const VkPhysicalDeviceMemoryProperties& VulkanDevice::GetPhysicalDeviceMemoryProperties() const
 {
+	assert(mpPhysicalDevice != nullptr);
+
 	return mpPhysicalDevice->GetMemoryProperties();
 }
 
 const std::vector<std::string>& VulkanDevice::GetPhysicalDeviceSupportedExtensions() const
 {
+	assert(mpPhysicalDevice != nullptr);
+
 	return mpPhysicalDevice->GetSupportedExtensions();
 }
 
 void VulkanDevice::SetPhysicalDeviceSupportedExtensions(const std::vector<std::string>& extensions)
 {
+	assert(mpPhysicalDevice != nullptr);
+
 	mpPhysicalDevice->SetSupportedExtensions(extensions);
 }
 
 const VkPhysicalDeviceFeatures& VulkanDevice::GetPhysicaltDeviceEnabledFeatures() const
 {
+	assert(mpPhysicalDevice != nullptr);
+
 	return mpPhysicalDevice->GetEnabledFeatures();
 }
 
 void VulkanDevice::SetPhysicaltDeviceEnabledFeatures(const VkPhysicalDeviceFeatures& features)
 {
+	assert(mpPhysicalDevice != nullptr);
+
 	mpPhysicalDevice->SetEnabledFeatures(features);
 }
 
 const VkSurfaceCapabilitiesKHR& VulkanDevice::GetSurfaceCapabilities() const
 {
+	assert(mpPhysicalDevice != nullptr);
+
 	return mpPhysicalDevice->GetSurfaceCapabilities();
 }
 
 const std::vector<VkSurfaceFormatKHR>& VulkanDevice::GetSurfaceFormats() const
 {
+	assert(mpPhysicalDevice != nullptr);
+
 	return mpPhysicalDevice->GetSurfaceFormats();
 }
 
 const std::vector<VkPresentModeKHR>& VulkanDevice::GetSurfacePresentModes() const
 {
+	assert(mpPhysicalDevice != nullptr);
+
 	return mpPhysicalDevice->GetSurfacePresentModes();
 }
 
 const std::vector<VkQueueFamilyProperties>& VulkanDevice::GetQueueFamilyPropertiesVector() const
 {
+	assert(mpPhysicalDevice != nullptr);
+
 	return mpPhysicalDevice->GetQueueFamilyPropertiesVector();
 }
 
-const VulkanLogicalDevice::QueueFamilyIndices& VulkanDevice::GetQueueFamilyIndices() const
+bool VulkanDevice::GetMemoryTypeFromProperties(uint32_t typeBits, VkMemoryPropertyFlags requirementsMask, uint32_t& typeIndex)
 {
-	return mpLogicalDevice->GetQueueFamilyIndices();
-}
+	assert(mpPhysicalDevice != nullptr);
 
-const VkDevice& VulkanDevice::GetDeviceHandle() const
-{
-	return mpLogicalDevice->GetHandle();
-}
-
-const VkSurfaceKHR& VulkanDevice::GetSurfaceHandle() const
-{
-	return mpSurface->GetHandle();
+	return mpPhysicalDevice->GetMemoryType(typeBits, requirementsMask, typeIndex);
 }
 
 const VkSurfaceFormatKHR& VulkanDevice::GetSurfaceFormat() const
@@ -254,39 +256,52 @@ const VkSurfaceFormatKHR& VulkanDevice::GetSurfaceFormat() const
 	return mSurfaceFormat;
 }
 
-const VkFormat& VulkanDevice::GetDepthFormat() const
+const VkFormat& VulkanDevice::GetDepthStencilFormat() const
 {
-	return mDepthFormat;
+	return mDepthStencilFormat;
+}
+
+
+const VkDevice& VulkanDevice::GetDeviceHandle() const
+{
+	assert(mpLogicalDevice != nullptr);
+
+	return mpLogicalDevice->GetHandle();
+}
+
+const VulkanLogicalDevice::QueueFamilyIndices& VulkanDevice::GetQueueFamilyIndices() const
+{
+	assert(mpLogicalDevice != nullptr);
+
+	return mpLogicalDevice->GetQueueFamilyIndices();
 }
 
 const VkSwapchainKHR& VulkanDevice::GetSwapChainHandle() const
 {
+	assert(mpSwapChain != nullptr);
+
 	return mpSwapChain->GetHandle();
 }
 
-uint32_t VulkanDevice::GetSwapChainImageCount() const
+const std::vector<VulkanSwapChainBuffer*>& VulkanDevice::GetSwapChainColorBuffers() const
 {
-	return mpSwapChain->GetSwapChainImageCount();
+	assert(mpSwapChain != nullptr);
+
+	return mpSwapChain->GetSwapChainColorBuffers();
 }
 
-const std::vector<VulkanFrameBufferAttachment*>& VulkanDevice::GetSwapChainBuffers() const
+const uint32_t& VulkanDevice::GetSwapChainColorBufferCount() const
 {
-	return mpSwapChain->GetSwapChainBuffers();
+	assert(mpSwapChain != nullptr);
+
+	return mpSwapChain->GetSwapChainColorBufferCount();
 }
 
-bool VulkanDevice::IsGraphicsQueueSupported() const
+VulkanSwapChainBuffer* VulkanDevice::GetSwapChainDepthStencilBuffer() const
 {
-	return mpLogicalDevice->IsGraphicsQueueSupported();
-}
+	assert(mpSwapChain != nullptr);
 
-bool VulkanDevice::IsComputeQueueSupported() const
-{
-	return mpLogicalDevice->IsComputeQueueSupported();
-}
-
-bool VulkanDevice::IsPresentQueueSupported() const
-{
-	return mpLogicalDevice->IsPresentQueueSupported();
+	return mpSwapChain->GetSwapChainDepthStencilBuffer();
 }
 
 const Platform::GE_Window* VulkanDevice::GetWindow() const
@@ -294,19 +309,46 @@ const Platform::GE_Window* VulkanDevice::GetWindow() const
 	return mpWindow;
 }
 
-VulkanQueue* VulkanDevice::GetMainGraphicsQueue() const
+bool VulkanDevice::IsGraphicsQueueSupported() const
 {
-	return mpMainGraphicsQueue;
+	assert(mpLogicalDevice != nullptr);
+
+	return mpLogicalDevice->IsGraphicsQueueSupported();
+}
+
+bool VulkanDevice::IsComputeQueueSupported() const
+{
+	assert(mpLogicalDevice != nullptr);
+
+	return mpLogicalDevice->IsComputeQueueSupported();
+}
+
+bool VulkanDevice::IsPresentQueueSupported() const
+{
+	assert(mpLogicalDevice != nullptr);
+
+	return mpLogicalDevice->IsPresentQueueSupported();
+}
+
+VulkanQueue* VulkanDevice::GetGraphicsQueue() const
+{
+	assert(mpLogicalDevice != nullptr);
+
+	return mpLogicalDevice->GetQueue(VkQueueFlagBits::VK_QUEUE_GRAPHICS_BIT);
 }
 
 VulkanQueue* VulkanDevice::GetPresentQueue() const
 {
-	return mpPresentQueue;
+	assert(mpLogicalDevice != nullptr);
+
+	return mpLogicalDevice->GetQueue(VkQueueFlagBits::VK_QUEUE_TRANSFER_BIT);
 }
 
-const VkCommandPool& VulkanDevice::GetCommandPoolHandle() const
+VulkanQueue* VulkanDevice::GetComputeQueue() const
 {
-	return mpCommandPool->GetHandle();
+	assert(mpLogicalDevice != nullptr);
+
+	return mpLogicalDevice->GetQueue(VkQueueFlagBits::VK_QUEUE_COMPUTE_BIT);
 }
 
 VulkanAllocator* VulkanDevice::GetAllocator() const

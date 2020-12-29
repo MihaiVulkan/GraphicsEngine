@@ -1,8 +1,6 @@
 #ifndef GRAPHICS_ENGINE_HPP
 #define GRAPHICS_ENGINE_HPP
 
-#include <cstdint> // primary types
-
 #include "Applications/WindowApplication.hpp"
 
 #include "Engine.hpp"
@@ -17,9 +15,17 @@
 #include "Graphics/Rendering/Resources/Material.hpp"
 #include "Graphics/Rendering/Resources/UniformBuffer.hpp"
 
+#include "Graphics/ShaderTools/GLSL/GLSLShaderTypes.hpp"
+
+#include "Graphics/Rendering/PipelineStates/CullFaceState.hpp"
+#include "Graphics/Rendering/PipelineStates/DepthStencilState.hpp"
+#include "Graphics/Rendering/PipelineStates/ColorBlendState.hpp"
+#include "Graphics/Rendering/PipelineStates/DynamicState.hpp"
+
 #include "Graphics/GeometricPrimitives/GeometricPrimitive.hpp"
 
 #include "Graphics/Components/NodeComponent.hpp"
+#include "Graphics/Components/VisualComponent.hpp"
 #include "Graphics/Components/MaterialComponent.hpp"
 
 #include "Graphics/SceneGraph/Node.hpp"
@@ -32,15 +38,6 @@
 #include "Graphics/Camera/Camera.hpp"
 
 #include "Foundation/Logger.hpp"
-
-
-
-
-namespace GraphicsEngine
-{
-	void Init();
-
-}
 
 
 #endif // GRAPHICS_ENGINE_HPP

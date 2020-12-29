@@ -46,23 +46,32 @@ void VulkanLogicalDevice::Create()
 	// Get queue family indices for the requested queue family types
 	// Note that the indices may overlap depending on the implementation
 	//TODO - for now we just use the highest priority for all queues
-	const bfloat32_t defaultQueuePriority(1.0f); //highest priority
+	const float32_t defaultQueuePriority(1.0f); //highest priority
 
 	// TODO - for now we consider to use 1 queue per family !!!
 
 	if (IsGraphicsQueueSupported())
 	{
-		mQueues.push_back(GE_ALLOC(VulkanQueue)(VkQueueFlagBits::VK_QUEUE_GRAPHICS_BIT, mQueueFamilyIndices.graphics, defaultQueueIndex, defaultQueuePriority));
+		auto pQueue = GE_ALLOC(VulkanQueue)(VkQueueFlagBits::VK_QUEUE_GRAPHICS_BIT, mQueueFamilyIndices.graphics, defaultQueueIndex, defaultQueuePriority);
+		assert(pQueue != nullptr);
+
+		mQueueMap[VkQueueFlagBits::VK_QUEUE_GRAPHICS_BIT] = pQueue;
 	}
 
 	if (IsComputeQueueSupported())
 	{
-		mQueues.push_back(GE_ALLOC(VulkanQueue)(VkQueueFlagBits::VK_QUEUE_COMPUTE_BIT, mQueueFamilyIndices.compute, defaultQueueIndex, defaultQueuePriority));
+		auto pQueue = GE_ALLOC(VulkanQueue)(VkQueueFlagBits::VK_QUEUE_COMPUTE_BIT, mQueueFamilyIndices.compute, defaultQueueIndex, defaultQueuePriority);
+		assert(pQueue != nullptr);
+
+		mQueueMap[VkQueueFlagBits::VK_QUEUE_COMPUTE_BIT] = pQueue;
 	}
 
 	if (IsPresentQueueSupported())
 	{
-		mQueues.push_back(GE_ALLOC(VulkanQueue)(VkQueueFlagBits::VK_QUEUE_TRANSFER_BIT, mQueueFamilyIndices.present, defaultQueueIndex, defaultQueuePriority));
+		auto pQueue = GE_ALLOC(VulkanQueue)(VkQueueFlagBits::VK_QUEUE_TRANSFER_BIT, mQueueFamilyIndices.present, defaultQueueIndex, defaultQueuePriority);
+		assert(pQueue != nullptr);
+
+		mQueueMap[VkQueueFlagBits::VK_QUEUE_TRANSFER_BIT] = pQueue;
 	}
 
 
@@ -89,13 +98,20 @@ void VulkanLogicalDevice::Create()
 		return;
 	}
 
-	// collect queue create data
-	std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
-	queueCreateInfos.resize(mQueues.size());
+	assert(mQueueMap.empty() == false);
 
-	for (uint32_t i = 0;i < mQueues.size(); ++ i)
+	// collect queue create data
+	std::vector<VkDeviceQueueCreateInfo> queueCreateInfos(mQueueMap.size());
+
+	uint32_t i = 0;
+	for (auto it = mQueueMap.begin(); it != mQueueMap.end(); ++it)
 	{
-		queueCreateInfos[i] = mQueues[i]->GetCreateInfo();
+		auto queue = it->second;
+		if (queue)
+		{
+			queueCreateInfos[i] = queue->GetCreateInfo();
+		}
+		i++;
 	}
 
 	// NOTE! TODO - improve - enable query pool stats
@@ -124,20 +140,28 @@ void VulkanLogicalDevice::Create()
 	VK_CHECK_RESULT(vkCreateDevice(mpDevice->GetPhysicalDeviceHandle(), &deviceCreateInfo, nullptr, &mHandle));
 
 	// get the queue handles
-	for (auto& queue : mQueues)
+	for (auto it = mQueueMap.begin(); it != mQueueMap.end(); ++it)
 	{
-		queue->Init(mHandle);
+		auto queue = it->second;
+		if (queue)
+		{
+			queue->Init(mHandle);
+		}
 	}
 }
 
 void VulkanLogicalDevice::Destroy()
 {
 	// NOTE! The VkQueue(s) are destroyed with the VkDevice logical device
-
-	for (auto& queue : mQueues)
+	for (auto it = mQueueMap.begin(); it != mQueueMap.end(); ++it)
 	{
-		GE_FREE(queue);
+		auto queue = it->second;
+		if (queue)
+		{
+			GE_FREE(queue);
+		}
 	}
+	mQueueMap.clear();
 
 	if (mHandle)
 	{
@@ -153,6 +177,8 @@ void VulkanLogicalDevice::Destroy()
 
 void VulkanLogicalDevice::SelectSupportedQueueFamilies()
 {
+	assert(mpDevice != nullptr);
+
 	assert(mpDevice->GetPhysicalDeviceHandle() != VK_NULL_HANDLE);
 	assert(mpDevice->GetSurfaceHandle() != VK_NULL_HANDLE);
 
@@ -225,28 +251,24 @@ void VulkanLogicalDevice::SelectSupportedQueueFamilies()
 	}
 
 	// Exit if either a graphics or a presenting queue hasn't been found
-	if ((mQueueFamilyIndices.graphics == UINT32_MAX) || (mQueueFamilyIndices.present == UINT32_MAX))
+	if (IsGraphicsQueueSupported() == false)
 	{
-		LOG_ERROR("The system does not support graphics nor present queues! Abort!");
+		LOG_ERROR("The system does not support a graphics queue! Abort!");
 		return;
 	}
 
-	if (mQueueFamilyIndices.present == mQueueFamilyIndices.graphics)
+	if (IsPresentQueueSupported())
+	{
+		LOG_INFO("The system supports a separate present queues");
+	}
+	else
 	{
 		LOG_INFO("The system supports a queue for both graphics and present!");
 	}
-	else
-	{
-		LOG_INFO("The system supports separate graphics and present queues!");
-	}
 
-	if (mQueueFamilyIndices.present == mQueueFamilyIndices.compute)
+	if (IsComputeQueueSupported())
 	{
-		LOG_INFO("The system supports a queue for both compute and present!");
-	}
-	else
-	{
-		LOG_INFO("The system supports separate compute and present queues!");
+		LOG_INFO("The system supports a separate compute queue!");
 	}
 }
 
@@ -264,9 +286,12 @@ const VkDevice& VulkanLogicalDevice::GetHandle() const
 
 VulkanQueue* VulkanLogicalDevice::GetQueue(VkQueueFlagBits queueFlag) const
 {
-	for (auto& queue : mQueues)
+	auto it = mQueueMap.find(queueFlag);
+
+	if (it != mQueueMap.end())
 	{
-		if (queue->GetTypeFlags() == queueFlag)
+		auto queue = it->second;
+		if (queue)
 		{
 			return queue;
 		}
@@ -287,10 +312,10 @@ bool VulkanLogicalDevice::IsGraphicsQueueSupported() const
 
 bool VulkanLogicalDevice::IsComputeQueueSupported() const
 {
-	return ((mQueueFamilyIndices.compute != UINT32_MAX) && ((mQueueFamilyIndices.compute != mQueueFamilyIndices.graphics)));
+	return ((mQueueFamilyIndices.compute != UINT32_MAX) && (mQueueFamilyIndices.compute != mQueueFamilyIndices.graphics) && (mQueueFamilyIndices.compute != mQueueFamilyIndices.present));
 }
 
 bool VulkanLogicalDevice::IsPresentQueueSupported() const
 {
-	return ((mQueueFamilyIndices.present != UINT32_MAX) && (mQueueFamilyIndices.present != mQueueFamilyIndices.graphics) && ((mQueueFamilyIndices.present != mQueueFamilyIndices.compute)));
+	return ((mQueueFamilyIndices.present != UINT32_MAX) && (mQueueFamilyIndices.present != mQueueFamilyIndices.graphics) && (mQueueFamilyIndices.present != mQueueFamilyIndices.compute));
 }

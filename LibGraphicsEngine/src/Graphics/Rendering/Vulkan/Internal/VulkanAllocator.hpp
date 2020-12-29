@@ -1,8 +1,7 @@
-#ifndef GRAPHICS_RENDERING_VULKAN_ALLOCATOR_HPP
-#define GRAPHICS_RENDERING_VULKAN_ALLOCATOR_HPP
+#ifndef GRAPHICS_RENDERING_VULKAN_INTERNAL_VULKAN_ALLOCATOR_HPP
+#define GRAPHICS_RENDERING_VULKAN_INTERNAL_VULKAN_ALLOCATOR_HPP
 
-#include "Foundation/TypeDefs.hpp"
-#include "vulkan/vulkan.h"
+#include "Graphics/Rendering/Vulkan/Common/VulkanObject.hpp"
 #include <vector>
 
 namespace GraphicsEngine
@@ -14,8 +13,10 @@ namespace GraphicsEngine
 		/* Vulkan Allocator base abstract class
 		   Check VulkanPoolAllocator for more deltails
 		*/
-		class VulkanAllocator
+		class VulkanAllocator : public VulkanObject
 		{
+			GE_RTTI(GraphicsEngine::Graphics::VulkanAllocator)
+
 		public:
 			struct Allocation
 			{
@@ -28,7 +29,7 @@ namespace GraphicsEngine
 
 			virtual ~VulkanAllocator();
 
-			virtual void Alloc(VulkanAllocator::Allocation& outAllocation, VkMemoryPropertyFlags usage, uint32_t memoryTypeIndex, VkDeviceSize size) = 0;
+			virtual void Alloc(VkMemoryPropertyFlags usage, uint32_t memoryTypeIndex, VkDeviceSize size, VulkanAllocator::Allocation& outAllocation) = 0;
 			virtual void Free(const VulkanAllocator::Allocation& allocation) = 0;
 
 			uint32_t GetTotalMemorySize() const;
@@ -55,4 +56,4 @@ namespace GraphicsEngine
 	}
 }
 
-#endif // GRAPHICS_RENDERING_VULKAN_ALLOCATOR_HPP
+#endif // GRAPHICS_RENDERING_VULKAN_INTERNAL_VULKAN_ALLOCATOR_HPP

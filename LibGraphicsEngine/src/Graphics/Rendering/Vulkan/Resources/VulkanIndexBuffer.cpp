@@ -42,14 +42,22 @@ void GADRIndexBuffer::Create(Renderer* pRenderer)
 	assert(pDevice != nullptr);
 
 	// Create a host-visible buffer to copy the vertex data to (staging buffer)
-	VulkanBuffer* pStagingIndices = GE_ALLOC(VulkanBuffer)(pDevice,
+	VulkanBuffer* pStagingIndices = GE_ALLOC(VulkanBuffer)
+	(
+		pDevice,
 		VkMemoryPropertyFlagBits::VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VkMemoryPropertyFlagBits::VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-		VkBufferUsageFlagBits::VK_BUFFER_USAGE_TRANSFER_SRC_BIT, mpIndexBuffer->GetSize(), mpIndexBuffer->GetData());
+		VkBufferUsageFlagBits::VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+		mpIndexBuffer->GetSize(), mpIndexBuffer->GetData()
+	);
 	assert(pStagingIndices != nullptr);
 
 	// Create a device local buffer to which the (host local) vertex data will be copied and which will be used for rendering
-	mpVulkanBuffer = GE_ALLOC(VulkanBuffer)(pDevice, VkMemoryPropertyFlagBits::VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-		VkBufferUsageFlagBits::VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VkBufferUsageFlagBits::VK_BUFFER_USAGE_TRANSFER_DST_BIT, mpIndexBuffer->GetSize());
+	mpVulkanBuffer = GE_ALLOC(VulkanBuffer)
+	(pDevice,
+		VkMemoryPropertyFlagBits::VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+		VkBufferUsageFlagBits::VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VkBufferUsageFlagBits::VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+		mpIndexBuffer->GetSize()
+		);
 	assert(mpVulkanBuffer != nullptr);
 
 
@@ -62,7 +70,7 @@ void GADRIndexBuffer::Create(Renderer* pRenderer)
 	}
 	else // graphics and present queue are the same
 	{
-		pStagingIndices->CopyTo(mpVulkanBuffer, pDevice->GetMainGraphicsQueue());
+		pStagingIndices->CopyTo(mpVulkanBuffer, pDevice->GetGraphicsQueue());
 	}
 	GE_FREE(pStagingIndices);
 }
@@ -77,11 +85,11 @@ void GADRIndexBuffer::Destroy()
 	GE_FREE(mpVulkanBuffer);
 }
 
-const IndexBuffer::Usage& GADRIndexBuffer::GetUsage() const
+const Buffer::BufferUsage& GADRIndexBuffer::GetBufferUsage() const
 {
 	assert(mpIndexBuffer != nullptr);
 
-	return mpIndexBuffer->GetUsage();
+	return mpIndexBuffer->GetBufferUsage();
 }
 
 const IndexBuffer::IndexType& GADRIndexBuffer::GetIndexType() const
@@ -102,16 +110,16 @@ VkIndexType GADRIndexBuffer::IndexTypeToVulkanIndexType(const IndexBuffer::Index
 
 	switch (indexType)
 	{
-	case IndexBuffer::IndexType::IT_UINT32:
+	case IndexBuffer::IndexType::GE_IT_UINT32:
 		vulkanIndexType = VkIndexType::VK_INDEX_TYPE_UINT32;
 		break;
-	case IndexBuffer::IndexType::IT_UINT16:
+	case IndexBuffer::IndexType::GE_IT_UINT16:
 		vulkanIndexType = VkIndexType::VK_INDEX_TYPE_UINT16;
 		break;
-	case IndexBuffer::IndexType::IT_UINT8:
+	case IndexBuffer::IndexType::GE_IT_UINT8:
 		vulkanIndexType = VkIndexType::VK_INDEX_TYPE_UINT8_EXT; //TOOD - check for extension support - VkPhysicalDeviceIndexTypeUint8FeaturesEXT 
 		break;
-	case IndexBuffer::IndexType::IT_COUNT:
+	case IndexBuffer::IndexType::GE_IT_COUNT:
 	default:
 		LOG_ERROR("Invalid Vulkan Index Buffer Index Type!");
 	}

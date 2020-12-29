@@ -1,19 +1,23 @@
 #include "Shader.hpp"
+#include "Graphics/ShaderTools/GLSL/GLSLShaderParser.hpp"
+#include "Foundation/MemoryManagement/MemoryOperations.hpp"
 
 using namespace GraphicsEngine;
 using namespace GraphicsEngine::Graphics;
 
 
 Shader::Shader()
-	: mPath()
-	, mType(Shader::Type::T_COUNT)
+	: mShaderStage(ShaderStage::GE_SS_COUNT)
+	, mSourcePath()
+	, mpGLSLParser(nullptr)
 {}
 
-Shader::Shader(Shader::Type type, const char_t* pPath)
-	: mPath(pPath)
-	, mType(type)
+Shader::Shader(const std::string& sourcePath)
+	: mShaderStage(ShaderStage::GE_SS_COUNT)
+	, mSourcePath(sourcePath)
+	, mpGLSLParser(nullptr)
 {
-	Create(pPath);
+	Create();
 }
 
 Shader::~Shader()
@@ -21,23 +25,36 @@ Shader::~Shader()
 	Destroy();
 }
 
-void Shader::Create(const char_t* pPath)
+void Shader::Create()
 {
-	//stub
+	mpGLSLParser = GE_ALLOC(GLSLShaderParser)(mSourcePath);
+	assert(mpGLSLParser != nullptr);
+
+	bool_t res = mpGLSLParser->Parse(mSourcePath);
+	assert(res == true);
+
+	mShaderStage = mpGLSLParser->GetStage();
 }
 
 void Shader::Destroy()
 {
-	mType = Shader::Type::T_COUNT;
-	mPath.clear();
+	mShaderStage = Shader::ShaderStage::GE_SS_COUNT;
+	mSourcePath.clear();
+
+	GE_FREE(mpGLSLParser);
 }
 
-const Shader::Type& Shader::GetType() const
+const Shader::ShaderStage& Shader::GetShaderStage() const
 {
-	return mType;
+	return mShaderStage;
 }
 
-const std::string& Shader::GetPath() const
+const std::string& Shader::GetSourcePath() const
 {
-	return mPath;
+	return mSourcePath;
+}
+
+GLSLShaderParser* Shader::GetGLSLParser() const
+{
+	return mpGLSLParser;
 }

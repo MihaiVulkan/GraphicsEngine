@@ -1,8 +1,7 @@
-#ifndef GRAPHICS_RENDERING_VULKAN_FENCE_HPP
-#define GRAPHICS_RENDERING_VULKAN_FENCE_HPP
+#ifndef GRAPHICS_RENDERING_VULKAN_INTERNAL_VULKAN_FENCE_HPP
+#define GRAPHICS_RENDERING_VULKAN_INTERNAL_VULKAN_FENCE_HPP
 
-#include "Foundation/TypeDefs.hpp"
-#include "vulkan/vulkan.h"
+#include "Graphics/Rendering/Vulkan/Common/VulkanObject.hpp"
 
 namespace GraphicsEngine
 {
@@ -29,8 +28,10 @@ namespace GraphicsEngine
 			fences are provided below. These mechanisms indirectly enable applications to share fence state between two or 
 			more fences and other synchronization primitives across process and API boundaries.
 		*/
-		class VulkanFence
+		class VulkanFence : public VulkanObject
 		{
+			GE_RTTI(GraphicsEngine::Graphics::VulkanFence)
+
 		public:
 			VulkanFence();
 			explicit VulkanFence(VulkanDevice* pDevice, VkFenceCreateFlags flags = 0);
@@ -53,4 +54,4 @@ namespace GraphicsEngine
 	}
 }
 
-#endif // GRAPHICS_RENDERING_VULKAN_FENCE_HPP
+#endif // GRAPHICS_RENDERING_VULKAN_INTERNAL_VULKAN_FENCE_HPP

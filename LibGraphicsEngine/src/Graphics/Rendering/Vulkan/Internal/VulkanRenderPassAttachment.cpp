@@ -6,15 +6,15 @@ using namespace GraphicsEngine::Graphics;
 
 VulkanRenderPassAttachment::VulkanRenderPassAttachment()
 	: mAttachmentDescription{}
-	, mType(Type::COUNT)
+	, mAttachmentType(AttachmentType::GE_AT_COUNT)
 {}
 
 VulkanRenderPassAttachment::VulkanRenderPassAttachment( VkFormat format, VkSampleCountFlagBits samples, VkAttachmentLoadOp loadOp, VkAttachmentStoreOp storeOp,
 														VkAttachmentLoadOp stencilLoadOp, VkAttachmentStoreOp stencilStoreOp, VkImageLayout initialLayout,
-														VkImageLayout finalLayout, Type type)
+														VkImageLayout finalLayout, AttachmentType type)
 
 	: mAttachmentDescription{}
-	, mType(type)
+	, mAttachmentType(type)
 {
 	mAttachmentDescription = VulkanInitializers::AttachmentDescription(format, samples, loadOp, storeOp, stencilLoadOp, stencilStoreOp, initialLayout, finalLayout);
 }
@@ -22,7 +22,7 @@ VulkanRenderPassAttachment::VulkanRenderPassAttachment( VkFormat format, VkSampl
 VulkanRenderPassAttachment::~VulkanRenderPassAttachment()
 {
 	mAttachmentDescription = {};
-	mType = Type::COUNT;
+	mAttachmentType = AttachmentType::GE_AT_COUNT;
 }
 
 const VkAttachmentDescription& VulkanRenderPassAttachment::GetAttachmentDescription() const
@@ -30,7 +30,7 @@ const VkAttachmentDescription& VulkanRenderPassAttachment::GetAttachmentDescript
 	return mAttachmentDescription;
 }
 
-const VulkanRenderPassAttachment::Type& VulkanRenderPassAttachment::GetType() const
+const VulkanRenderPassAttachment::AttachmentType& VulkanRenderPassAttachment::GetAttachmentType() const
 {
-	return mType;
+	return mAttachmentType;
 }

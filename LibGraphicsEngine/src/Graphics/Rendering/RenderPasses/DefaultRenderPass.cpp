@@ -28,7 +28,7 @@ void DefaultRenderPass::Render(Renderer* pRenderer, RenderQueue* pRenderQueue, u
 
 void DefaultRenderPass::RenderOpaqueObjects(Renderer* pRenderer, RenderQueue* pRenderQueue, uint32_t currentBufferIdx)
 {
-	auto renderableList = pRenderQueue->GetRenderables(RenderQueue::RenderableType::RT_OPAQUE);
+	auto renderableList = pRenderQueue->GetRenderables(RenderQueue::RenderableType::GE_RT_OPAQUE);
 
 	pRenderQueue->Each(renderableList,
 		[&, this](RenderQueue::Renderable* pRenderable)
@@ -50,15 +50,15 @@ void DefaultRenderPass::RenderOccluders(Renderer* pRenderer, RenderQueue* pRende
 	//TODO
 }
 
-void DefaultRenderPass::Update(Renderer* pRenderer, RenderQueue* pRenderQueue, Camera* pCamera, bfloat32_t deltaTime)
+void DefaultRenderPass::Update(Renderer* pRenderer, RenderQueue* pRenderQueue, Camera* pCamera, float32_t deltaTime)
 {
 	UpdateOpaqueObjects(pRenderer, pRenderQueue, pCamera, deltaTime);
 }
 
-void DefaultRenderPass::UpdateOpaqueObjects(Renderer* pRenderer, RenderQueue* pRenderQueue, Camera* pCamera, bfloat32_t deltaTime)
+void DefaultRenderPass::UpdateOpaqueObjects(Renderer* pRenderer, RenderQueue* pRenderQueue, Camera* pCamera, float32_t deltaTime)
 {
 
-	auto renderableList = pRenderQueue->GetRenderables(RenderQueue::RenderableType::RT_OPAQUE);
+	auto renderableList = pRenderQueue->GetRenderables(RenderQueue::RenderableType::GE_RT_OPAQUE);
 
 	pRenderQueue->Each(renderableList,
 		[&, this](RenderQueue::Renderable* pRenderable)

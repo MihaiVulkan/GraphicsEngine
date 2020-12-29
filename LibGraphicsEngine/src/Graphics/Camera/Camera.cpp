@@ -18,14 +18,15 @@ Camera::Camera()
 	: mName("Default"), mPosition(glm::vec3(0.0f))
 	, mRight(glm::vec3(+1.0f, 0.0f, 0.0f)), mUp(glm::vec3(0.0f, +1.0f, 0.0f))
 #if defined(RIGHT_HAND_COORDINATES)
-	, mForward(glm::vec3(0.0f, 0.0f, -1.0f))//, mYaw(glm::pi<bfloat32_t>())
+	, mForward(glm::vec3(0.0f, 0.0f, -1.0f))
 #elif defined(LEFT_HAND_COORDINATES)
-	, mForward(glm::vec3(0.0f, 0.0f, +1.0f))//, mYaw(0.0f)
+	, mForward(glm::vec3(0.0f, 0.0f, +1.0f))
 #endif // RIGHT_HAND_COORDINATES
-	, mFOVy(0), mInitialFOVy(0), mZNear(0.0f), mZFar(0.0f)
-	//, mPitch(0.0f), mUseConstraints(false)
+	, mFOVy(0), mInitialFOVy(0), mAspectRatio(0.0f), mZNear(0.0f), mZFar(0.0f)
+	, mView(glm::mat4(1.0f)), mProjection(glm::mat4(1.0f)), mProjectionView(glm::mat4(1.0f))
+
 {
-	LOG_INFO("Camera %s successfully created!", mName.c_str());
+	LOG_INFO("%s successfully created!", mName.c_str());
 }
 
 Camera::Camera(const std::string& name)
@@ -33,7 +34,7 @@ Camera::Camera(const std::string& name)
 {
 	mName = name;
 
-	LOG_INFO("Camera %s successfully created!", mName.c_str());
+	LOG_INFO("%s successfully created!", mName.c_str());
 }
 /*
 Camera::Camera(const std::string& name, const GlobalConfig& config)
@@ -53,7 +54,7 @@ Camera::Camera(const std::string& name, const GlobalConfig& config)
 
 Camera::~Camera()
 {
-	LOG_INFO("Camera %s successfully destroyed!", mName.c_str());
+	LOG_INFO("%s successfully destroyed!", mName.c_str());
 }
 
 void Camera::UpdateViewMatrix()
@@ -76,6 +77,40 @@ void Camera::UpdateViewMatrix()
 #endif // USE_INVERSE_MATRICES
 }
 
+void Camera::UpdatePerspectiveProjectionMatrix()
+{
+	assert(mFOVy > 0);
+	assert(mAspectRatio > 0);
+	assert(mZNear > 0);
+	assert(mZFar > 0);
+
+	float correctionFactor = ComputePerspectiveProjectionCorrectionFactor();
+
+	mProjection = glm::perspective(glm::radians(static_cast<float32_t>(mFOVy)), mAspectRatio,
+		mZNear * correctionFactor, mZFar * correctionFactor);
+
+	//#if defined(RIGHT_HAND_COORDINATES)
+#if defined(VULKAN_RENDERER)
+	// Vulkan clip space has inverted Y and half Z - perspective projection.
+	// we use GLM_FORCE_DEPTH_ZERO_TO_ONE to correct depth range (half Z)!
+	// the operation below inverts Y to correct it
+	mProjection[1][1] *= -1.0f;
+#endif // VULKAN_RENDERER
+	//#endif // RIGHT_HAND_COORDINATES
+
+	mProjectionView = mProjection * mView;
+
+#ifdef USE_INVERSE_MATRICES
+	// update the other matrices too
+	// more info about projection matrix: http://www.songho.ca/opengl/gl_projectionmatrix.html
+	// projection matrix is NOT orthogonal, so we can't replace inverse operation with transpose one !!!
+	mInverseProjection = glm::inverse(mProjection);
+
+	// projection * view matrix is NOT orthogonal
+	mInverseProjectionView = glm::inverse(mProjectionView);
+#endif // USE_INVERSE_MATRICES
+}
+
 /* NOTE! This function fixes two major problems with the ocean grid projection!
    a) If camera goes really, really high above the ocean then the grid was cut by the far plane
    The issue was getting worse as the altitude got bigger and bigger!
@@ -88,7 +123,7 @@ void Camera::UpdateViewMatrix()
 */
 float Camera::ComputePerspectiveProjectionCorrectionFactor() const
 {
-	bfloat32_t cameraAltitude = mPosition.y;
+	float32_t cameraAltitude = mPosition.y;
 	if (cameraAltitude > 0.0f)
 	{
 		if (glm::abs(cameraAltitude - 0.0f) < 1e-6f)
@@ -108,74 +143,67 @@ float Camera::ComputePerspectiveProjectionCorrectionFactor() const
 	return cameraAltitude;
 }
 
-void Camera::UpdatePerspectiveProjectionMatrix(uint32_t windowWidth, uint32_t windowHeight)
-{
-	assert(windowWidth > 0);
-	assert(windowHeight > 0);
+//void Camera::UpdatePerspectiveProjectionMatrix(uint32_t windowWidth, uint32_t windowHeight)
+//{
+//	assert(windowWidth > 0);
+//	assert(windowHeight > 0);
+//	assert(mFOVy > 0);
+//	assert(mZNear > 0);
+//	assert(mZFar > 0);
+//
+//	float correctionFactor = ComputePerspectiveProjectionCorrectionFactor();
+//
+//	mProjection = glm::perspective(glm::radians(static_cast<float32_t>(mFOVy)), windowWidth /static_cast<float32_t>(windowHeight),
+//					               mZNear * correctionFactor, mZFar * correctionFactor);
+//
+////#if defined(RIGHT_HAND_COORDINATES)
+//#if defined(VULKAN_RENDERER)
+//	// Vulkan clip space has inverted Y and half Z - perspective projection.
+//	// we use GLM_FORCE_DEPTH_ZERO_TO_ONE to correct depth range (half Z)!
+//	// the operation below inverts Y to correct it
+//	mProjection[1][1] *= -1.0f;
+//#endif // VULKAN_RENDERER
+////#endif // RIGHT_HAND_COORDINATES
+//
+//	mProjectionView = mProjection * mView;
+//
+//#ifdef USE_INVERSE_MATRICES
+//	// update the other matrices too
+//	// more info about projection matrix: http://www.songho.ca/opengl/gl_projectionmatrix.html
+//	// projection matrix is NOT orthogonal, so we can't replace inverse operation with transpose one !!!
+//	mInverseProjection = glm::inverse(mProjection);
+//
+//	// projection * view matrix is NOT orthogonal
+//	mInverseProjectionView = glm::inverse(mProjectionView);
+//#endif // USE_INVERSE_MATRICES
+//}
 
-	float correctionFactor = ComputePerspectiveProjectionCorrectionFactor();
-
-	mProjection = glm::perspective(glm::radians(static_cast<bfloat32_t>(mFOVy)), windowWidth /static_cast<bfloat32_t>(windowHeight),
-					               mZNear * correctionFactor, mZFar * correctionFactor);
-
-//#if defined(RIGHT_HAND_COORDINATES)
-#if defined(VULKAN_RENDERER)
-	// Vulkan clip space has inverted Y and half Z - perspective projection.
-	// we use GLM_FORCE_DEPTH_ZERO_TO_ONE to correct depth range (half Z)!
-	// the operation below inverts Y to correct it
-	mProjection[1][1] *= -1.0f;
-#endif // VULKAN_RENDERER
-//#endif // RIGHT_HAND_COORDINATES
-
-	mProjectionView = mProjection * mView;
-
-#ifdef USE_INVERSE_MATRICES
-	// update the other matrices too
-	// more info about projection matrix: http://www.songho.ca/opengl/gl_projectionmatrix.html
-	// projection matrix is NOT orthogonal, so we can't replace inverse operation with transpose one !!!
-	mInverseProjection = glm::inverse(mProjection);
-
-	// projection * view matrix is NOT orthogonal
-	mInverseProjectionView = glm::inverse(mProjectionView);
-#endif // USE_INVERSE_MATRICES
-}
-
-void Camera::UpdatePerspectiveProjectionMatrix(int32_t fovy, bfloat32_t aspect, bfloat32_t zNear, bfloat32_t zFar)
+void Camera::UpdatePerspectiveProjectionMatrix(int32_t fovy, float32_t aspect, float32_t zNear, float32_t zFar)
 {
 	assert(fovy > 0);
 	assert(aspect > 0);
 	assert(zNear > 0);
 	assert(zFar > 0);
 
-	float correctionFactor = ComputePerspectiveProjectionCorrectionFactor();
+	mFOVy = fovy;
+	mAspectRatio = aspect;
+	mZNear = zNear;
+	mZFar = zFar;
 
-	mProjection = glm::perspective(glm::radians(static_cast<bfloat32_t>(fovy)), aspect,
-		                           zNear * correctionFactor, zFar * correctionFactor);
-
-//#if defined(RIGHT_HAND_COORDINATES)
-#if defined(VULKAN_RENDERER)
-	// Vulkan clip space has inverted Y and half Z - perspective projection.
-	// we use GLM_FORCE_DEPTH_ZERO_TO_ONE to correct depth range (half Z)!
-	// the operation below inverts Y to correct it
-	mProjection[1][1] *= -1.0f;
-#endif // VULKAN_RENDERER
-//#endif // RIGHT_HAND_COORDINATES
-
-	mProjectionView = mProjection * mView;
-
-#ifdef USE_INVERSE_MATRICES
-	// update the other matrices too
-	// more info about projection matrix: http://www.songho.ca/opengl/gl_projectionmatrix.html
-	// projection matrix is NOT orthogonal, so we can't replace inverse operation with transpose one !!!
-	m_InverseProjection = glm::inverse(m_Projection);
-
-	// projection * view matrix is NOT orthogonal
-	m_InverseProjectionView = glm::inverse(m_ProjectionView);
-#endif // USE_INVERSE_MATRICES
+	UpdatePerspectiveProjectionMatrix();
 }
 
-void Camera::UpdateOrthographicProjectionMatrix(bfloat32_t left, bfloat32_t right, bfloat32_t bottom, bfloat32_t top, bfloat32_t zNear, bfloat32_t zFar)
+void Camera::UpdateOrthographicProjectionMatrix(float32_t left, float32_t right, float32_t bottom, float32_t top, float32_t zNear, float32_t zFar)
 {
+	assert(zNear > 0);
+	assert(zFar > 0);
+
+	// NOTE! No FOV for the ortho projection
+	LOG_INFO("No FOV is used for the ortho projection! It remains unchanged!");
+
+	mZNear = zNear;
+	mZFar = zFar;
+
 	mProjection = glm::ortho(left, right, bottom, top, zNear, zFar);
 
 //#if defined(RIGHT_HAND_COORDINATES)
@@ -233,6 +261,21 @@ const glm::vec3& Camera::GetUp() const
 int Camera::GetFOV() const
 {
 	return mFOVy;
+}
+
+float32_t Camera::GetAspectRatio() const
+{
+	return mAspectRatio;
+}
+
+float32_t Camera::GetZNear() const
+{
+	return mZNear;
+}
+
+float32_t Camera::GetZFar() const
+{
+	return mZFar;
 }
 
 const glm::mat4& Camera::GetViewMatrix() const
@@ -300,7 +343,27 @@ void Camera::ResetFOV()
 	mFOVy = mInitialFOVy;
 }
 
-void Camera::SetProjectionMatrix(const glm::mat4& projectionMatrix)
+void Camera::SetAspectRatio(float32_t aspectRatio)
 {
-	mProjection = projectionMatrix;
+	mAspectRatio = aspectRatio;
+}
+
+void Camera::SetZNear(float32_t zNear)
+{
+	mZNear = zNear;
+}
+
+void Camera::SetZFar(float32_t zFar)
+{
+	mZFar = zFar;
+}
+
+void Camera::SetViewMatrix(const glm::mat4& view)
+{
+	mView = view;
+}
+
+void Camera::SetProjectionMatrix(const glm::mat4& proj)
+{
+	mProjection = proj;
 }

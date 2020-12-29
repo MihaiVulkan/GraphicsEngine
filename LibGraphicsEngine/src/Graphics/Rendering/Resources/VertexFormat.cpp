@@ -59,27 +59,27 @@ void VertexFormat::Create(uint8_t position, uint8_t normal, uint8_t tangent, uin
 {
 	if (position > 0)
 	{
-		mAttributes[Attribute::POSITION] = position;
+		mVertexAttributes[VertexAttribute::GE_VA_POSITION] = position;
 	}
 
 	if (normal > 0)
 	{
-		mAttributes[Attribute::NORMAL] = normal;
+		mVertexAttributes[VertexAttribute::GE_VA_NORMAL] = normal;
 	}
 
 	if (tangent > 0)
 	{
-		mAttributes[Attribute::TANGENT] = tangent;
+		mVertexAttributes[VertexAttribute::GE_VA_TANGENT] = tangent;
 	}
 
 	if (color > 0)
 	{
-		mAttributes[Attribute::COLOR] = color;
+		mVertexAttributes[VertexAttribute::GE_VA_COLOR] = color;
 	}
 
 	if (texCoord > 0)
 	{
-		mAttributes[Attribute::TEXTURE_COORD] = texCoord;
+		mVertexAttributes[VertexAttribute::GE_VA_TEXTURE_COORD] = texCoord;
 	}
 }
 
@@ -87,7 +87,7 @@ void VertexFormat::Copy(const VertexFormat& format)
 {
 	if (this != &format)
 	{
-		mAttributes = format.GetAttributes();
+		mVertexAttributes = format.GetVertexAttributes();
 	}
 }
 
@@ -95,55 +95,57 @@ void VertexFormat::Move(VertexFormat&& format)
 {
 	if (this != &format)
 	{
-		mAttributes = format.GetAttributes();
+		mVertexAttributes = format.GetVertexAttributes();
 	}
 }
 
 void VertexFormat::Destroy()
 {
-	mAttributes.clear();
+	mVertexAttributes.clear();
 }
 
 // TODO - for now we work wih float data
-const uint8_t& VertexFormat::GetAttributeStride(const VertexFormat::Attribute& att) const
+uint32_t VertexFormat::GetVertexAttributeStride(const VertexFormat::VertexAttribute& att) const
 {
-	assert((att >= VertexFormat::Attribute::POSITION) && (att < VertexFormat::Attribute::COUNT));
+	assert((att >= VertexFormat::VertexAttribute::GE_VA_POSITION) && (att < VertexFormat::VertexAttribute::GE_VA_COUNT));
 
-	return (HasAttribute(att) ? (mAttributes.at(att) * sizeof(bfloat32_t)) : 0);
+	uint32_t attributeStride = (HasVertexAttribute(att) ? (mVertexAttributes.at(att) * sizeof(float32_t)) : 0);
+
+	return attributeStride;
 }
 
-bool_t VertexFormat::HasAttribute(const VertexFormat::Attribute& att) const
+bool_t VertexFormat::HasVertexAttribute(const VertexFormat::VertexAttribute& att) const
 {
-	assert((att >= VertexFormat::Attribute::POSITION) && (att < VertexFormat::Attribute::COUNT));
+	assert((att >= VertexFormat::VertexAttribute::GE_VA_POSITION) && (att < VertexFormat::VertexAttribute::GE_VA_COUNT));
 
-	auto it = mAttributes.find(att);
+	auto it = mVertexAttributes.find(att);
 
-	return (it != mAttributes.end());
+	return (it != mVertexAttributes.end());
 }
 
 
-uint32_t VertexFormat::GetAttributeOffset(const VertexFormat::Attribute& att) const
+uint32_t VertexFormat::GetVertexAttributeOffset(const VertexFormat::VertexAttribute& att) const
 {
 	uint32_t offset = 0;
 
 	switch (att)
 	{
-	case Attribute::POSITION:
+	case VertexAttribute::GE_VA_POSITION:
 		offset = 0;
 		break;
-	case Attribute::NORMAL:
-		offset = (HasAttribute(Attribute::POSITION) ? GetAttributeOffset(Attribute::POSITION) + GetAttributeStride(Attribute::POSITION) : GetAttributeOffset(Attribute::POSITION));
+	case VertexAttribute::GE_VA_NORMAL:
+		offset = (HasVertexAttribute(VertexAttribute::GE_VA_POSITION) ? GetVertexAttributeOffset(VertexAttribute::GE_VA_POSITION) + GetVertexAttributeStride(VertexAttribute::GE_VA_POSITION) : GetVertexAttributeOffset(VertexAttribute::GE_VA_POSITION));
 		break;
-	case Attribute::TANGENT:
-		offset = (HasAttribute(Attribute::NORMAL) ? GetAttributeOffset(Attribute::NORMAL) + GetAttributeStride(Attribute::NORMAL) : GetAttributeOffset(Attribute::NORMAL));
+	case VertexAttribute::GE_VA_TANGENT:
+		offset = (HasVertexAttribute(VertexAttribute::GE_VA_NORMAL) ? GetVertexAttributeOffset(VertexAttribute::GE_VA_NORMAL) + GetVertexAttributeStride(VertexAttribute::GE_VA_NORMAL) : GetVertexAttributeOffset(VertexAttribute::GE_VA_NORMAL));
 		break;
-	case Attribute::COLOR:
-		offset = (HasAttribute(Attribute::TANGENT) ? GetAttributeOffset(Attribute::TANGENT) + GetAttributeStride(Attribute::TANGENT) : GetAttributeOffset(Attribute::TANGENT));
+	case VertexAttribute::GE_VA_COLOR:
+		offset = (HasVertexAttribute(VertexAttribute::GE_VA_TANGENT) ? GetVertexAttributeOffset(VertexAttribute::GE_VA_TANGENT) + GetVertexAttributeStride(VertexAttribute::GE_VA_TANGENT) : GetVertexAttributeOffset(VertexAttribute::GE_VA_TANGENT));
 		break;
-	case Attribute::TEXTURE_COORD:
-		offset = (HasAttribute(Attribute::COLOR) ? GetAttributeOffset(Attribute::COLOR) + GetAttributeStride(Attribute::COLOR) : GetAttributeOffset(Attribute::COLOR));
+	case VertexAttribute::GE_VA_TEXTURE_COORD:
+		offset = (HasVertexAttribute(VertexAttribute::GE_VA_COLOR) ? GetVertexAttributeOffset(VertexAttribute::GE_VA_COLOR) + GetVertexAttributeStride(VertexAttribute::GE_VA_COLOR) : GetVertexAttributeOffset(VertexAttribute::GE_VA_COLOR));
 		break;
-	case Attribute::COUNT:
+	case VertexAttribute::GE_VA_COUNT:
 	default:
 		LOG_ERROR("Invalid vertex format attribute!");
 	}
@@ -151,19 +153,19 @@ uint32_t VertexFormat::GetAttributeOffset(const VertexFormat::Attribute& att) co
 	return offset;
 }
 
-uint32_t VertexFormat::GetTotalStride() const
+uint32_t VertexFormat::GetVertexTotalStride() const
 {
 	uint32_t stride = 
-		GetAttributeStride(Attribute::POSITION) +
-	    GetAttributeStride(Attribute::NORMAL) +
-		GetAttributeStride(Attribute::TANGENT) +
-		GetAttributeStride(Attribute::COLOR) +
-		GetAttributeStride(Attribute::TEXTURE_COORD);
+		GetVertexAttributeStride(VertexAttribute::GE_VA_POSITION) +
+	    GetVertexAttributeStride(VertexAttribute::GE_VA_NORMAL) +
+		GetVertexAttributeStride(VertexAttribute::GE_VA_TANGENT) +
+		GetVertexAttributeStride(VertexAttribute::GE_VA_COLOR) +
+		GetVertexAttributeStride(VertexAttribute::GE_VA_TEXTURE_COORD);
 
 	return stride;
 }
 
-const VertexFormat::AttributeMap& VertexFormat::GetAttributes() const
+const VertexFormat::VertexAttributeMap& VertexFormat::GetVertexAttributes() const
 {
-	return mAttributes;
+	return mVertexAttributes;
 }

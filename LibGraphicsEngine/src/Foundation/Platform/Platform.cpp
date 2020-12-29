@@ -41,9 +41,6 @@ namespace GraphicsEngine
 
 			UpdateWindowFlags(pWindow, flags);
 
-			// adjust internal cache for width and height
-			GetWindowSize(pWindow, &pWindow->width, &pWindow->height);
-
 			return pWindow;
 		}
 
@@ -269,7 +266,7 @@ namespace GraphicsEngine
 
 		// Notifies shared code of a scroll event
 		//
-		void InputMouseScroll(GE_Window* pWindow, bfloat64_t xOffset, bfloat64_t yOffset)
+		void InputMouseScroll(GE_Window* pWindow, float64_t xOffset, float64_t yOffset)
 		{
 			assert(pWindow != nullptr);
 
@@ -430,7 +427,7 @@ namespace GraphicsEngine
 			WaitEvents_Platform(pWindow);
 		}
 
-		void WaitEventsTimeout(GE_Window* pWindow, bfloat64_t timeout)
+		void WaitEventsTimeout(GE_Window* pWindow, float64_t timeout)
 		{
 			WaitEventsTimeout_Platform(pWindow, timeout);
 		}

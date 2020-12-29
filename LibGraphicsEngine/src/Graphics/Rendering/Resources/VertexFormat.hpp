@@ -29,17 +29,17 @@ namespace GraphicsEngine
 			static const VertexFormat VF_P3_N3_TG3_C3_UV2;*/
 
 			// TODO - Graphics API check for maximum number of attributes
-			enum class Attribute : uint8_t
+			enum class VertexAttribute : uint8_t
 			{
-				POSITION = 0,
-				NORMAL,
-				TANGENT,
-				COLOR,
-				TEXTURE_COORD,
-				COUNT
+				GE_VA_POSITION = 0,
+				GE_VA_NORMAL,
+				GE_VA_TANGENT,
+				GE_VA_COLOR,
+				GE_VA_TEXTURE_COORD,
+				GE_VA_COUNT
 			};
 
-			typedef std::unordered_map<VertexFormat::Attribute, uint8_t, std::hash<VertexFormat::Attribute>> AttributeMap;
+			typedef std::unordered_map<VertexFormat::VertexAttribute, uint8_t, std::hash<VertexFormat::VertexAttribute>> VertexAttributeMap;
 
 			VertexFormat();
 			// TODO - maybe make the constructor variadic ?
@@ -51,13 +51,13 @@ namespace GraphicsEngine
 			VertexFormat& operator =(const VertexFormat& format);
 			VertexFormat& operator =(VertexFormat&& format);
 
-			const uint8_t& GetAttributeStride(const VertexFormat::Attribute& att) const;
-			bool_t HasAttribute(const VertexFormat::Attribute& att) const;
+			uint32_t GetVertexAttributeStride(const VertexFormat::VertexAttribute& att) const;
+			bool_t HasVertexAttribute(const VertexFormat::VertexAttribute& att) const;
 
-			uint32_t GetAttributeOffset(const VertexFormat::Attribute& att) const;
-			uint32_t GetTotalStride() const;
+			uint32_t GetVertexAttributeOffset(const VertexFormat::VertexAttribute& att) const;
+			uint32_t GetVertexTotalStride() const;
 
-			const VertexFormat::AttributeMap& GetAttributes() const;
+			const VertexFormat::VertexAttributeMap& GetVertexAttributes() const;
 
 		private:
 			void Create(uint8_t position, uint8_t normal, uint8_t tangent, uint8_t color, uint8_t texCoord);
@@ -65,7 +65,7 @@ namespace GraphicsEngine
 			void Move(VertexFormat&& format);
 			void Destroy();
 
-			AttributeMap mAttributes;
+			VertexAttributeMap mVertexAttributes;
 		};
 	}
 }

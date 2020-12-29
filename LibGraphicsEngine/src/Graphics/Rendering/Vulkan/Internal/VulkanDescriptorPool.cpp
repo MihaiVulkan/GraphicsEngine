@@ -16,13 +16,7 @@ VulkanDescriptorPool::VulkanDescriptorPool(VulkanDevice* pDevice, uint32_t maxSe
 	: mpDevice(pDevice)
 	, mHandle(VK_NULL_HANDLE)
 {
-	/*mPoolSizes.resize(poolSizes.size());
-	for (size_t i = 0;i < mPoolSizes.size(); ++i)
-	{
-		mPoolSizes[i] = poolSizes[i];
-	}*/
 	mPoolSizes = poolSizes;
-
 
 	VkDescriptorPoolCreateInfo descriptorPoolCreateInfo =
 		VulkanInitializers::DescriptorPoolCreateInfo(maxSets, static_cast<uint32_t>(mPoolSizes.size()), mPoolSizes.data(), flags);
@@ -44,6 +38,8 @@ void VulkanDescriptorPool::Create(const VkDescriptorPoolCreateInfo& descriptorPo
 
 void VulkanDescriptorPool::Destroy()
 {
+	assert(mpDevice != nullptr);
+
 	mPoolSizes.clear();
 
 	if (mHandle)
@@ -60,6 +56,8 @@ void VulkanDescriptorPool::Destroy()
 
 VkResult VulkanDescriptorPool::Reset(VkDescriptorPoolResetFlags flags)
 {
+	assert(mpDevice != nullptr);
+
 	return vkResetDescriptorPool(mpDevice->GetDeviceHandle(), mHandle, flags);
 }
 

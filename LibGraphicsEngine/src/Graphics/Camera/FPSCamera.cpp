@@ -8,7 +8,7 @@ using namespace GraphicsEngine::Graphics;
 FPSCamera::FPSCamera()
 	: Camera()
 #if defined(RIGHT_HAND_COORDINATES)
-	, mYaw(glm::pi<bfloat32_t>())
+	, mYaw(glm::pi<float32_t>())
 #elif defined(LEFT_HAND_COORDINATES)
 	, mYaw(0.0f)
 #endif // RIGHT_HAND_COORDINATES
@@ -29,7 +29,7 @@ FPSCamera::~FPSCamera()
 	mUseConstraints = false;
 }
 
-void FPSCamera::UpdateOrientationWithMouse(bfloat32_t dx, bfloat32_t dy)
+void FPSCamera::UpdateOrientationWithMouse(float32_t dx, float32_t dy)
 {
 	//pitch & yaw angles are in RADIANS
 
@@ -46,8 +46,8 @@ void FPSCamera::UpdateOrientationWithMouse(bfloat32_t dx, bfloat32_t dy)
 	if (mUseConstraints)
 	{
 		// limit the pitch angle
-		if (mPitch > glm::half_pi<bfloat32_t>()) mPitch = glm::half_pi<bfloat32_t>();
-		if (mPitch < -glm::half_pi<bfloat32_t>()) mPitch = -glm::half_pi<bfloat32_t>();
+		if (mPitch > glm::half_pi<float32_t>()) mPitch = glm::half_pi<float32_t>();
+		if (mPitch < -glm::half_pi<float32_t>()) mPitch = -glm::half_pi<float32_t>();
 	}
 
 	// we convert the polar spherical coordinates to cartesian coordinates
@@ -89,28 +89,28 @@ void FPSCamera::UpdateOrientationWithMouse(bfloat32_t dx, bfloat32_t dy)
 	//	LOG("UP x: %f y: %f z: %f", mUp.x, mUp.y, mUp.z);
 }
 
-void FPSCamera::UpdatePositionWithKeyboard(bfloat32_t value, const FPSCamera::CAMERA_DIRECTIONS& dir)
+void FPSCamera::UpdatePositionWithKeyboard(float32_t value, const FPSCamera::CAMERA_DIRECTIONS& dir)
 {
 	glm::vec3 deltaMove(0.0f);
 
-	if (dir == CAMERA_DIRECTIONS::CD_FORWARD) deltaMove = mForward * value;
-	if (dir == CAMERA_DIRECTIONS::CD_BACKWARD) deltaMove = mForward * -value;
-	if (dir == CAMERA_DIRECTIONS::CD_RIGHT) deltaMove = mRight * value;
-	if (dir == CAMERA_DIRECTIONS::CD_LEFT) deltaMove = mRight * -value;
-	if (dir == CAMERA_DIRECTIONS::CD_UP) deltaMove = mUp * value;
-	if (dir == CAMERA_DIRECTIONS::CD_DOWN) deltaMove = mUp * -value;
+	if (dir == CAMERA_DIRECTIONS::GE_CD_FORWARD) deltaMove = mForward * value;
+	if (dir == CAMERA_DIRECTIONS::GE_CD_BACKWARD) deltaMove = mForward * -value;
+	if (dir == CAMERA_DIRECTIONS::GE_CD_RIGHT) deltaMove = mRight * value;
+	if (dir == CAMERA_DIRECTIONS::GE_CD_LEFT) deltaMove = mRight * -value;
+	if (dir == CAMERA_DIRECTIONS::GE_CD_UP) deltaMove = mUp * value;
+	if (dir == CAMERA_DIRECTIONS::GE_CD_DOWN) deltaMove = mUp * -value;
 
 	mPosition += deltaMove;
 
 	//	LOG("Camera POS x: %f y: %f z: %f", mPosition.x, mPosition.y, mPosition.z);
 }
 
-bfloat32_t FPSCamera::GetPitch() const
+float32_t FPSCamera::GetPitch() const
 {
 	return mPitch;
 }
 
-bfloat32_t FPSCamera::GetYaw() const
+float32_t FPSCamera::GetYaw() const
 {
 	return mYaw;
 }

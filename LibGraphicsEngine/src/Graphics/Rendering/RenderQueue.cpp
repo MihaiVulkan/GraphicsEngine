@@ -43,14 +43,23 @@ void RenderQueue::Push(Node* pNode)
 		GeometryNode* pGeoNode = dynamic_cast<GeometryNode*>(pNode);
 		assert(pGeoNode != nullptr);
 
+		MaterialComponent* pMatComp = pGeoNode->GetComponent<MaterialComponent>();
+
 		Renderable renderable{};
 		renderable.pGeometryNode = pGeoNode;
-		renderable.pMaterial = pGeoNode->GetComponent<MaterialComponent>()->GetMaterial();
+
+		if (pMatComp)
+		{
+			Material* pMaterial = pMatComp->GetMaterial();
+			assert(pMaterial != nullptr);
+
+			renderable.pMaterial = pMaterial;
+		}
 
 		RenderableList queue;
 		queue.push_back(renderable);
 
-		mRenderables[RenderQueue::RenderableType::RT_OPAQUE] = queue;
+		mRenderables[RenderQueue::RenderableType::GE_RT_OPAQUE] = queue;
 	}
 	else
 	{
@@ -62,7 +71,7 @@ void RenderQueue::Push(Node* pNode)
 
 RenderQueue::RenderableList* RenderQueue::GetRenderables(const RenderQueue::RenderableType& type)
 {
-	assert((RenderableType::RT_BACKGROUND <= type) && (type < RenderableType::RT_COUNT));
+	assert((RenderableType::GE_RT_BACKGROUND <= type) && (type < RenderableType::GE_RT_COUNT));
 	assert(mRenderables.size() > 0);
 
 	return &mRenderables.at(type);

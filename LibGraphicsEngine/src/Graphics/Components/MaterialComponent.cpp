@@ -8,9 +8,28 @@ using namespace GraphicsEngine::Graphics;
 MaterialComponent::MaterialComponent()
 	: NodeComponent()
 	, mpMaterial(nullptr)
-{}
+{
+	Create();
+}
+
+MaterialComponent::MaterialComponent(const std::string& name)
+	: NodeComponent(name)
+	, mpMaterial(nullptr)
+{
+	Create();
+}
 
 MaterialComponent::~MaterialComponent()
+{
+	Destroy();
+}
+
+void MaterialComponent::Create()
+{
+	SetName(GetClassName_());
+}
+
+void MaterialComponent::Destroy()
 {
 	if (mpMaterial)
 	{
@@ -20,17 +39,12 @@ MaterialComponent::~MaterialComponent()
 
 void MaterialComponent::Start()
 {
-
+	//TODO
 }
 
-void MaterialComponent::Update(bfloat32_t deltaTime)
+void MaterialComponent::Update(float32_t deltaTime)
 {
-
-}
-
-const char_t* MaterialComponent::GetName() const
-{
-	return GetClassName_();
+	//TODO
 }
 
 Material* MaterialComponent::GetMaterial() const

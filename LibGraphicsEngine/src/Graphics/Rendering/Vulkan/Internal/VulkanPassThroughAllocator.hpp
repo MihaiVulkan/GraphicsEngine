@@ -1,7 +1,6 @@
-#ifndef GRAPHICS_RENDERING_VULKAN_PASSTHROUGH_ALLOCATOR_HPP
-#define GRAPHICS_RENDERING_VULKAN_PASSTHROUGH_ALLOCATOR_HPP
+#ifndef GRAPHICS_RENDERING_VULKAN_INTERNAL_VULKAN_PASS_THROUGH_ALLOCATOR_HPP
+#define GRAPHICS_RENDERING_VULKAN_INTERNAL_VULKAN_PASS_THROUGH_ALLOCATOR_HPP
 
-#include "Foundation/TypeDefs.hpp"
 #include "VulkanAllocator.hpp"
 
 namespace GraphicsEngine
@@ -17,17 +16,19 @@ namespace GraphicsEngine
 		*/
 		class VulkanPassThroughAllocator : public VulkanAllocator
 		{
+			GE_RTTI(GraphicsEngine::Graphics::VulkanPassThroughAllocator)
+
 		public:
 			VulkanPassThroughAllocator();
 			explicit VulkanPassThroughAllocator(VulkanDevice* pDevice);
 			virtual ~VulkanPassThroughAllocator();
 
-			virtual void Alloc(VulkanAllocator::Allocation& outAllocation, VkMemoryPropertyFlags usage, uint32_t memoryTypeIndex, VkDeviceSize size);
-			virtual void Free(const VulkanAllocator::Allocation& allocation);
+			virtual void Alloc(VkMemoryPropertyFlags usage, uint32_t memoryTypeIndex, VkDeviceSize size, VulkanAllocator::Allocation& outAllocation) override;
+			virtual void Free(const VulkanAllocator::Allocation& allocation) override;
 
 		private:
 		};
 	}
 }
 
-#endif // GRAPHICS_RENDERING_VULKAN_PASSTHROUGH_ALLOCATOR_HPP
+#endif // GRAPHICS_RENDERING_VULKAN_INTERNAL_VULKAN_PASS_THROUGH_ALLOCATOR_HPP

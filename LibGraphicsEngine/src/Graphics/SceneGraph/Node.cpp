@@ -7,31 +7,51 @@ using namespace GraphicsEngine;
 using namespace GraphicsEngine::Graphics;
 
 Node::Node()
-	: mName()
-	, mpParent(nullptr)
-	, mIsEnabled(false)
-{}
-
-Node::Node(const std::string& name)
-	: mName(name)
-	, mpParent(nullptr)
+	: mpParent(nullptr)
 	, mIsEnabled(false)
 {
+	Create();
+}
+
+Node::Node(const std::string& name)
+	: mpParent(nullptr)
+	, mIsEnabled(false)
+	, mName(name)
+{
+	Create();
 }
 
 Node::~Node()
 {
+	Destroy();
+}
+
+void Node::Create()
+{
+
+}
+
+void Node::Destroy()
+{
+	DettachAllComponents();
+
+	mName = "";
+	mIsEnabled = false;
+
 	if (mpParent)
 	{
 		mpParent = nullptr;
 	}
-
-
 }
 
 const std::string& Node::GetName() const
 {
 	return mName;
+}
+
+void Node::SetName(const std::string& name)
+{
+	mName = name;
 }
 
 bool_t Node::HasParent() const
@@ -49,30 +69,50 @@ void Node::SetParent(Node* pParent)
 	mpParent = pParent;
 }
 
-NodeComponent* Node::GetComponentWithName(const std::string& name)
+NodeComponent* Node::GetComponentWithName(const std::string& componentName)
 {
-	assert(name.empty() == false);
+	assert(componentName.empty() == false);
+	if (mComponentMap.empty())
+		return nullptr;
 
-	return mComponentMap[name];
+	auto it = mComponentMap.find(componentName);
+
+	if (it == mComponentMap.end())
+		return nullptr;
+
+	return it->second;
+}
+
+bool_t Node::HasComponentWithName(const std::string& componentName)
+{
+	assert(componentName.empty() == false);
+	if (mComponentMap.empty())
+		return false;
+
+	auto it = mComponentMap.find(componentName);
+
+	return (it != mComponentMap.end());
 }
 
 bool_t Node::HasComponent(NodeComponent* pComponent)
 {
 	assert(pComponent != nullptr);
+	assert(pComponent->GetName().empty() == false);
 
-	auto it = mComponentMap.find(pComponent->GetName());
-
-	return ((it != mComponentMap.end()) && (it->second != nullptr));
+	return HasComponentWithName(pComponent->GetName());
 }
 
 void Node::AttachComponent(NodeComponent* pComponent)
 {
 	assert(pComponent != nullptr);
+	assert(pComponent->GetName().empty() == false);
 
 	if (HasComponent(pComponent))
 		return;
 
 	mComponentMap[pComponent->GetName()] = pComponent;
+	pComponent->SetNode(this);
+	pComponent->OnAttach();
 }
 
 Node* Node::DettachFromParent()
@@ -80,7 +120,7 @@ Node* Node::DettachFromParent()
 	auto pNode = this;
 
 	GroupNode* pParent = GetParent< GroupNode >();
-	if (pParent != nullptr)
+	if (pParent)
 	{
 		pParent->DettachNode(pNode);
 	}
@@ -91,6 +131,7 @@ Node* Node::DettachFromParent()
 void Node::DettachComponent(NodeComponent* pComponent)
 {
 	assert(pComponent != nullptr);
+	assert(pComponent->GetName().empty() == false);
 
 	DettachComponentWithName(pComponent->GetName());
 }
@@ -98,33 +139,60 @@ void Node::DettachComponent(NodeComponent* pComponent)
 void Node::DettachComponentWithName(const std::string& componentName)
 {
 	assert(componentName.empty() == false);
+	if (mComponentMap.empty())
+		return;
 
 	auto it = mComponentMap.find(componentName);
 
-	if ((it != mComponentMap.end()) && (it->second != nullptr))
+	if (it != mComponentMap.end())
 	{
-		it->second->SetNode(nullptr);
+		auto pComponent = it->second;
+		if (pComponent)
+		{
+			pComponent->OnDettach();
+			pComponent->SetNode(nullptr);
+		}
 		mComponentMap.erase(it);
 	}
 }
 
 void Node::DettachAllComponents()
 {
-	for (auto& comp : mComponentMap)
-	{
-		comp.second->SetNode(nullptr);
-	}
+	ForEachComponent([](NodeComponent* pComponent)
+		{
+			if (pComponent)
+			{
+				pComponent->OnDettach();
+				pComponent->SetNode(nullptr);
+			}
+		});
 
 	mComponentMap.clear();
 }
 
-void Node::UpdateComponents(bfloat32_t deltaTime)
+void Node::StartComponents()
 {
-	ForEachComponent([&deltaTime](NodeComponent* component) { if (component->GetIsEnabled()) component->Update(deltaTime); });
+	ForEachComponent([](NodeComponent* pComponent)
+		{
+			if (pComponent && pComponent->GetIsEnabled())
+				pComponent->Start();
+		});
+}
+
+void Node::UpdateComponents(float32_t deltaTime)
+{
+	ForEachComponent([&deltaTime](NodeComponent* pComponent)
+		{ 
+			if (pComponent && pComponent->GetIsEnabled())
+				pComponent->Update(deltaTime);
+		});
 }
 
 void Node::ForEachComponent(std::function< void(NodeComponent*) > callback)
 {
+	if (mComponentMap.empty())
+		return;
+
 	for (auto& comp : mComponentMap)
 	{
 		if (comp.second)

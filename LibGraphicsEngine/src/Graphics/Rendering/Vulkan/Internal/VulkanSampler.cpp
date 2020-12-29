@@ -15,8 +15,8 @@ VulkanSampler::VulkanSampler()
 
 VulkanSampler::VulkanSampler(VulkanDevice* pDevice,
 	VkFilter magFilter, VkFilter minFilter, VkSamplerMipmapMode mipmapMode, VkSamplerAddressMode addressModeU, VkSamplerAddressMode addressModeV,
-	VkSamplerAddressMode addressModeW, bfloat32_t mipLodBias, VkBool32 anisotropyEnable, bfloat32_t maxAnisotropy, VkBool32 compareEnable,
-	VkCompareOp compareOp, bfloat32_t minLod, bfloat32_t maxLod, VkBorderColor borderColor, VkBool32 unnormalizedCoordinates,
+	VkSamplerAddressMode addressModeW, float32_t mipLodBias, VkBool32 anisotropyEnable, float32_t maxAnisotropy, VkBool32 compareEnable,
+	VkCompareOp compareOp, float32_t minLod, float32_t maxLod, VkBorderColor borderColor, VkBool32 unnormalizedCoordinates,
 	VkSamplerCreateFlags flags)
 	: mpDevice(pDevice)
 	, mHandle(VK_NULL_HANDLE)
@@ -47,7 +47,7 @@ void VulkanSampler::Create(const VkSamplerCreateInfo& samplerCreateInfo)
 	mSamplerData.mipLodBias = samplerCreateInfo.mipLodBias;
 	mSamplerData.anisotropyEnable = samplerCreateInfo.anisotropyEnable;
 	mSamplerData.maxAnisotropy = samplerCreateInfo.maxAnisotropy;
-	mSamplerData.compareEnable = samplerCreateInfo.maxAnisotropy;
+	mSamplerData.compareEnable = samplerCreateInfo.compareEnable;
 	mSamplerData.compareOp = samplerCreateInfo.compareOp;
 	mSamplerData.minLod = samplerCreateInfo.minLod;
 	mSamplerData.maxLod = samplerCreateInfo.maxLod;
@@ -59,6 +59,8 @@ void VulkanSampler::Create(const VkSamplerCreateInfo& samplerCreateInfo)
 
 void VulkanSampler::Destroy()
 {
+	assert(mpDevice != nullptr);
+
 	if (mHandle)
 	{
 		vkDestroySampler(mpDevice->GetDeviceHandle(), mHandle, nullptr);

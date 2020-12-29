@@ -2,12 +2,13 @@
 #define FOUNDATION_FILE_UTILS_HPP
 
 #include "TypeDefs.hpp"
+#include <string>
 
 namespace GraphicsEngine
 {
 	namespace FileUtils
 	{
-		char_t* ReadFile(const char_t* pFilePath, uint32_t& sizeOut);
+		void ReadFile(const std::string& filePath, std::string& fileContentOut);
 	}
 }
 

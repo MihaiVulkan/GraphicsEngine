@@ -42,7 +42,8 @@ VulkanGraphicsPipeline::VulkanGraphicsPipeline(VulkanDevice* pDevice, VulkanPipe
 	VkGraphicsPipelineCreateInfo graphicsPipelineCreateInfo =
 			VulkanInitializers::GraphicsPipelineCreateInfo(static_cast<uint32_t>(shaderStages.size()), shaderStages.data(), &vertexInputState, &inputAssemblyState,
 												&tessellationState, &viewportState, &rasterizationState, &multisampleState, &depthStencilState,
-												&colorBlendState, &dynamicState, pLayout->GetHandle(), pRenderPass->GetHandle(), subpassId, basePipelineHandle, basePipelineIndex, flags);
+												&colorBlendState, &dynamicState, pLayout->GetHandle(), pRenderPass->GetHandle(), subpassId, basePipelineHandle,
+												basePipelineIndex, flags);
 
 	Create(pCache, graphicsPipelineCreateInfo);
 }
@@ -54,11 +55,15 @@ VulkanGraphicsPipeline::~VulkanGraphicsPipeline()
 
 void VulkanGraphicsPipeline::Create(VulkanPipelineCache* pCache, const VkGraphicsPipelineCreateInfo& graphicsPipelineCreateInfo)
 {
+	assert(mpDevice != nullptr);
+
 	VK_CHECK_RESULT(vkCreateGraphicsPipelines(mpDevice->GetDeviceHandle(), pCache->GetHandle(), 1, &graphicsPipelineCreateInfo, nullptr, &mHandle));
 }
 
 void VulkanGraphicsPipeline::Destroy()
 {
+	assert(mpDevice != nullptr);
+
 	vkDestroyPipeline(mpDevice->GetDeviceHandle(), mHandle, nullptr);
 }
 

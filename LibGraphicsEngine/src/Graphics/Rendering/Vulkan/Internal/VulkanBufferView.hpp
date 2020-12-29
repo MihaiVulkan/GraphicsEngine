@@ -1,8 +1,7 @@
-#ifndef GRAPHICS_RENDERING_VULKAN_BUFFER_VIEW_HPP
-#define GRAPHICS_RENDERING_VULKAN_BUFFER_VIEW_HPP
+#ifndef GRAPHICS_RENDERING_VULKAN_INTERNAL_VULKAN_BUFFER_VIEW_HPP
+#define GRAPHICS_RENDERING_VULKAN_INTERNAL_VULKAN_BUFFER_VIEW_HPP
 
-#include "Foundation/TypeDefs.hpp"
-#include "vulkan/vulkan.h"
+#include "Graphics/Rendering/Vulkan/Common/VulkanObject.hpp"
 
 namespace GraphicsEngine
 {
@@ -18,8 +17,10 @@ namespace GraphicsEngine
 			a valid buffer view, the buffer must have been created with at least one of the following usage flags:
 			VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT, VK_BUFFER_USAGE_STORAGE_TEXEL_BUFFER_BIT 
 		*/
-		class VulkanBufferView
+		class VulkanBufferView : public VulkanObject
 		{
+			GE_RTTI(GraphicsEngine::Graphics::VulkanBufferView)
+
 		public:
 			VulkanBufferView();
 			explicit VulkanBufferView(VulkanDevice* pDevice, VkBuffer bufferHandle, VkFormat format, VkDeviceSize offset, VkDeviceSize range,
@@ -40,4 +41,4 @@ namespace GraphicsEngine
 	}
 }
 
-#endif // GRAPHICS_RENDERING_VULKAN_BUFFER_VIEW_HPP
+#endif // GRAPHICS_RENDERING_VULKAN_INTERNAL_VULKAN_BUFFER_VIEW_HPP

@@ -1,5 +1,5 @@
-#ifndef GRAPHICS_RENDERING_VULKAN_RESOURCES_UNIFORM_BUFFER_HPP
-#define GRAPHICS_RENDERING_VULKAN_RESOURCES_UNIFORM_BUFFER_HPP
+#ifndef GRAPHICS_RENDERING_VULKAN_RESOURCES_VULKAN_UNIFORM_BUFFER_HPP
+#define GRAPHICS_RENDERING_VULKAN_RESOURCES_VULKAN_UNIFORM_BUFFER_HPP
 
 #include "VulkanResource.hpp"
 
@@ -10,6 +10,8 @@ namespace GraphicsEngine
 		class Renderer;
 		class VulkanBuffer;
 		class UniformBuffer;
+
+		//TODO - add support for Push constants besides UBO
 
 		// Vulkan implementation of the Graphics API Dependent Resource
 		class GADRUniformBuffer : public GADRResource
@@ -22,7 +24,9 @@ namespace GraphicsEngine
 			virtual ~GADRUniformBuffer();
 
 			void UpdateData(UniformBuffer* pUniformBuffer = nullptr);
-			void Bind() const;
+			
+			virtual void OnBind() override;
+			virtual void OnUnBind() override;
 
 			//
 			VulkanBuffer* GetVKBuffer() const;
@@ -38,4 +42,4 @@ namespace GraphicsEngine
 	}
 }
 
-#endif // GRAPHICS_RENDERING_VULKAN_RESOURCES_UNIFORM_BUFFER_HPP
+#endif // GRAPHICS_RENDERING_VULKAN_RESOURCES_VULKAN_UNIFORM_BUFFER_HPP

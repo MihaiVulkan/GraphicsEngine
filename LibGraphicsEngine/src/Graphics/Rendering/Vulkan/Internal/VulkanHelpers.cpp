@@ -26,7 +26,7 @@ namespace GraphicsEngine
 			{
 				switch (errorCode)
 				{
-#define STR(r) case VK_ ##r: return #r
+#define STR(r) case VkResult::VK_ ##r: return #r
 					STR(NOT_READY);
 					STR(TIMEOUT);
 					STR(EVENT_SET);

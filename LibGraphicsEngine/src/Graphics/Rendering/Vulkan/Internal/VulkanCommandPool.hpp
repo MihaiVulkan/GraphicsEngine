@@ -1,8 +1,7 @@
-#ifndef GRAPHICS_RENDERING_VULKAN_COMMAN_POOL_HPP
-#define GRAPHICS_RENDERING_VULKAN_COMMAN_POOL_HPP
+#ifndef GRAPHICS_RENDERING_VULKAN_INTERNAL_VULKAN_COMMAND_POOL_HPP
+#define GRAPHICS_RENDERING_VULKAN_INTERNAL_VULKAN_COMMAND_POOL_HPP
 
-#include "Foundation/TypeDefs.hpp"
-#include "vulkan/vulkan.h"
+#include "Graphics/Rendering/Vulkan/Common/VulkanObject.hpp"
 
 namespace GraphicsEngine
 {
@@ -23,8 +22,10 @@ namespace GraphicsEngine
 			Any primary command buffer allocated from another VkCommandPool that is in the recording or executable state and has a secondary command buffer 
 			allocated from commandPool recorded into it, becomes invalid.
 		*/
-		class VulkanCommandPool
+		class VulkanCommandPool : public VulkanObject
 		{
+			GE_RTTI(GraphicsEngine::Graphics::VulkanCommandPool)
+
 		public:
 			VulkanCommandPool();
 			explicit VulkanCommandPool(VulkanDevice* pDevice, uint32_t queueFamilyIndex, VkCommandPoolCreateFlags flags = 0);
@@ -71,4 +72,4 @@ namespace GraphicsEngine
 	}
 }
 
-#endif // GRAPHICS_RENDERING_VULKAN_COMMAN_POOL_HPP
+#endif // GRAPHICS_RENDERING_VULKAN_INTERNAL_VULKAN_COMMAND_POOL_HPP

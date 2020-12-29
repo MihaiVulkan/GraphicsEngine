@@ -1,8 +1,7 @@
-#ifndef GRAPHICS_RENDERING_VULKAN_COMPUTE_PIPELINE_HPP
-#define GRAPHICS_RENDERING_VULKAN_COMPUTE_PIPELINE_HPP
+#ifndef GRAPHICS_RENDERING_VULKAN_INTERNAL_VULKAN_COMPUTE_PIPELINE_HPP
+#define GRAPHICS_RENDERING_VULKAN_INTERNAL_VULKAN_COMPUTE_PIPELINE_HPP
 
-#include "Foundation/TypeDefs.hpp"
-#include "vulkan/vulkan.h"
+#include "Graphics/Rendering/Vulkan/Common/VulkanObject.hpp"
 #include <vector>
 
 namespace GraphicsEngine
@@ -19,20 +18,22 @@ namespace GraphicsEngine
 			Compute pipelines consist of a single static compute shader stage and the pipeline layout.
 
 		*/
-		class VulkanComputePipeline
+		class VulkanComputePipeline : public VulkanObject
 		{
+			GE_RTTI(GraphicsEngine::Graphics::VulkanComputePipeline)
+
 		public:
 			VulkanComputePipeline();
-			explicit VulkanComputePipeline(VulkanDevice* pDevice, VulkanPipelineCache* pCache, const VkPipelineShaderStageCreateInfo& shaderStage,
-								  VulkanPipelineLayout* pLayout, VkPipeline basePipelineHandle = VK_NULL_HANDLE, int32_t basePipelineIndex = -1,
-				                  VkPipelineCreateFlags flags = 0);
+			explicit VulkanComputePipeline(VulkanDevice* pDevice, VkPipelineCache cacheHandle, const VkPipelineShaderStageCreateInfo& shaderStage,
+											VkPipelineLayout layoutHandle, VkPipeline basePipelineHandle = VK_NULL_HANDLE, int32_t basePipelineIndex = -1,
+											VkPipelineCreateFlags flags = 0);
 			virtual ~VulkanComputePipeline();
 
 
 			const VkPipeline& GetHandle() const;
 
 		private:
-			void Create(VulkanPipelineCache* pCache, const VkComputePipelineCreateInfo& graphicsPipelineCreateInfo);
+			void Create(VkPipelineCache cacheHandle, const VkComputePipelineCreateInfo& graphicsPipelineCreateInfo);
 			void Destroy();
 
 			VulkanDevice* mpDevice;
@@ -42,4 +43,4 @@ namespace GraphicsEngine
 	}
 }
 
-#endif // GRAPHICS_RENDERING_VULKAN_COMPUTE_PIPELINE_HPP
+#endif // GRAPHICS_RENDERING_VULKAN_INTERNAL_VULKAN_COMPUTE_PIPELINE_HPP

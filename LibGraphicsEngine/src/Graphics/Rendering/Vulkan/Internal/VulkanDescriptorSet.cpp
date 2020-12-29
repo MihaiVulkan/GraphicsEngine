@@ -38,6 +38,8 @@ void VulkanDescriptorSet::Create(const std::vector<VulkanDescriptorSetLayout*>& 
 	layoutHandles.resize(mLayouts.size());
 	for (size_t i = 0; i < layouts.size(); ++i)
 	{
+		assert(layouts[i] != nullptr);
+
 		mLayouts[i] = layouts[i];
 		layoutHandles[i] = mLayouts[i]->GetHandle();
 	}
@@ -50,11 +52,14 @@ void VulkanDescriptorSet::Create(const std::vector<VulkanDescriptorSetLayout*>& 
 
 void VulkanDescriptorSet::Destroy()
 {
+	assert(mpDevice != nullptr);
+	assert(mpDescriptorPool != nullptr);
+
 	mLayouts.clear();
 
 	if (mHandle)
 	{
-		vkFreeDescriptorSets(mpDevice->GetDeviceHandle(), mpDescriptorPool->GetHandle(), 1, &mHandle);
+		VK_CHECK_RESULT(vkFreeDescriptorSets(mpDevice->GetDeviceHandle(), mpDescriptorPool->GetHandle(), 1, &mHandle));
 		mHandle = VK_NULL_HANDLE;
 	}
 
@@ -71,6 +76,8 @@ void VulkanDescriptorSet::Destroy()
 
 void VulkanDescriptorSet::Update(const std::vector<VkWriteDescriptorSet>& writeSet, const std::vector<VkCopyDescriptorSet>& copySet)
 {
+	assert(mpDevice != nullptr);
+
 	vkUpdateDescriptorSets(mpDevice->GetDeviceHandle(), static_cast<uint32_t>(writeSet.size()), writeSet.data(),
 														static_cast<uint32_t>(copySet.size()), copySet.data());
 }

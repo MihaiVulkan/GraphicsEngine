@@ -35,6 +35,8 @@ void VulkanPipelineCache::Create(const VkPipelineCacheCreateInfo& pipelineCacheC
 
 void VulkanPipelineCache::Destroy()
 {
+	assert(mpDevice != nullptr);
+
 	if (mHandle)
 	{
 		vkDestroyPipelineCache(mpDevice->GetDeviceHandle(), mHandle, nullptr);
@@ -49,11 +51,15 @@ void VulkanPipelineCache::Destroy()
 
 VkResult VulkanPipelineCache::GetData(void* pData, size_t& pSize)
 {
+	assert(mpDevice != nullptr);
+
 	return vkGetPipelineCacheData(mpDevice->GetDeviceHandle(), mHandle, &pSize, pData);
 }
 
 VkResult VulkanPipelineCache::Merge(const std::vector<VulkanPipelineCache*>& caches)
 {
+	assert(mpDevice != nullptr);
+
 	std::vector<VkPipelineCache> cacheHandles;
 	cacheHandles.resize(caches.size());
 	for (size_t i = 0; i < cacheHandles.size(); ++i)
