@@ -5,6 +5,8 @@
 #include "vulkan/vulkan.h"
 
 #include "Graphics/Rendering/Resources/VertexFormat.hpp"
+#include "Graphics/Rendering/Resources/VertexBuffer.hpp"
+#include "Graphics/Rendering/Resources/IndexBuffer.hpp"
 #include "Graphics/Rendering/Resources/Shader.hpp"
 
 #include "Graphics/GeometricPrimitives/GeometricPrimitive.hpp"
@@ -21,6 +23,12 @@ namespace GraphicsEngine
 		{
 			// vertex format
 			VkFormat VertexFormatToVulkanVertexFormat(const VertexFormat::VertexAttribute& attribute, uint8_t dimension);
+
+			// vertex input rate
+			VkVertexInputRate VertexInputRateToVulkanVertexInputRate(const VertexBuffer::VertexInputRate& vertexInputRate);
+
+			// index type
+			VkIndexType IndexTypeToVulkanIndexType(const IndexBuffer::IndexType& indexType);
 
 			// geometric primitive
 			VkPrimitiveTopology PrimitiveTopologyToVulkanTopolgy(GeometricPrimitive::PrimitiveTopology topology);

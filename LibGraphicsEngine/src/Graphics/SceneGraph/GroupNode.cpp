@@ -44,7 +44,6 @@ bool_t GroupNode::HasChildren() const
 void GroupNode::AttachNode(Node* pNode)
 {
 	assert(pNode != nullptr);
-	assert(pNode != nullptr);
 
 	// node to add already is attached to this parent
 	if (pNode->GetParent() == this)
@@ -99,15 +98,17 @@ Node* GroupNode::GetNode(const std::string& nodeName)
 	return nullptr;
 }
 
-void GroupNode::Visit(std::function<void(Node*)> callback)
+void GroupNode::ForEachNode(std::function< void(Node*) > callback)
 {
-	if (callback)
-		callback(this);
-
-	// something else to do
+	//// process the children
 	for (auto& pNode : mChildren)
 	{
 		if (pNode)
-			pNode->Visit(callback);
+			callback(pNode);
 	}
+}
+
+void GroupNode::Accept(NodeVisitor& visitor)
+{
+	visitor.Visit(this);
 }

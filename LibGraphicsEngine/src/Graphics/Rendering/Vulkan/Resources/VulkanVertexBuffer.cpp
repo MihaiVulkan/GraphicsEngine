@@ -1,7 +1,9 @@
 #include "VulkanVertexBuffer.hpp"
 #include "Graphics/Rendering/Vulkan/Common/VulkanCommon.hpp"
+#include "Graphics/Rendering/Vulkan/Common/VulkanUtils.hpp"
 #include "Graphics/Rendering/Vulkan/VulkanRenderer.hpp"
 #include "Graphics/Rendering/Vulkan/Internal/VulkanDevice.hpp"
+#include "Graphics/Rendering/Vulkan/Internal/VulkanCommandBuffer.hpp"
 #include "Graphics/Rendering/Vulkan/Internal/VulkanBuffer.hpp"
 #include "Graphics/Rendering/Vulkan/Internal/VulkanInitializers.hpp"
 #include "Foundation/MemoryManagement/MemoryOperations.hpp"
@@ -12,13 +14,15 @@ using namespace GraphicsEngine;
 using namespace GraphicsEngine::Graphics;
 
 GADRVertexBuffer::GADRVertexBuffer()
-	: mpVulkanBuffer(nullptr)
+	: mpVulkanRenderer(nullptr)
+	, mpVulkanBuffer(nullptr)
 	, mpVertexBuffer(nullptr)
 	, mInputBinding{}
 {}
 
 GADRVertexBuffer::GADRVertexBuffer(Renderer* pRenderer, VertexBuffer* pVertexBuffer)
-	: mpVulkanBuffer(nullptr)
+	: mpVulkanRenderer(nullptr)
+	, mpVulkanBuffer(nullptr)
 	, mpVertexBuffer(pVertexBuffer)
 	, mInputBinding{}
 {
@@ -36,22 +40,15 @@ void GADRVertexBuffer::Create(Renderer* pRenderer)
 	assert(mpVertexBuffer != nullptr);
 	assert(mpVertexBuffer->GetData() != nullptr);
 
-	VkVertexInputRate vulkanInputRate = GADRVertexBuffer::InputRateToVulkanInputRate(mpVertexBuffer->GetInputRate());
-
-	auto format = mpVertexBuffer->GetFormat();
-	assert(format != nullptr);
-
-	mInputBinding.binding = VERTEX_BUFFER_BIND_ID;
-	mInputBinding.stride = format->GetVertexTotalStride();
-	mInputBinding.inputRate = vulkanInputRate;
-
 	// pRenderer must be a pointer to VulkanRenderer otherwise the cast will fail!
-	VulkanRenderer* pVulkanRenderer = dynamic_cast<VulkanRenderer*>(pRenderer);
-	assert(pVulkanRenderer != nullptr);
+	mpVulkanRenderer = dynamic_cast<VulkanRenderer*>(pRenderer);
+	assert(mpVulkanRenderer != nullptr);
 
-	VulkanDevice* pDevice = pVulkanRenderer->GetDevice();
+	VulkanDevice* pDevice = mpVulkanRenderer->GetDevice();
 	assert(pDevice != nullptr);
 
+	// To copy data from host (CPU) to device (GPU) we use staging buffers
+	// host local buffer is efficient for host, device local buffer is efficient for device
 
 	// Create a host-visible buffer to copy the vertex data to (staging buffer)
 	VulkanBuffer* pStagingVertices = GE_ALLOC(VulkanBuffer)
@@ -76,7 +73,7 @@ void GADRVertexBuffer::Create(Renderer* pRenderer)
 
 
 	// Buffer copies have to be submitted to a queue, so we need a command buffer for them
-	// Note: Some devices offer a dedicated transfer queue (with only the transfer bit set) that may be faster when doing lots of copies
+	// Note: Some devices offer a dedicated transfer/present queue (with only the transfer bit set) that may be faster when doing lots of copies
 
 	if (pDevice->IsPresentQueueSupported()) // separate present queue
 	{
@@ -87,10 +84,25 @@ void GADRVertexBuffer::Create(Renderer* pRenderer)
 		pStagingVertices->CopyTo(mpVulkanBuffer, pDevice->GetGraphicsQueue());
 	}
 	GE_FREE(pStagingVertices);
+
+	/////////////////////////
+	VkVertexInputRate vulkanInputRate = VulkanUtils::VertexInputRateToVulkanVertexInputRate(mpVertexBuffer->GetVertexInputRate());
+
+	auto format = mpVertexBuffer->GetFormat();
+	assert(format != nullptr);
+
+	mInputBinding.binding = VERTEX_BUFFER_BIND_ID; //NOTE! Not reflected in shader code
+	mInputBinding.stride = format->GetVertexTotalStride();
+	mInputBinding.inputRate = vulkanInputRate;
 }
 
 void GADRVertexBuffer::Destroy()
 {
+	if (mpVulkanRenderer)
+	{
+		mpVulkanRenderer = nullptr;
+	}
+
 	if (mpVertexBuffer)
 	{
 		mpVertexBuffer = nullptr;
@@ -99,10 +111,18 @@ void GADRVertexBuffer::Destroy()
 	GE_FREE(mpVulkanBuffer);
 }
 
-
-VulkanBuffer* GADRVertexBuffer::GetVkBuffer() const
+void GADRVertexBuffer::OnBind(uint32_t currentBufferIdx)
 {
-	return mpVulkanBuffer;
+	auto cmdBuff = mpVulkanRenderer->GetCommandBuffer(currentBufferIdx);
+	assert(cmdBuff != nullptr);
+
+	VkDeviceSize offsets[1] = { 0 };
+	vkCmdBindVertexBuffers(cmdBuff->GetHandle(), VERTEX_BUFFER_BIND_ID, 1, &(mpVulkanBuffer->GetHandle()), offsets);
+}
+
+void GADRVertexBuffer::OnUnBind(uint32_t currentBufferIdx)
+{
+
 }
 
 const VkVertexInputBindingDescription& GADRVertexBuffer::GetVkInputBinding() const
@@ -117,29 +137,9 @@ const Buffer::BufferUsage& GADRVertexBuffer::GetBufferUsage() const
 	return mpVertexBuffer->GetBufferUsage();
 }
 
-const VertexBuffer::InputRate& GADRVertexBuffer::GetInputRate() const
+const VertexBuffer::VertexInputRate& GADRVertexBuffer::GetVertexInputRate() const
 {
 	assert(mpVertexBuffer != nullptr);
 
-	return mpVertexBuffer->GetInputRate();
-}
-
-VkVertexInputRate GADRVertexBuffer::InputRateToVulkanInputRate(const VertexBuffer::InputRate& inputRate)
-{
-	VkVertexInputRate vulkanInputRate = VkVertexInputRate::VK_VERTEX_INPUT_RATE_MAX_ENUM;
-
-	switch (inputRate)
-	{
-	case VertexBuffer::InputRate::GE_IR_VERTEX:
-		vulkanInputRate = VkVertexInputRate::VK_VERTEX_INPUT_RATE_VERTEX;
-		break;
-	case VertexBuffer::InputRate::GE_IR_INSTANCE:
-		vulkanInputRate = VkVertexInputRate::VK_VERTEX_INPUT_RATE_INSTANCE;
-		break;
-	case VertexBuffer::InputRate::GE_IR_COUNT:
-	default:
-		LOG_ERROR("Invalid Vulkan Vertex Buffer Input Rate!");
-	}
-
-	return vulkanInputRate;
+	return mpVertexBuffer->GetVertexInputRate();
 }

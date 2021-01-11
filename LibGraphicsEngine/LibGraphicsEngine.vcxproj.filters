@@ -76,6 +76,9 @@
     <Filter Include="Source Files\Graphics\ShaderTools\GLSL">
       <UniqueIdentifier>{0b7efec8-a0fd-496b-9e05-6f7e5ab1bb84}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Graphics\SceneGraph\Visitors">
+      <UniqueIdentifier>{22fda94d-fa28-49b9-995b-679c2e3f872b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="framework.h">
@@ -90,25 +93,13 @@
     <ClInclude Include="src\GraphicsEngine.hpp">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Foundation\Platform\Win32\Win32App.hpp">
-      <Filter>Source Files\Foundation\Platform\Win32</Filter>
-    </ClInclude>
     <ClInclude Include="src\Foundation\Platform\Win32\Win32Platform.hpp">
       <Filter>Source Files\Foundation\Platform\Win32</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Foundation\Platform\Win32\Win32Types.hpp">
-      <Filter>Source Files\Foundation\Platform\Win32</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Foundation\Platform\InputDef.hpp">
-      <Filter>Source Files\Foundation\Platform</Filter>
     </ClInclude>
     <ClInclude Include="src\Foundation\Platform\Platform.hpp">
       <Filter>Source Files\Foundation\Platform</Filter>
     </ClInclude>
     <ClInclude Include="src\Foundation\Platform\PlatformInternal.hpp">
-      <Filter>Source Files\Foundation\Platform</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Foundation\Platform\PlatformTypes.hpp">
       <Filter>Source Files\Foundation\Platform</Filter>
     </ClInclude>
     <ClInclude Include="src\Foundation\MemoryManagement\Allocator.hpp">
@@ -426,19 +417,22 @@
     <ClInclude Include="src\Foundation\Variant.hpp">
       <Filter>Source Files\Foundation</Filter>
     </ClInclude>
+    <ClInclude Include="src\Foundation\Platform\InputMacros.hpp">
+      <Filter>Source Files\Foundation\Platform</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\SceneGraph\Visitors\NodeVisitor.hpp">
+      <Filter>Source Files\Graphics\SceneGraph\Visitors</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\SceneGraph\Visitors\ComputeRenderQueueVisitor.hpp">
+      <Filter>Source Files\Graphics\SceneGraph\Visitors</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Engine.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Foundation\Platform\Win32\Win32App.cpp">
-      <Filter>Source Files\Foundation\Platform\Win32</Filter>
-    </ClCompile>
     <ClCompile Include="src\Foundation\Platform\Win32\Win32Platform.cpp">
       <Filter>Source Files\Foundation\Platform\Win32</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Foundation\Platform\Platform.cpp">
-      <Filter>Source Files\Foundation\Platform</Filter>
     </ClCompile>
     <ClCompile Include="src\Foundation\MemoryManagement\LiniarAllocator.cpp">
       <Filter>Source Files\Foundation\MemoryManagement</Filter>
@@ -724,6 +718,15 @@
     </ClCompile>
     <ClCompile Include="src\Foundation\Variant.cpp">
       <Filter>Source Files\Foundation</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Foundation\Platform\PlatformInternal.cpp">
+      <Filter>Source Files\Foundation\Platform</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\SceneGraph\Visitors\NodeVisitor.cpp">
+      <Filter>Source Files\Graphics\SceneGraph\Visitors</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\SceneGraph\Visitors\ComputeRenderQueueVisitor.cpp">
+      <Filter>Source Files\Graphics\SceneGraph\Visitors</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

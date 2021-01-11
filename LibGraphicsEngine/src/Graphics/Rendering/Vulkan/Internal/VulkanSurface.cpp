@@ -30,16 +30,18 @@ VulkanSurface::~VulkanSurface()
 void VulkanSurface::Create()
 {
 	assert(mpDevice != nullptr);
-	assert(mpDevice->GetWindow() != nullptr);
 
-	// TODO - fix this
-#ifdef _WIN32
+	// TODO - improve this or move to Platform
+#if defined(_WIN32)
+	Platform::WindowWin32* pWindow = dynamic_cast<Platform::WindowWin32*>(mpDevice->GetWindow());
+	assert(pWindow != nullptr);
+
 	VkWin32SurfaceCreateInfoKHR win32SurfaceCreateInfo = {};
 	win32SurfaceCreateInfo.sType = VkStructureType::VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
 	win32SurfaceCreateInfo.pNext = nullptr;
 	win32SurfaceCreateInfo.flags = 0;
-	win32SurfaceCreateInfo.hinstance = mpDevice->GetWindow()->win32.instance;
-	win32SurfaceCreateInfo.hwnd = mpDevice->GetWindow()->win32.handle;
+	win32SurfaceCreateInfo.hinstance = pWindow->GetPlatformData().instance;
+	win32SurfaceCreateInfo.hwnd = pWindow->GetPlatformData().handle;
 
 	VK_CHECK_RESULT(vkCreateWin32SurfaceKHR(mpDevice->GetInstanceHandle(), &win32SurfaceCreateInfo, nullptr, &mHandle));
 #else

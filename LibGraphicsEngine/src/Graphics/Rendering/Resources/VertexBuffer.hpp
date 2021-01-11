@@ -14,19 +14,19 @@ namespace GraphicsEngine
 			GE_RTTI(GraphicsEngine::Graphics::VertexBuffer)
 
 		public:
-			enum class InputRate : uint8_t
+			enum class VertexInputRate : uint8_t
 			{
-				GE_IR_VERTEX = 0,
-				GE_IR_INSTANCE,
-				GE_IR_COUNT
+				GE_VIR_VERTEX = 0,
+				GE_VIR_INSTANCE,
+				GE_VIR_COUNT
 			};
 
 			VertexBuffer();
-			explicit VertexBuffer(VertexFormat* vertexFormat, Buffer::BufferUsage usage, VertexBuffer::InputRate inputRate, void* pData, uint32_t size);
+			explicit VertexBuffer(VertexFormat* vertexFormat, Buffer::BufferUsage usage, VertexBuffer::VertexInputRate vertexInputRate, void* pData, uint32_t size);
 			virtual ~VertexBuffer();
 
 			VertexFormat* GetFormat() const;
-			const VertexBuffer::InputRate& GetInputRate() const;
+			const VertexBuffer::VertexInputRate& GetVertexInputRate() const;
 			const uint32_t& GetVertexCount() const;
 
 
@@ -35,7 +35,7 @@ namespace GraphicsEngine
 			void Destroy();
 
 			VertexFormat* mpFormat;
-			VertexBuffer::InputRate mInputRate;
+			VertexBuffer::VertexInputRate mVertexInputRate;
 			uint32_t mVertexCount;
 		};
 	}

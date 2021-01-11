@@ -10,14 +10,14 @@ using namespace GraphicsEngine::Graphics;
 VertexBuffer::VertexBuffer()
 	: Buffer()
 	, mpFormat(nullptr)
-	, mInputRate(VertexBuffer::InputRate::GE_IR_COUNT)
+	, mVertexInputRate(VertexBuffer::VertexInputRate::GE_VIR_COUNT)
 	, mVertexCount(0)
 {}
 
-VertexBuffer::VertexBuffer(VertexFormat* pFormat, Buffer::BufferUsage usage, VertexBuffer::InputRate inputRate, void* pData, uint32_t size)
+VertexBuffer::VertexBuffer(VertexFormat* pFormat, Buffer::BufferUsage usage, VertexBuffer::VertexInputRate vertexInputRate, void* pData, uint32_t size)
 	: Buffer(usage, pData, size)
 	, mpFormat(pFormat)
-	, mInputRate(inputRate)
+	, mVertexInputRate(vertexInputRate)
 	, mVertexCount(0)
 {
 	Create(pData);
@@ -40,7 +40,7 @@ void VertexBuffer::Create(void* pData)
 void VertexBuffer::Destroy()
 {
 	mVertexCount = 0;
-	mInputRate = InputRate::GE_IR_COUNT;
+	mVertexInputRate = VertexInputRate::GE_VIR_COUNT;
 	mpFormat = nullptr;
 	
 	Buffer::Destroy();
@@ -51,9 +51,9 @@ VertexFormat* VertexBuffer::GetFormat() const
 	return mpFormat;
 }
 
-const VertexBuffer::InputRate& VertexBuffer::GetInputRate() const
+const VertexBuffer::VertexInputRate& VertexBuffer::GetVertexInputRate() const
 {
-	return mInputRate;
+	return mVertexInputRate;
 }
 
 const uint32_t& VertexBuffer::GetVertexCount() const

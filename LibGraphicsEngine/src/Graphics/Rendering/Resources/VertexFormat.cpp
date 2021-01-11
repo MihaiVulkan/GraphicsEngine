@@ -104,7 +104,7 @@ void VertexFormat::Destroy()
 	mVertexAttributes.clear();
 }
 
-// TODO - for now we work wih float data
+// TODO - for now we work wih float data as iit is the most inclusive attribute type
 uint32_t VertexFormat::GetVertexAttributeStride(const VertexFormat::VertexAttribute& att) const
 {
 	assert((att >= VertexFormat::VertexAttribute::GE_VA_POSITION) && (att < VertexFormat::VertexAttribute::GE_VA_COUNT));

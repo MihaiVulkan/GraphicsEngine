@@ -5,7 +5,6 @@
 
 #include "AppConfig.hpp"
 #include "Foundation/Object.hpp"
-#include "Foundation/NoCopyNoMove.hpp"
 #include "glm/common.hpp"
 #include "glm/vec3.hpp"
 #include "glm/mat4x4.hpp"
@@ -165,6 +164,24 @@ namespace GraphicsEngine
 
 			void SetViewMatrix(const glm::mat4& view);
 			void SetProjectionMatrix(const glm::mat4& proj);
+
+			////////////// FPS Camera Interface  ////////////////
+			enum class CAMERA_DIRECTIONS : uint8_t
+			{
+				GE_CD_FORWARD = 0,
+				GE_CD_BACKWARD,
+				GE_CD_RIGHT,
+				GE_CD_LEFT,
+				GE_CD_UP,
+				GE_CD_DOWN,
+				GE_CD_COUNT
+			};
+
+			virtual void UpdateOrientationWithMouse(float32_t dx, float32_t dy) {};
+			virtual void UpdatePositionWithKeyboard(float32_t value, const Camera::CAMERA_DIRECTIONS& dir) {};
+
+			virtual float32_t GetPitch() const { return 0.0f; };
+			virtual float32_t GetYaw() const { return 0.0f; };
 
 		protected:
 			float32_t ComputePerspectiveProjectionCorrectionFactor() const;

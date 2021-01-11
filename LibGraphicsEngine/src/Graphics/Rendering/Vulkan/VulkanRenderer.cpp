@@ -85,7 +85,7 @@ VulkanRenderer::~VulkanRenderer()
 	Terminate();
 }
 
-void VulkanRenderer::Init(Platform::GE_Window* pWindow)
+void VulkanRenderer::Init(Platform::Window* pWindow)
 {
 	Renderer::Init(pWindow);
 
@@ -117,18 +117,22 @@ void VulkanRenderer::Terminate()
 
 	//////////
 	// pipeline objects
-	for (auto& pipelineData : mPipelineDataCollection)
+	for (auto iter = mPipelineDataCollection.begin(); iter != mPipelineDataCollection.end(); ++iter)
 	{
-		GE_FREE(pipelineData.pPipelineLayout);
-		GE_FREE(pipelineData.pGraphicsPipeline);
+		auto& ref = iter->second;
+		GE_FREE(ref.pPipelineLayout);
+		GE_FREE(ref.pGraphicsPipeline);
 	}
+	mPipelineDataCollection.clear();
 
 	// descriptor set objects
-	for (auto& descriptorSetData : mDescriptorSetDataCollection)
+	for (auto iter = mDescriptorSetDataCollection.begin(); iter != mDescriptorSetDataCollection.end(); ++iter)
 	{
-		GE_FREE(descriptorSetData.pDescriptorSetLayout);
-		GE_FREE(descriptorSetData.pDescriptorSet);
+		auto& ref = iter->second;
+		GE_FREE(ref.pDescriptorSetLayout);
+		GE_FREE(ref.pDescriptorSet);
 	}
+	mDescriptorSetDataCollection.clear();
 
 	GE_FREE(mpDescriptorPool);
 
@@ -492,6 +496,7 @@ void VulkanRenderer::getQueryResults()
 void VulkanRenderer::resetQuery(uint32_t currentBufferIdx)
 {
 #ifdef PIPELINE_STATS
+	assert(currentBufferIdx < mDrawCommandBuffers.size());
 	assert(mpQueryPool != nullptr);
 
 	mpQueryPool->ResetQuery(mDrawCommandBuffers[currentBufferIdx]->GetHandle(), static_cast<uint32_t>(mPipelineStats.size()));
@@ -501,6 +506,7 @@ void VulkanRenderer::resetQuery(uint32_t currentBufferIdx)
 void VulkanRenderer::beginQuery(uint32_t currentBufferIdx)
 {
 #ifdef PIPELINE_STATS
+	assert(currentBufferIdx < mDrawCommandBuffers.size());
 	assert(mpQueryPool != nullptr);
 	auto pCrrDrawCommandBuffer = mDrawCommandBuffers[currentBufferIdx];
 	assert(pCrrDrawCommandBuffer != nullptr);
@@ -512,7 +518,9 @@ void VulkanRenderer::beginQuery(uint32_t currentBufferIdx)
 void VulkanRenderer::endQuery(uint32_t currentBufferIdx)
 {
 #ifdef PIPELINE_STATS
+	assert(currentBufferIdx < mDrawCommandBuffers.size());
 	assert(mpQueryPool != nullptr);
+
 	auto pCrrDrawCommandBuffer = mDrawCommandBuffers[currentBufferIdx];
 	assert(pCrrDrawCommandBuffer != nullptr);
 
@@ -671,19 +679,21 @@ void VulkanRenderer::PresentFrame()
 
 void VulkanRenderer::DrawObject(RenderQueue::Renderable* pRenderable, uint32_t currentBufferIdx)
 {
-	if (false == mIsPrepared)
-		return;
+	/*if (false == mIsPrepared)
+		return;*/
 
 	assert(pRenderable != nullptr);
+	assert(currentBufferIdx < mDrawCommandBuffers.size());
+
+	assert(mpRenderPass != nullptr);
+	assert(mDescriptorSetDataCollection.empty() == false);
+	assert(mPipelineDataCollection.empty() == false);
 
 	auto pGeoNode = pRenderable->pGeometryNode;
 	assert(pGeoNode != nullptr);
 
 	auto pCrrDrawCommandBuffer = mDrawCommandBuffers[currentBufferIdx];
 	assert(pCrrDrawCommandBuffer != nullptr);
-
-	//TODO - fix
-	BindShaderBindings(currentBufferIdx, mDescriptorSetDataCollection[0].pDescriptorSet, mPipelineDataCollection[0].pPipelineLayout, mPipelineDataCollection[0].pGraphicsPipeline);
 
 	VisualComponent* pVisComp = pGeoNode->GetComponent<VisualComponent>();
 	assert(pVisComp != nullptr);
@@ -696,6 +706,15 @@ void VulkanRenderer::DrawObject(RenderQueue::Renderable* pRenderable, uint32_t c
 		UpdateDynamicStates(dynamicState, currentBufferIdx);
 	}
 
+
+	// uniform -> descriptorsets bindings
+	// Bind descriptor sets describing shader binding points
+	auto descriptorSet = mDescriptorSetDataCollection[mpRenderPass->GetPassType()].pDescriptorSet;
+	assert(descriptorSet != nullptr);
+	auto pipelineLayout = mPipelineDataCollection[mpRenderPass->GetPassType()].pPipelineLayout;
+	assert(pipelineLayout != nullptr);
+	vkCmdBindDescriptorSets(pCrrDrawCommandBuffer->GetHandle(), VkPipelineBindPoint::VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout->GetHandle(), 0, 1, &descriptorSet->GetHandle(), 0, nullptr);
+
 	//bind material
 	/*if (pRenderable->pMaterial)
 	{
@@ -704,42 +723,34 @@ void VulkanRenderer::DrawObject(RenderQueue::Renderable* pRenderable, uint32_t c
 
 	// draw geometric primitives
 	auto& geoPrimitives = pGeoNode->GetGeometricPrimitives();
-
-
 	for (auto& primitive : geoPrimitives)
 	{
 		if (primitive)
 		{
 			//bind vertex format
-			GADRVertexFormat* gadrVertexFormat = Bind(primitive->GetVertexFormat());
-			assert(gadrVertexFormat != nullptr);
-
+			Bind(primitive->GetVertexFormat());
+			
 			// bind vertex buffer
-			GADRVertexBuffer* gadrVertexBuffer = Bind(primitive->GetVertexBuffer());
-			assert(gadrVertexBuffer != nullptr);
+			auto* pVertexBuffer = primitive->GetVertexBuffer();
+			assert(pVertexBuffer != nullptr);
 
-			VkDeviceSize offsets[1] = { 0 };
-			vkCmdBindVertexBuffers(pCrrDrawCommandBuffer->GetHandle(), VERTEX_BUFFER_BIND_ID, 1, &(gadrVertexBuffer->GetVkBuffer()->GetHandle()), offsets);
+			Bind(pVertexBuffer, currentBufferIdx);
+
+			// bind index buffer
+			auto* pIndexBuffer = primitive->GetIndexBuffer();
+			assert(pIndexBuffer != nullptr);
 
 			if (primitive->IsIndexed())
 			{
-				// bind index buffer
-				GADRIndexBuffer* gadrIndexBuffer = Bind(primitive->GetIndexBuffer());
-				assert(gadrIndexBuffer != nullptr);
-
-				VkIndexType vkIndexType = GADRIndexBuffer::IndexTypeToVulkanIndexType(primitive->GetIndexBuffer()->GetIndexType());
-				vkCmdBindIndexBuffer(pCrrDrawCommandBuffer->GetHandle(), gadrIndexBuffer->GetVkBuffer()->GetHandle(), 0, vkIndexType);
-
-				// draw indexed
-				// 1 instance as we do not do instance drawing
-				vkCmdDrawIndexed(pCrrDrawCommandBuffer->GetHandle(), primitive->GetIndexBuffer()->GetIndexCount(), 1, 0, 0, 1);
+				Bind(pIndexBuffer, currentBufferIdx);
 			}
-			else
-			{
-				// draw
-				// 1 instance as we do not do instance drawing
-				vkCmdDraw(pCrrDrawCommandBuffer->GetHandle(), primitive->GetVertexBuffer()->GetVertexCount(), 1, 0, 0);
-			}
+
+			uint32_t count = (primitive->IsIndexed() ? pIndexBuffer->GetIndexCount() : pVertexBuffer->GetVertexCount());
+
+			//TODO - improve instance count logic
+			uint32_t instanceCount = (pVertexBuffer->GetVertexInputRate() == VertexBuffer::VertexInputRate::GE_VIR_VERTEX ? 1 : 0);
+
+			DrawDirect(count, instanceCount, currentBufferIdx, primitive->IsIndexed());
 		}
 	}
 }
@@ -755,9 +766,10 @@ void VulkanRenderer::ComputeGraphicsResources(RenderQueue* pRenderQueue, RenderP
 	mpRenderQueue = pRenderQueue;
 	mpRenderPass = pRenderPass;
 
+	// TODO - compute resources for all renderable types
 	auto renderableList = mpRenderQueue->GetRenderables(RenderQueue::RenderableType::GE_RT_OPAQUE);
 
-	mpRenderQueue->Each(renderableList,
+	mpRenderQueue->ForEach(renderableList,
 		[&, this](RenderQueue::Renderable* pRenderable)
 		{
 			assert(pRenderable != nullptr);
@@ -782,6 +794,7 @@ void VulkanRenderer::setupPipeline(GeometricPrimitive* pGeoPrimitive, VisualComp
 {
 	assert(pGeoPrimitive != nullptr);
 	assert(pVisComp != nullptr);
+	assert(mpRenderPass != nullptr);
 	assert(mpDevice != nullptr);
 
 	// setup Shader Bindings - uniforms, samplers, etc.
@@ -836,7 +849,7 @@ void VulkanRenderer::setupPipeline(GeometricPrimitive* pGeoPrimitive, VisualComp
 				}
 				assert(pGadrUniformBuffer != nullptr);
 
-				// descritpro metadata
+				// descriptor metadata
 				VkDescriptorType descriptorType = VkDescriptorType::VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 
 				DescriptorSetBindingData descriptorSetBindingData{};
@@ -904,7 +917,7 @@ void VulkanRenderer::setupPipeline(GeometricPrimitive* pGeoPrimitive, VisualComp
 
 		//////////////
 
-		// TODO - properly compute the number of allowed decriptot sets from this descriptor pool
+		// TODO - properly compute the number of allowed descriptor sets from this descriptor pool
 		uint32_t descriptorSetMaxCount = poolSizes.size();
 
 		// Create the global descriptor pool
@@ -954,7 +967,7 @@ void VulkanRenderer::setupPipeline(GeometricPrimitive* pGeoPrimitive, VisualComp
 
 			for (auto& data : descritptorSetBidingDataCollection)
 			{
-				// set descriptor set handle
+				// set descriptorset handle
 				data.writeSet.dstSet = descriptorData.pDescriptorSet->GetHandle();
 
 				writeDescriptorSets.push_back(data.writeSet);
@@ -963,7 +976,8 @@ void VulkanRenderer::setupPipeline(GeometricPrimitive* pGeoPrimitive, VisualComp
 
 		descriptorData.pDescriptorSet->Update(writeDescriptorSets, {});
 
-		mDescriptorSetDataCollection.push_back(descriptorData);
+		// TODO - improve render pass management
+		mDescriptorSetDataCollection[mpRenderPass->GetPassType()] = descriptorData;
 	}	
 	////////////
 
@@ -1009,6 +1023,8 @@ void VulkanRenderer::setupPipeline(GeometricPrimitive* pGeoPrimitive, VisualComp
 
 	VkPrimitiveTopology vulkanTopology = VulkanUtils::PrimitiveTopologyToVulkanTopolgy(pGeoPrimitive->GetTopology());
 
+	// TODO - improve resource creation - get it first time to create the Vulkan Index Buffer
+	Get(pGeoPrimitive->GetIndexBuffer());
 
 	/////////////////////////////////
 	VkPipelineVertexInputStateCreateInfo pipelineVertexInputStateCreateInfo =
@@ -1154,7 +1170,7 @@ void VulkanRenderer::setupPipeline(GeometricPrimitive* pGeoPrimitive, VisualComp
 		pipelineData.pPipelineLayout = GE_ALLOC(VulkanPipelineLayout)
 			(
 				mpDevice,
-				{ mDescriptorSetDataCollection[0].pDescriptorSetLayout }, {}
+				{ mDescriptorSetDataCollection[mpRenderPass->GetPassType()].pDescriptorSetLayout }, {}
 		);
 		assert(pipelineData.pPipelineLayout != nullptr);
 
@@ -1172,15 +1188,12 @@ void VulkanRenderer::setupPipeline(GeometricPrimitive* pGeoPrimitive, VisualComp
 				);
 		assert(pipelineData.pGraphicsPipeline != nullptr);
 
-		mPipelineDataCollection.push_back(pipelineData);
+		mPipelineDataCollection[mpRenderPass->GetPassType()] = pipelineData;
 	}
 }
 
 void VulkanRenderer::UpdateUniformBuffers(RenderQueue::Renderable* pRenderable, Camera* pCamera)
 {
-	if (false == mIsPrepared)
-		return;
-
 	assert(pRenderable != nullptr);
 	assert(pRenderable->pGeometryNode != nullptr);
 	assert(pCamera != nullptr);
@@ -1207,75 +1220,9 @@ void VulkanRenderer::UpdateUniformBuffers(RenderQueue::Renderable* pRenderable, 
 	}
 }
 
-void VulkanRenderer::BindShaderBindings(uint32_t currentBufferIdx, VulkanDescriptorSet* pDescriptorSet,
-					VulkanPipelineLayout* pPipelineLayout, VulkanGraphicsPipeline* pGraphicsPipeline)
-{
-	if (false == mIsPrepared)
-		return;
-
-	assert(pDescriptorSet != nullptr);
-	assert(pPipelineLayout != nullptr);
-	assert(pGraphicsPipeline != nullptr);
-	assert(mDrawCommandBuffers[currentBufferIdx] != nullptr);
-
-	// Bind descriptor sets describing shader binding points
-	vkCmdBindDescriptorSets(mDrawCommandBuffers[currentBufferIdx]->GetHandle(), VkPipelineBindPoint::VK_PIPELINE_BIND_POINT_GRAPHICS, pPipelineLayout->GetHandle(), 0, 1, &pDescriptorSet->GetHandle(), 0, nullptr);
-
-	// Bind the rendering pipeline
-	// The pipeline (state object) contains all states of the rendering pipeline, binding it will set all the states specified at pipeline creation time
-	vkCmdBindPipeline(mDrawCommandBuffers[currentBufferIdx]->GetHandle(), VkPipelineBindPoint::VK_PIPELINE_BIND_POINT_GRAPHICS, pGraphicsPipeline->GetHandle());
-}
-
-void VulkanRenderer::DrawSceneToCommandBuffer()
-{
-	assert(mpRenderPass != nullptr);
-	assert(mpRenderQueue != nullptr);
-
-	// THE ACTUAL RENDERING IS DONE HERE !!!!
-
-	// Set clear values for all framebuffer attachments with loadOp set to clear
-	// We use two attachments (color and depth) that are cleared at the start of the subpass and as such we need to set clear values for both
-	std::vector<VkClearValue> clearValues(2);
-	clearValues[0].color = { { 0.0f, 0.0f, 0.2f, 1.0f } };
-	clearValues[1].depthStencil = { 1.0f, 0 };
-
-	VkRect2D renderArea{};
-	renderArea.offset = VkOffset2D { 0, 0 };
-	renderArea.extent = VkExtent2D { mWindowWidth, mWindowHeight };
-
-	for (int32_t i = 0; i < mDrawCommandBuffers.size(); ++i)
-	{
-		assert(mDrawCommandBuffers[i] != nullptr);
-
-		// Begin command buffer recording
-		VK_CHECK_RESULT(mDrawCommandBuffers[i]->Begin());
-
-		resetQuery(i);
-
-		// RenderPass Begin
-		mpDefaultRenderPass->Begin(mDrawCommandBuffers[i]->GetHandle(), mDefaultFrameBuffers[i]->GetHandle(), renderArea, clearValues);
-
-		beginQuery(i);
-
-		mpRenderPass->Render(this, mpRenderQueue, i);
-
-		endQuery(i);
-
-		// RenderPass End
-		mpDefaultRenderPass->End(mDrawCommandBuffers[i]->GetHandle());
-
-		// End command buffer recording
-		// Ending the render pass will add an implicit barrier transitioning the frame buffer color attachment to 
-		// VK_IMAGE_LAYOUT_PRESENT_SRC_KHR for presenting it to the windowing system
-		VK_CHECK_RESULT(mDrawCommandBuffers[i]->End());
-	}
-}
-
 void VulkanRenderer::UpdateDynamicStates(const DynamicState& dynamicState, uint32_t currentBufferIdx)
 {
-	if (false == mIsPrepared)
-		return;
-
+	assert(currentBufferIdx < mDrawCommandBuffers.size());
 	auto pCrrDrawCommandBuffer = mDrawCommandBuffers[currentBufferIdx];
 	assert(pCrrDrawCommandBuffer != nullptr);
 
@@ -1324,6 +1271,91 @@ void VulkanRenderer::UpdateDynamicStates(const DynamicState& dynamicState, uint3
 	}
 }
 
+void VulkanRenderer::BindPipeline(uint32_t currentBufferIdx)
+{
+	assert(currentBufferIdx < mDrawCommandBuffers.size());
+	assert(mpRenderPass != nullptr);
+
+	auto pCrrDrawCommandBuffer = mDrawCommandBuffers[currentBufferIdx];
+	assert(pCrrDrawCommandBuffer != nullptr);
+
+	auto pipeline = mPipelineDataCollection[mpRenderPass->GetPassType()].pGraphicsPipeline;
+	assert(pipeline != nullptr);
+	// Bind the rendering pipeline
+	// The pipeline (state object) contains all states of the rendering pipeline, binding it will set all the states specified at pipeline creation time
+	vkCmdBindPipeline(pCrrDrawCommandBuffer->GetHandle(), VkPipelineBindPoint::VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->GetHandle());
+}
+
+void VulkanRenderer::DrawSceneToCommandBuffer()
+{
+	assert(mpRenderPass != nullptr);
+	assert(mpRenderQueue != nullptr);
+
+	// THE ACTUAL RENDERING IS DONE HERE !!!!
+
+	// Set clear values for all framebuffer attachments with loadOp set to clear
+	// We use two attachments (color and depth) that are cleared at the start of the subpass and as such we need to set clear values for both
+	std::vector<VkClearValue> clearValues(2);
+	clearValues[0].color = { { 0.0f, 0.0f, 0.2f, 1.0f } };
+	clearValues[1].depthStencil = { 1.0f, 0 };
+
+	VkRect2D renderArea{};
+	renderArea.offset = VkOffset2D { 0, 0 };
+	renderArea.extent = VkExtent2D { mWindowWidth, mWindowHeight };
+
+	for (int32_t i = 0; i < mDrawCommandBuffers.size(); ++i)
+	{
+		assert(mDrawCommandBuffers[i] != nullptr);
+
+		// Begin command buffer recording
+		VK_CHECK_RESULT(mDrawCommandBuffers[i]->Begin());
+
+		resetQuery(i);
+
+		// RenderPass Begin
+		mpDefaultRenderPass->Begin(mDrawCommandBuffers[i]->GetHandle(), mDefaultFrameBuffers[i]->GetHandle(), renderArea, clearValues);
+
+		beginQuery(i);
+
+		mpRenderPass->Render(this, mpRenderQueue, i);
+
+		endQuery(i);
+
+		// RenderPass End
+		// Ending the render pass will add an implicit barrier transitioning the frame buffer color attachment to 
+		// VK_IMAGE_LAYOUT_PRESENT_SRC_KHR for presenting it to the windowing system
+		mpDefaultRenderPass->End(mDrawCommandBuffers[i]->GetHandle());
+
+		// End command buffer recording
+		VK_CHECK_RESULT(mDrawCommandBuffers[i]->End());
+	}
+}
+
+void VulkanRenderer::DrawDirect(uint32_t vertexIndexCount, uint32_t instanceCount, uint32_t currentBufferIdx, bool_t isIndexedDrawing)
+{
+	assert(currentBufferIdx < mDrawCommandBuffers.size());
+
+	auto pCrrDrawCommandBuffer = mDrawCommandBuffers[currentBufferIdx];
+	assert(pCrrDrawCommandBuffer != nullptr);
+
+	if (isIndexedDrawing)
+	{
+		// TODO - for now firstVertex/Index, firstInstance, vertexOffset are all 0
+		vkCmdDrawIndexed(pCrrDrawCommandBuffer->GetHandle(), vertexIndexCount, instanceCount, 0, 0, 0);
+	}
+	else
+	{
+		// TODO - for now firstVertex/Index, firstInstance are all 0
+		vkCmdDraw(pCrrDrawCommandBuffer->GetHandle(), vertexIndexCount, instanceCount, 0, 0);
+	}
+}
+
+void VulkanRenderer::DrawIndirect(uint32_t vertexIndexCount, uint32_t instanceCount, uint32_t currentBufferIdx, bool_t isIndexedDrawing)
+{
+	// TODO - indirect draw
+}
+
+
 /////////////////////////////////////
 
 VulkanDevice* VulkanRenderer::GetDevice() const
@@ -1344,4 +1376,11 @@ VulkanRenderPass* VulkanRenderer::GetDefaultRenderPass() const
 VulkanCommandPool* VulkanRenderer::GetCommandPool() const
 {
 	return mpCommandPool;
+}
+
+VulkanCommandBuffer* VulkanRenderer::GetCommandBuffer(uint32_t currentBufferIdx) const
+{
+	assert(currentBufferIdx < mDrawCommandBuffers.size());
+
+	return mDrawCommandBuffers[currentBufferIdx];
 }

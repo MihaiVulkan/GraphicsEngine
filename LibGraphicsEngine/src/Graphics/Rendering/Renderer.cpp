@@ -54,11 +54,11 @@ Renderer::~Renderer()
 	Terminate();
 }
 
-void Renderer::Init(Platform::GE_Window* pWindow)
+void Renderer::Init(Platform::Window* pWindow)
 {
 	assert(pWindow != nullptr);
 	
-	Platform::GetWindowSize(pWindow, &mWindowWidth, &mWindowHeight);
+	pWindow->GetWindowSize(&mWindowWidth, &mWindowHeight);
 }
 
 
@@ -178,14 +178,14 @@ GADRVertexFormat* Renderer::Get(VertexFormat* pVertexFormat)
 	return nullptr;
 }
 
-GADRVertexBuffer* Renderer::Bind(VertexBuffer* pVertexBuffer)
+GADRVertexBuffer* Renderer::Bind(VertexBuffer* pVertexBuffer, uint32_t currentBufferIdx)
 {
 	assert(pVertexBuffer != nullptr);
 
 	auto pGADRVertexBuffer = Get(pVertexBuffer);
 	
 	if (pGADRVertexBuffer)
-		pGADRVertexBuffer->OnBind();
+		pGADRVertexBuffer->OnBind(currentBufferIdx);
 
 	return pGADRVertexBuffer;
 }
@@ -226,14 +226,14 @@ GADRVertexBuffer* Renderer::Get(VertexBuffer* pVertexBuffer)
 	return nullptr;
 }
 
-GADRIndexBuffer* Renderer::Bind(IndexBuffer* pIndexBuffer)
+GADRIndexBuffer* Renderer::Bind(IndexBuffer* pIndexBuffer, uint32_t currentBufferIdx)
 {
 	assert(pIndexBuffer != nullptr);
 
 	auto pGADRIndexBuffer = Get(pIndexBuffer);
 
 	if (pGADRIndexBuffer)
-		pGADRIndexBuffer->OnBind();
+		pGADRIndexBuffer->OnBind(currentBufferIdx);
 
 	return pGADRIndexBuffer;
 }

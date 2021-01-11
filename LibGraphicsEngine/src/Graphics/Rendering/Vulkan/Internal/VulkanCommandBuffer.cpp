@@ -55,7 +55,7 @@ void VulkanCommandBuffer::Destroy()
 		mHandle = VK_NULL_HANDLE;
 	}
 	mCommandPoolHandle = VK_NULL_HANDLE;
-
+	
 	if (mpDevice)
 	{
 		mpDevice = nullptr;

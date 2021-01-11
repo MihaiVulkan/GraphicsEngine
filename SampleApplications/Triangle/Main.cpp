@@ -80,7 +80,7 @@ int main()
 
 	VertexFormat vFormat(3, 0, 0, 3, 0); //P3 C3
 
-	VertexBuffer vb(&vFormat, Buffer::BufferUsage::GE_BU_STATIC, VertexBuffer::InputRate::GE_IR_VERTEX, vertexData.data(), vertexData.size() * sizeof(float32_t));
+	VertexBuffer vb(&vFormat, Buffer::BufferUsage::GE_BU_STATIC, VertexBuffer::VertexInputRate::GE_VIR_VERTEX, vertexData.data(), vertexData.size() * sizeof(float32_t));
 	IndexBuffer ib(Buffer::BufferUsage::GE_BU_STATIC, IndexBuffer::IndexType::GE_IT_UINT32, indexData.data(), indexData.size() * sizeof(uint32_t));
 
 	GeometricPrimitive geo(GeometricPrimitive::PrimitiveTopology::GE_PT_TRIANGLE_LIST,
@@ -140,7 +140,6 @@ int main()
 
 	/////////////////////////////
 	GeometryNode geoNode;
-
 	geoNode.AttachGeometry(&geo);
 
 	//MaterialComponent matComp;
@@ -158,7 +157,10 @@ int main()
 	app.GetGraphicsSystem()->GetMainCamera()->SetZFar(1000.0f);
 
 	////////////////////////////////////
-	app.GetGraphicsSystem()->SetScene(&geoNode);
+	GroupNode scene;
+	scene.AttachNode(&geoNode);
+
+	app.GetGraphicsSystem()->SetScene(&scene);
 
 	app.Run();
 

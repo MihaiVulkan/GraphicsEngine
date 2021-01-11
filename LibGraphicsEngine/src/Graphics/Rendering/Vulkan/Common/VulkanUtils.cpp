@@ -49,6 +49,48 @@ namespace GraphicsEngine
 				return format;
 			}
 
+			VkVertexInputRate VertexInputRateToVulkanVertexInputRate(const VertexBuffer::VertexInputRate& vertecInputRate)
+			{
+				VkVertexInputRate vulkanVertexInputRate = VkVertexInputRate::VK_VERTEX_INPUT_RATE_MAX_ENUM;
+
+				switch (vertecInputRate)
+				{
+				case VertexBuffer::VertexInputRate::GE_VIR_VERTEX:
+					vulkanVertexInputRate = VkVertexInputRate::VK_VERTEX_INPUT_RATE_VERTEX;
+					break;
+				case VertexBuffer::VertexInputRate::GE_VIR_INSTANCE:
+					vulkanVertexInputRate = VkVertexInputRate::VK_VERTEX_INPUT_RATE_INSTANCE;
+					break;
+				case VertexBuffer::VertexInputRate::GE_VIR_COUNT:
+				default:
+					LOG_ERROR("Invalid Vulkan Vertex Input Rate!");
+				}
+
+				return vulkanVertexInputRate;
+			}
+
+			VkIndexType IndexTypeToVulkanIndexType(const IndexBuffer::IndexType& indexType)
+			{
+				VkIndexType vulkanIndexType = VkIndexType::VK_INDEX_TYPE_MAX_ENUM;
+
+				switch (indexType)
+				{
+				case IndexBuffer::IndexType::GE_IT_UINT32:
+					vulkanIndexType = VkIndexType::VK_INDEX_TYPE_UINT32;
+					break;
+				case IndexBuffer::IndexType::GE_IT_UINT16:
+					vulkanIndexType = VkIndexType::VK_INDEX_TYPE_UINT16;
+					break;
+				case IndexBuffer::IndexType::GE_IT_UINT8:
+					vulkanIndexType = VkIndexType::VK_INDEX_TYPE_UINT8_EXT; //TOOD - check for extension support - VkPhysicalDeviceIndexTypeUint8FeaturesEXT 
+					break;
+				case IndexBuffer::IndexType::GE_IT_COUNT:
+				default:
+					LOG_ERROR("Invalid Vulkan Index Buffer Index Type!");
+				}
+
+				return vulkanIndexType;
+			}
 
 			VkPrimitiveTopology PrimitiveTopologyToVulkanTopolgy(GeometricPrimitive::PrimitiveTopology topology)
 			{

@@ -16,8 +16,8 @@ namespace GraphicsEngine
 			GADRResource();
 			virtual ~GADRResource();
 
-			virtual void OnBind() {};
-			virtual void OnUnBind() {};
+			virtual void OnBind(uint32_t currentBufferIdx = 0) {};
+			virtual void OnUnBind(uint32_t currentBufferIdx = 0) {};
 		};
 	}
 

@@ -6,6 +6,7 @@
 #include "Graphics/Rendering/RenderQueue.hpp"
 #include "Graphics/Rendering/RenderPasses/DefaultRenderPass.hpp"
 #include "Graphics/SceneGraph/Node.hpp"
+#include "Graphics/SceneGraph/Visitors/ComputeRenderQueueVisitor.hpp"
 #include "Camera/FPSCamera.hpp"
 #include "Foundation/MemoryManagement/MemoryOperations.hpp"
 #include <cassert>
@@ -21,7 +22,7 @@ GraphicsSystem::GraphicsSystem()
 , mpRenderPass(nullptr)
 {}
 
-GraphicsSystem::GraphicsSystem(Platform::GE_Window* pWindow)
+GraphicsSystem::GraphicsSystem(Platform::Window* pWindow)
 	: GraphicsSystem()
 {
 	Init(pWindow);
@@ -32,7 +33,7 @@ GraphicsSystem::~GraphicsSystem()
 	Terminate();
 }
 
-void GraphicsSystem::Init(Platform::GE_Window* pWindow)
+void GraphicsSystem::Init(Platform::Window* pWindow)
 {
 	assert(pWindow != nullptr);
 
@@ -49,7 +50,7 @@ void GraphicsSystem::Init(Platform::GE_Window* pWindow)
 	assert(mpMainCamera != nullptr);
 
 	uint32_t windowWidth = 0, windowHeight = 0;
-	Platform::GetWindowSize(pWindow, &windowWidth, &windowHeight);
+	pWindow->GetWindowSize(&windowWidth, &windowHeight);
 
 	mpMainCamera->SetAspectRatio(windowWidth / static_cast<float32_t>(windowHeight));
 
@@ -137,10 +138,9 @@ void GraphicsSystem::ComputeRenderQueue()
 	assert(mpScene != nullptr);
 	assert(mpRenderQueue != nullptr);
 
-	mpScene->Visit([this](Node* pNode)
-		{
-			mpRenderQueue->Push(pNode);
-		});
+	ComputeRenderQueueVisitor queueVisitor(mpRenderQueue);
+
+	mpScene->Traverse(queueVisitor);
 }
 
 void GraphicsSystem::ComputeGraphicsResources()

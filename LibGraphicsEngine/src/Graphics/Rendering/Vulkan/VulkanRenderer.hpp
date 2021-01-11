@@ -11,13 +11,15 @@
 
 #include "Graphics/Rendering/Vulkan/Common/VulkanObject.hpp"
 #include "Graphics/Rendering/Renderer.hpp"
+#include "Graphics/Rendering/RenderPasses/RenderPass.hpp"
 #include <vector>
+#include <unordered_map>
 
 namespace GraphicsEngine
 {
 	namespace Platform
 	{
-		class GE_Window;
+		class Window;
 	}
 
 	namespace Graphics
@@ -53,7 +55,7 @@ namespace GraphicsEngine
 			VulkanRenderer();
 			virtual ~VulkanRenderer();
 
-			virtual void Init(Platform::GE_Window* pWindow) override;
+			virtual void Init(Platform::Window* pWindow) override;
 			virtual void Terminate() override;
 
 			virtual void RenderFrame(RenderQueue* pRenderQueue, RenderPass* pRenderPass) override;
@@ -67,14 +69,11 @@ namespace GraphicsEngine
 			virtual void ComputeGraphicsResources(RenderQueue* pRenderQueue, RenderPass* pRenderPass) override;
 
 			virtual void UpdateUniformBuffers(RenderQueue::Renderable* pRenderable, Camera* pCamera) override;
+			virtual void UpdateDynamicStates(const DynamicState& dynamicState, uint32_t currentBufferIdx) override;
 
-			// this method differs from the Renderer interface!
-			virtual void BindShaderBindings(uint32_t currentBufferIdx, VulkanDescriptorSet* pDescriptorSet,
-				VulkanPipelineLayout* pPipelineLayout, VulkanGraphicsPipeline* pGraphicsPipeline);
+			virtual void BindPipeline(uint32_t currentBufferIdx) override;
 
 			virtual void DrawObject(RenderQueue::Renderable* pRenderable, uint32_t currentBufferIdx) override;
-
-			virtual void UpdateDynamicStates(const DynamicState& dynamicState, uint32_t currentBufferIdx) override;
 
 			//////////////////////////////
 
@@ -82,6 +81,8 @@ namespace GraphicsEngine
 			VulkanPipelineCache* GetPipelineCache() const;
 			VulkanRenderPass* GetDefaultRenderPass() const;
 			VulkanCommandPool* GetCommandPool() const;
+
+			VulkanCommandBuffer* GetCommandBuffer(uint32_t currentBufferIdx) const;
 
 		private:
 			void Prepare();
@@ -104,6 +105,9 @@ namespace GraphicsEngine
 			void endQuery(uint32_t currentBufferIdx);
 
 			void DrawSceneToCommandBuffer();
+
+			void DrawDirect(uint32_t vertexIndexCount, uint32_t instanceCount, uint32_t currentBufferIdx, bool_t isIndexedDrawing = false);
+			void DrawIndirect(uint32_t vertexIndexCount, uint32_t instanceCount, uint32_t currentBufferIdx, bool_t isIndexedDrawing = false);
 
 			virtual void BeginFrame() override;
 			virtual void EndFrame() override;
@@ -188,7 +192,7 @@ namespace GraphicsEngine
 				VulkanDescriptorSet* pDescriptorSet;
 			};
 
-			std::vector<DescriptorSetData> mDescriptorSetDataCollection;
+			std::unordered_map<RenderPass::PassType, DescriptorSetData> mDescriptorSetDataCollection;
 
 			struct PipelineData
 			{
@@ -197,7 +201,7 @@ namespace GraphicsEngine
 				VulkanGraphicsPipeline* pGraphicsPipeline;
 			};
 
-			std::vector<PipelineData> mPipelineDataCollection;
+			std::unordered_map<RenderPass::PassType, PipelineData> mPipelineDataCollection;
 		};
 	}
 }

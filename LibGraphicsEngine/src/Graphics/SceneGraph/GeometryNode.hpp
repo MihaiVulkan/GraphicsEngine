@@ -30,9 +30,10 @@ namespace GraphicsEngine
 
 			void ForEachPrimitive(std::function< void(GeometricPrimitive*) > callback);
 
-			virtual void Visit(std::function<void(Node*)> callback) override;
-
 			const std::vector<GeometricPrimitive*>& GetGeometricPrimitives() const;
+
+			///////// Visitor Pattern ///////
+			virtual void Accept(NodeVisitor& visitor) override;
 
 		private:
 			void Create();

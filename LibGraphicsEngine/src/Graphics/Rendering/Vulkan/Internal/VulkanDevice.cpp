@@ -34,7 +34,7 @@ VulkanDevice::VulkanDevice()
 	, mEnableValidationLayers(false)
 {}
 
-VulkanDevice::VulkanDevice(Platform::GE_Window* pWindow, bool_t enableValidation)
+VulkanDevice::VulkanDevice(Platform::Window* pWindow, bool_t enableValidation)
 	: mpInstance(nullptr)
 	, mpPhysicalDevice(nullptr)
 	, mpLogicalDevice(nullptr)
@@ -59,7 +59,7 @@ void VulkanDevice::Create()
 	assert(mpWindow != nullptr);
 
 	//// DEVICE ////
-	mpInstance = GE_ALLOC(VulkanInstance)(mpWindow->pTitle, mEnableValidationLayers);
+	mpInstance = GE_ALLOC(VulkanInstance)(mpWindow->GetWindowTitle(), mEnableValidationLayers);
 	assert(mpInstance != nullptr);
 
 	mpSurface = GE_ALLOC(VulkanSurface)(this);
@@ -290,7 +290,7 @@ const std::vector<VulkanSwapChainBuffer*>& VulkanDevice::GetSwapChainColorBuffer
 	return mpSwapChain->GetSwapChainColorBuffers();
 }
 
-const uint32_t& VulkanDevice::GetSwapChainColorBufferCount() const
+uint32_t VulkanDevice::GetSwapChainColorBufferCount() const
 {
 	assert(mpSwapChain != nullptr);
 
@@ -304,7 +304,7 @@ VulkanSwapChainBuffer* VulkanDevice::GetSwapChainDepthStencilBuffer() const
 	return mpSwapChain->GetSwapChainDepthStencilBuffer();
 }
 
-const Platform::GE_Window* VulkanDevice::GetWindow() const
+Platform::Window* VulkanDevice::GetWindow() const
 {
 	return mpWindow;
 }

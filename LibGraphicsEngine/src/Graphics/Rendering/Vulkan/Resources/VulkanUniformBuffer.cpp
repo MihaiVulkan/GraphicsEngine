@@ -84,12 +84,12 @@ void GADRUniformBuffer::UpdateData(UniformBuffer* pUniformBuffer)
 	mpVulkanBuffer->UnMap();
 }
 
-void GADRUniformBuffer::OnBind()
+void GADRUniformBuffer::OnBind(uint32_t currentBufferIdx)
 {
 	UpdateData(mpUniformBuffer);
 }
 
-void GADRUniformBuffer::OnUnBind()
+void GADRUniformBuffer::OnUnBind(uint32_t currentBufferIdx)
 {
 
 }

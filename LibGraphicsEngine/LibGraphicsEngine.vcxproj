@@ -194,13 +194,19 @@
     <ClInclude Include="src\Foundation\MemoryManagement\MemoryUtility.hpp" />
     <ClInclude Include="src\Foundation\NoCopyNoMove.hpp" />
     <ClInclude Include="src\Foundation\Object.hpp" />
-    <ClInclude Include="src\Foundation\Platform\InputDef.hpp" />
+    <ClInclude Include="src\Foundation\Platform\InputMacros.hpp" />
     <ClInclude Include="src\Foundation\Platform\Platform.hpp" />
-    <ClInclude Include="src\Foundation\Platform\PlatformInternal.hpp" />
-    <ClInclude Include="src\Foundation\Platform\PlatformTypes.hpp" />
-    <ClInclude Include="src\Foundation\Platform\Win32\Win32App.hpp" />
+    <ClInclude Include="src\Foundation\Platform\PlatformInternal.hpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+      </ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+      </ExcludedFromBuild>
+    </ClInclude>
     <ClInclude Include="src\Foundation\Platform\Win32\Win32Platform.hpp" />
-    <ClInclude Include="src\Foundation\Platform\Win32\Win32Types.hpp" />
     <ClInclude Include="src\Foundation\RTTI.hpp" />
     <ClInclude Include="src\Foundation\Timer.hpp" />
     <ClInclude Include="src\Foundation\TypeDefs.hpp" />
@@ -298,6 +304,8 @@
     <ClInclude Include="src\Graphics\SceneGraph\GeometryNode.hpp" />
     <ClInclude Include="src\Graphics\SceneGraph\GroupNode.hpp" />
     <ClInclude Include="src\Graphics\SceneGraph\Node.hpp" />
+    <ClInclude Include="src\Graphics\SceneGraph\Visitors\ComputeRenderQueueVisitor.hpp" />
+    <ClInclude Include="src\Graphics\SceneGraph\Visitors\NodeVisitor.hpp" />
     <ClInclude Include="src\Graphics\ShaderTools\GLSL\GLSLShaderTypes.hpp" />
     <ClInclude Include="src\Graphics\ShaderTools\GLSL\GLSLShaderParser.hpp" />
     <ClInclude Include="src\Input\InputSystem.hpp" />
@@ -314,8 +322,7 @@
     <ClCompile Include="src\Foundation\MemoryManagement\MemoryOperations.cpp" />
     <ClCompile Include="src\Foundation\MemoryManagement\MemoryUtility.cpp" />
     <ClCompile Include="src\Foundation\Object.cpp" />
-    <ClCompile Include="src\Foundation\Platform\Platform.cpp" />
-    <ClCompile Include="src\Foundation\Platform\Win32\Win32App.cpp" />
+    <ClCompile Include="src\Foundation\Platform\PlatformInternal.cpp" />
     <ClCompile Include="src\Foundation\Platform\Win32\Win32Platform.cpp" />
     <ClCompile Include="src\Foundation\Timer.cpp" />
     <ClCompile Include="src\Foundation\Variant.cpp" />
@@ -410,6 +417,8 @@
     <ClCompile Include="src\Graphics\SceneGraph\GeometryNode.cpp" />
     <ClCompile Include="src\Graphics\SceneGraph\GroupNode.cpp" />
     <ClCompile Include="src\Graphics\SceneGraph\Node.cpp" />
+    <ClCompile Include="src\Graphics\SceneGraph\Visitors\ComputeRenderQueueVisitor.cpp" />
+    <ClCompile Include="src\Graphics\SceneGraph\Visitors\NodeVisitor.cpp" />
     <ClCompile Include="src\Graphics\ShaderTools\GLSL\GLSLShaderParser.cpp" />
     <ClCompile Include="src\Input\InputSystem.cpp" />
     <ClCompile Include="src\System.cpp" />

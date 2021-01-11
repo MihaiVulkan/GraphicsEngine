@@ -210,9 +210,12 @@ void Node::SetIsEnabled(bool_t isEnabled)
 	mIsEnabled = isEnabled;
 }
 
-
-void Node::Visit(std::function<void(Node*)> callback)
+void Node::Traverse(NodeVisitor& visitor)
 {
-	if (callback)
-		callback(this);
+	visitor.Traverse(this);
+}
+
+void Node::Accept(NodeVisitor& visitor)
+{
+	visitor.Visit(this);
 }

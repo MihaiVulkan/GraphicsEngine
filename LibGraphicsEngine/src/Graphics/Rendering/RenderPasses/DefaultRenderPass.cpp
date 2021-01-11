@@ -7,7 +7,9 @@ using namespace GraphicsEngine;
 using namespace GraphicsEngine::Graphics;
 
 DefaultRenderPass::DefaultRenderPass()
-{}
+{
+	mPassType = RenderPass::PassType::GE_PT_STANDARD;
+}
 
 DefaultRenderPass::~DefaultRenderPass()
 {}
@@ -19,6 +21,8 @@ void DefaultRenderPass::Render(Renderer* pRenderer, RenderQueue* pRenderQueue, u
 
 	// BeginRender
 
+	BindPipeline(pRenderer, currentBufferIdx);
+
 	RenderOccluders(pRenderer, pRenderQueue, currentBufferIdx);
 	RenderOpaqueObjects(pRenderer, pRenderQueue, currentBufferIdx);
 	RenderTranslucentObjects(pRenderer, pRenderQueue, currentBufferIdx);
@@ -26,11 +30,18 @@ void DefaultRenderPass::Render(Renderer* pRenderer, RenderQueue* pRenderQueue, u
 	// EndRender
 }
 
+void DefaultRenderPass::BindPipeline(Renderer* pRenderer, uint32_t currentBufferIdx)
+{
+	assert(pRenderer != nullptr);
+
+	pRenderer->BindPipeline(currentBufferIdx);
+}
+
 void DefaultRenderPass::RenderOpaqueObjects(Renderer* pRenderer, RenderQueue* pRenderQueue, uint32_t currentBufferIdx)
 {
 	auto renderableList = pRenderQueue->GetRenderables(RenderQueue::RenderableType::GE_RT_OPAQUE);
 
-	pRenderQueue->Each(renderableList,
+	pRenderQueue->ForEach(renderableList,
 		[&, this](RenderQueue::Renderable* pRenderable)
 		{
 			assert(pRenderable != nullptr);
@@ -60,7 +71,7 @@ void DefaultRenderPass::UpdateOpaqueObjects(Renderer* pRenderer, RenderQueue* pR
 
 	auto renderableList = pRenderQueue->GetRenderables(RenderQueue::RenderableType::GE_RT_OPAQUE);
 
-	pRenderQueue->Each(renderableList,
+	pRenderQueue->ForEach(renderableList,
 		[&, this](RenderQueue::Renderable* pRenderable)
 		{
 			assert(pRenderable != nullptr);

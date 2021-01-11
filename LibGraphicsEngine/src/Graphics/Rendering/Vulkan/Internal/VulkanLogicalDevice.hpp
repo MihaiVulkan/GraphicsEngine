@@ -74,8 +74,6 @@ namespace GraphicsEngine
 			VkDevice mHandle;
 
 			// Queues
-			// TODO - maybe use a std::unordered_map for faster lookup
-			//std::vector<VulkanQueue*> mQueues;
 			std::unordered_map<VkQueueFlagBits, VulkanQueue*> mQueueMap;
 
 			// Queue family indices

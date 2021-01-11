@@ -11,7 +11,7 @@ namespace GraphicsEngine
 {
 	namespace Platform
 	{
-		class GE_Window;
+		class Window;
 	}
 	namespace Graphics
 	{
@@ -34,7 +34,7 @@ namespace GraphicsEngine
 
 		public:
 			VulkanDevice();
-			explicit VulkanDevice(Platform::GE_Window* pWindow, bool_t enableValidation);
+			explicit VulkanDevice(Platform::Window* pWindow, bool_t enableValidation);
 			virtual ~VulkanDevice();
 
 			void ResetSwapChain();
@@ -78,11 +78,11 @@ namespace GraphicsEngine
 			// swap chain
 			const VkSwapchainKHR& GetSwapChainHandle() const;
 			const std::vector<VulkanSwapChainBuffer*>& GetSwapChainColorBuffers() const;
-			const uint32_t& GetSwapChainColorBufferCount() const;
+			uint32_t GetSwapChainColorBufferCount() const;
 			VulkanSwapChainBuffer* GetSwapChainDepthStencilBuffer() const;
 
 			// window
-			const Platform::GE_Window* GetWindow() const;
+			Platform::Window* GetWindow() const;
 
 			// queues
 			bool_t IsGraphicsQueueSupported() const;
@@ -115,7 +115,7 @@ namespace GraphicsEngine
 
 
 			///////////// SURFACE /////////////
-			Platform::GE_Window* mpWindow;
+			Platform::Window* mpWindow;
 
 			VulkanSurface* mpSurface;
 

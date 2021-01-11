@@ -1,8 +1,7 @@
 #ifndef FOUNDATION_TIMER_HPP
 #define FOUNDATION_TIMER_HPP
 
-#include "TypeDefs.hpp"
-#include "NoCopyNoMove.hpp"
+#include "Object.hpp"
 #include <chrono>
 #include <thread>
 #include <functional>
@@ -13,8 +12,10 @@
 
 namespace GraphicsEngine
 {
-	class Timer
+	class Timer : public Object
 	{
+		GE_RTTI(GraphicsEngine::Timer)
+
 	public:
 		typedef std::function<void()> OnTimeOutFunc;
 

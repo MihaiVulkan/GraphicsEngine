@@ -48,10 +48,13 @@ namespace GraphicsEngine
 
 			void Push(Node* pNode);
 
+			void Push(GeometryNode* pGeoNode);
+			//TODO - push other nodes
+
 			RenderQueue::RenderableList* GetRenderables(const RenderQueue::RenderableType& type);
 
-			void Each(RenderQueue::RenderableList* pRenderableList, std::function< void(RenderQueue::Renderable*) > callback);
-			//void Each(std::function< void(Light*, int) > callback);
+			void ForEach(RenderQueue::RenderableList* pRenderableList, std::function< void(RenderQueue::Renderable*) > callback);
+			//void ForEach(std::function< void(Light*, int) > callback);
 
 
 

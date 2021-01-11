@@ -8,7 +8,7 @@ namespace GraphicsEngine
 {
 	namespace Platform
 	{
-		class GE_Window;
+		class Window;
 	}
 
 	namespace Graphics
@@ -26,7 +26,7 @@ namespace GraphicsEngine
 
 	public:
 		GraphicsSystem();
-		explicit GraphicsSystem(Platform::GE_Window* pWindow);
+		explicit GraphicsSystem(Platform::Window* pWindow);
 		virtual ~GraphicsSystem();
 
 		void Run(float32_t deltaTime);
@@ -47,7 +47,7 @@ namespace GraphicsEngine
 	private:
 		NO_COPY_NO_MOVE(GraphicsSystem)
 
-		void Init(Platform::GE_Window* pWindow);
+		void Init(Platform::Window* pWindow);
 		void Terminate();
 
 		void ComputeRenderQueue();

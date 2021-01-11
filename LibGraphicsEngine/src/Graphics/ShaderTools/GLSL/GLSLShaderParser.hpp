@@ -2,7 +2,6 @@
 #define GRAPHICS_SHADER_TOOLS_GLSL_GLSL_SHADER_PARSER_HPP
 
 #include "Foundation/Object.hpp"
-#include "Foundation/NoCopyNoMove.hpp"
 #include "Graphics/Rendering/Resources/VertexFormat.hpp"
 #include "Graphics/Rendering/Resources/Shader.hpp"
 #include <string>

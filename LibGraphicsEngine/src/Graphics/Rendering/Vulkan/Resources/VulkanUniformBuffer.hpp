@@ -25,8 +25,8 @@ namespace GraphicsEngine
 
 			void UpdateData(UniformBuffer* pUniformBuffer = nullptr);
 			
-			virtual void OnBind() override;
-			virtual void OnUnBind() override;
+			virtual void OnBind(uint32_t currentBufferIdx = 0) override;
+			virtual void OnUnBind(uint32_t currentBufferIdx = 0) override;
 
 			//
 			VulkanBuffer* GetVKBuffer() const;

@@ -3,7 +3,6 @@
 
 #include "AppConfig.hpp"
 #include "Foundation/Object.hpp"
-#include "Foundation/NoCopyNoMove.hpp"
 #include "Foundation/DynamicSingleton.hpp"
 #include <string>
 
@@ -34,7 +33,7 @@ namespace GraphicsEngine
 {
 	namespace Platform
 	{
-		class GE_Window;
+		class Window;
 	}
 
 	class InputSystem;
@@ -53,7 +52,7 @@ namespace GraphicsEngine
 
 		void Run();
 
-		Platform::GE_Window* GetWindow();
+		Platform::Window* GetWindow();
 		GraphicsSystem* GetGraphicsSystem();
 		InputSystem* GetInputSystem();
 
@@ -67,7 +66,7 @@ namespace GraphicsEngine
 		void FPSCount(float32_t deltaTime);
 
 		// Window - TODO - only one window for now
-		Platform::GE_Window* mpWindow;
+		Platform::Window* mpWindow;
 
 		GraphicsSystem* mpGraphicsSystem;
 		InputSystem* mpInputSystem;

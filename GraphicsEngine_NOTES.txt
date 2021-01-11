@@ -1,10 +1,14 @@
 TODO
 
-NOTE! Regarding the Vulkan backedn we have:
+NOTE! Regarding the Vulkan backend we have:
 - command pools and command buffers
 - descritpor pools and descriptor sets
 - query pools and queries
 Maybe add some kind of managers to construct commands, descriptors and queries on demand from those pools
+
+- add global config
+
+- migrate to cmake
 
 - add ref_counted/ref_pointers to manage the memory of resources
 
@@ -196,6 +200,13 @@ http://entity-systems.wikidot.com/
 
 
 # Useful resources:
+
+* Culling scene primitives/objects:
+https://docs.unrealengine.com/en-US/RenderingAndGraphics/VisibilityCulling/index.html
+https://github.com/kakashidinho/3DSceneManager
+
+
+//////////////////////////////
 http://entity-systems.wikidot.com/
 
 https://docs.unrealengine.com/en-US/API/Runtime/Engine/index.html

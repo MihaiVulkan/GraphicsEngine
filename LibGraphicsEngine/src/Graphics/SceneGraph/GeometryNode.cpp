@@ -70,15 +70,12 @@ void GeometryNode::ForEachPrimitive(std::function< void(GeometricPrimitive*) > c
 	}
 }
 
-void GeometryNode::Visit(std::function<void(Node*)> callback)
-{
-	if (callback)
-		callback(this);
-
-	//something else to do
-}
-
 const std::vector<GeometricPrimitive*>& GeometryNode::GetGeometricPrimitives() const
 {
 	return mPrimitives;
+}
+
+void GeometryNode::Accept(NodeVisitor& visitor)
+{
+	visitor.Visit(this);
 }

@@ -3,6 +3,7 @@
 
 #include "TypeDefs.hpp"
 #include "RTTI.hpp"
+#include "Foundation/NoCopyNoMove.hpp"
 
 namespace GraphicsEngine
 {

@@ -21,7 +21,8 @@ namespace GraphicsEngine
 			explicit CameraNode(const std::string& name);
 			virtual ~CameraNode();
 
-			virtual void Visit(std::function<void(Node*)> callback) override;
+			///////// Visitor Pattern ///////
+			virtual void Accept(NodeVisitor& visitor) override;
 
 		private:
 			void Create();

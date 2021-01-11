@@ -18,7 +18,7 @@ InputSystem::InputSystem()
 {}
 
 
-InputSystem::InputSystem(Platform::GE_Window* pWindow, Graphics::Camera* pCamera, InputSystem::InputMode inputMode)
+InputSystem::InputSystem(Platform::Window* pWindow, Graphics::Camera* pCamera, InputSystem::InputMode inputMode)
 	: mpWindow(pWindow)
 	, mpCamera(pCamera)
 	, mInputMode(inputMode)
@@ -38,38 +38,26 @@ void InputSystem::Init()
 	assert(mpCamera != nullptr);
 
 	// Initial Input Setup
-	//mKeyboardKeys
-
+	
 	// Callbacks
+	mpWindow->RegisterKeyCallback(
+		[this](int32_t key, int32_t scancode, int32_t action)
+		{
+			if (mpWindow == nullptr)
+				return;
 
-	//auto cb = std::bind(&Engine::onMouseButton, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
-	//Platform::RegisterMouseButtonCallback(mpWindow, (Platform::GE_MouseButtonFN)&cb);
-
-	Platform::RegisterMouseButtonCallback(mpWindow,
-		[](Platform::GE_Window* pWindow, int32_t button, int32_t action, int32_t mods)
-		{
-			;
-		});
-	Platform::RegisterMouseMoveCallback(mpWindow,
-		[](Platform::GE_Window* pWindow, int32_t xPos, int32_t yPos)
-		{
-			;
-		});
-	Platform::RegisterKeyCallback(mpWindow,
-		[this](Platform::GE_Window* pWindow, int32_t key, int32_t scancode, int32_t action, int32_t mods)
-		{
-			if (pWindow->keys[GE_KEY_ESCAPE])
+			if (mpWindow->GetState().keys[GE_KEY_ESCAPE])
 			{
-				Platform::SetShouldWindowClose(pWindow, true);
+				mpWindow->SetShouldWindowClose(true);
 			}
 
 			if (mInputMode == InputMode::GE_IM_FPS)
 			{
-				if (pWindow->keys[GE_KEY_1])
+				if (mpWindow->GetState().keys[GE_KEY_1])
 				{
 					mIsCursorCapured = !mIsCursorCapured;
 
-					(mIsCursorCapured ? Platform::HideCursor() : Platform::ShowCursor());
+					(mIsCursorCapured ? mpWindow->HideCursor() : mpWindow->ShowCursor());
 				}
 			}
 		});
@@ -93,11 +81,9 @@ void InputSystem::Init()
 			// The keyboard is used to navigate freely using W, A, S, D or the arraw keys
 			// keyboard is in repeat mode - the user can keep pressing a key for a longer period of time
 
-		//	Platform::UpdateWindowFlags(mWindowPtr, Platform::GE_WindowFlags::GE_WINDOW_INPUT_GRABBED);
-
 			mIsCursorCapured = true;
 
-			Platform::HideCursor();
+			mpWindow->HideCursor();
 
 			UpdateCursorPos();
 		}
@@ -106,6 +92,7 @@ void InputSystem::Init()
 
 	// KEYBOARD
 	// ...
+
 }
 
 void InputSystem::Terminate()
@@ -128,9 +115,9 @@ void InputSystem::UpdateCursorPos()
 {
 	// conversion unsigned int -> int
 	uint32_t winWidth = 0, winHeight = 0;
-	Platform::GetWindowSize(mpWindow, &winWidth, &winHeight);
+	mpWindow->GetWindowSize(&winWidth, &winHeight);
 
-	Platform::SetCursorPos(mpWindow, winWidth / 2, winHeight / 2);
+	mpWindow->SetCursorPos(winWidth / 2, winHeight / 2);
 }
 
 void InputSystem::UpdateContinuousInput(float32_t deltaTime)
@@ -151,43 +138,39 @@ void InputSystem::UpdateContinuousInput(float32_t deltaTime)
 
 void InputSystem::UpdateFPSInput(float32_t deltaTime)
 {
-	//TODO - remove dynamic_cast at runtime as it is really slow!!!
-	FPSCamera* pFPSCamera = dynamic_cast<FPSCamera*>(mpCamera);
-	assert(pFPSCamera != nullptr);
-
 	{
 		///////// KEYBOARD ///////////
 		const float32_t KeySpeed = 0.01f;
 		float32_t deltaVal = KeySpeed * deltaTime;
 
-		if (mpWindow->keys[GE_KEY_W] || mpWindow->keys[GE_KEY_UP])
+		if (mpWindow->GetState().keys[GE_KEY_W] || mpWindow->GetState().keys[GE_KEY_UP])
 		{
-			pFPSCamera->UpdatePositionWithKeyboard(deltaVal, FPSCamera::CAMERA_DIRECTIONS::GE_CD_FORWARD);
+			mpCamera->UpdatePositionWithKeyboard(deltaVal, FPSCamera::CAMERA_DIRECTIONS::GE_CD_FORWARD);
 		}
 
-		if (mpWindow->keys[GE_KEY_S] || mpWindow->keys[GE_KEY_DOWN])
+		if (mpWindow->GetState().keys[GE_KEY_S] || mpWindow->GetState().keys[GE_KEY_DOWN])
 		{
-			pFPSCamera->UpdatePositionWithKeyboard(deltaVal, FPSCamera::CAMERA_DIRECTIONS::GE_CD_BACKWARD);
+			mpCamera->UpdatePositionWithKeyboard(deltaVal, FPSCamera::CAMERA_DIRECTIONS::GE_CD_BACKWARD);
 		}
 
-		if (mpWindow->keys[GE_KEY_A] || mpWindow->keys[GE_KEY_LEFT])
+		if (mpWindow->GetState().keys[GE_KEY_A] || mpWindow->GetState().keys[GE_KEY_LEFT])
 		{
-			pFPSCamera->UpdatePositionWithKeyboard(deltaVal, FPSCamera::CAMERA_DIRECTIONS::GE_CD_LEFT);
+			mpCamera->UpdatePositionWithKeyboard(deltaVal, FPSCamera::CAMERA_DIRECTIONS::GE_CD_LEFT);
 		}
 
-		if (mpWindow->keys[GE_KEY_D] || mpWindow->keys[GE_KEY_RIGHT])
+		if (mpWindow->GetState().keys[GE_KEY_D] || mpWindow->GetState().keys[GE_KEY_RIGHT])
 		{
-			pFPSCamera->UpdatePositionWithKeyboard(deltaVal, FPSCamera::CAMERA_DIRECTIONS::GE_CD_RIGHT);
+			mpCamera->UpdatePositionWithKeyboard(deltaVal, FPSCamera::CAMERA_DIRECTIONS::GE_CD_RIGHT);
 		}
 
-		if (mpWindow->keys[GE_KEY_U])
+		if (mpWindow->GetState().keys[GE_KEY_U])
 		{
-			pFPSCamera->UpdatePositionWithKeyboard(deltaVal, FPSCamera::CAMERA_DIRECTIONS::GE_CD_UP);
+			mpCamera->UpdatePositionWithKeyboard(deltaVal, FPSCamera::CAMERA_DIRECTIONS::GE_CD_UP);
 		}
 
-		if (mpWindow->keys[GE_KEY_B])
+		if (mpWindow->GetState().keys[GE_KEY_B])
 		{
-			pFPSCamera->UpdatePositionWithKeyboard(deltaVal, FPSCamera::CAMERA_DIRECTIONS::GE_CD_DOWN);
+			mpCamera->UpdatePositionWithKeyboard(deltaVal, FPSCamera::CAMERA_DIRECTIONS::GE_CD_DOWN);
 		}
 	}
 
@@ -196,12 +179,12 @@ void InputSystem::UpdateFPSInput(float32_t deltaTime)
 	if (mIsCursorCapured)
 	{
 		int32_t cursorXPos = 0, cursorYPos = 0;
-		Platform::GetCursorPos(mpWindow, &cursorXPos, &cursorYPos);
+		mpWindow->GetCursorPos(&cursorXPos, &cursorYPos);
 
 		//	LOG_DEBUG("Mouse Pos: x: %d, y: %d", cursorXPos, cursorYPos);
 
 		uint32_t winWidth = 0, winHeight = 0;
-		Platform::GetWindowSize(mpWindow, &winWidth, &winHeight);
+		mpWindow->GetWindowSize(&winWidth, &winHeight);
 
 		// conversion unsigned int -> int
 		int32_t halfWidth = winWidth / 2;
@@ -213,9 +196,9 @@ void InputSystem::UpdateFPSInput(float32_t deltaTime)
 
 		//	LOG_DEBUG("Delta Mouse Pos: dx: %f, dy: %f", dx, dy);
 
-		Platform::SetCursorPos(mpWindow, halfWidth, halfHeight);
+		mpWindow->SetCursorPos(halfWidth, halfHeight);
 
 		// update camera
-		pFPSCamera->UpdateOrientationWithMouse(dx, dy);
+		mpCamera->UpdateOrientationWithMouse(dx, dy);
 	}
 }

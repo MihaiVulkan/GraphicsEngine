@@ -31,40 +31,28 @@ void RenderQueue::Destroy()
 	}
 }
 
-void RenderQueue::Push(Node* pNode)
+void RenderQueue::Push(GeometryNode* pGeoNode)
 {
-	assert(pNode != nullptr);
+	assert(pGeoNode != nullptr);
 
-	if (pNode->GetClassName_() == "GraphicsEngine::Graphics::GeometryNode")
+	// TODO - improve this - insert based on renderableType, for now we use only opaque type
+	MaterialComponent* pMatComp = pGeoNode->GetComponent<MaterialComponent>();
+
+	Renderable renderable{};
+	renderable.pGeometryNode = pGeoNode;
+
+	if (pMatComp)
 	{
+		Material* pMaterial = pMatComp->GetMaterial();
+		assert(pMaterial != nullptr);
 
-		// TODO - improve this - insert based on renderableType
-
-		GeometryNode* pGeoNode = dynamic_cast<GeometryNode*>(pNode);
-		assert(pGeoNode != nullptr);
-
-		MaterialComponent* pMatComp = pGeoNode->GetComponent<MaterialComponent>();
-
-		Renderable renderable{};
-		renderable.pGeometryNode = pGeoNode;
-
-		if (pMatComp)
-		{
-			Material* pMaterial = pMatComp->GetMaterial();
-			assert(pMaterial != nullptr);
-
-			renderable.pMaterial = pMaterial;
-		}
-
-		RenderableList queue;
-		queue.push_back(renderable);
-
-		mRenderables[RenderQueue::RenderableType::GE_RT_OPAQUE] = queue;
+		renderable.pMaterial = pMaterial;
 	}
-	else
-	{
-		// other cases
-	}
+
+	RenderableList queue;
+	queue.push_back(renderable);
+
+	mRenderables[RenderQueue::RenderableType::GE_RT_OPAQUE] = queue;
 }
 
 //TODO push light object
@@ -77,7 +65,7 @@ RenderQueue::RenderableList* RenderQueue::GetRenderables(const RenderQueue::Rend
 	return &mRenderables.at(type);
 }
 
-void RenderQueue::Each(RenderQueue::RenderableList* pRenderableList, std::function< void(RenderQueue::Renderable*) > callback)
+void RenderQueue::ForEach(RenderQueue::RenderableList* pRenderableList, std::function< void(RenderQueue::Renderable*) > callback)
 {
 	assert(pRenderableList != nullptr);
 	assert(pRenderableList->empty() != true);

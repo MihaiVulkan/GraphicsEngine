@@ -9,6 +9,7 @@ namespace GraphicsEngine
 	namespace Graphics
 	{
 		class Renderer;
+		class VulkanRenderer;
 		class VulkanBuffer;
 
 		// Vulkan implementation of the Graphics API Dependent Resource
@@ -21,18 +22,17 @@ namespace GraphicsEngine
 			explicit GADRIndexBuffer(Renderer* pRenderer, IndexBuffer* pIndexBuffer);
 			virtual ~GADRIndexBuffer();
 
-			//void Bind();
+			virtual void OnBind(uint32_t currentBufferIdx = 0) override;
+			virtual void OnUnBind(uint32_t currentBufferIdx = 0) override;
 
 			const Buffer::BufferUsage& GetBufferUsage() const;
 			const IndexBuffer::IndexType& GetIndexType() const;
 
-			VulkanBuffer* GetVkBuffer() const;
-
-			static VkIndexType IndexTypeToVulkanIndexType(const IndexBuffer::IndexType& indexType);
-
 		private:
 			void Create(Renderer* pRenderer);
 			void Destroy();
+
+			VulkanRenderer* mpVulkanRenderer;
 
 			VulkanBuffer* mpVulkanBuffer;
 			IndexBuffer* mpIndexBuffer;

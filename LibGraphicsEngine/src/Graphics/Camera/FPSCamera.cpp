@@ -89,7 +89,7 @@ void FPSCamera::UpdateOrientationWithMouse(float32_t dx, float32_t dy)
 	//	LOG("UP x: %f y: %f z: %f", mUp.x, mUp.y, mUp.z);
 }
 
-void FPSCamera::UpdatePositionWithKeyboard(float32_t value, const FPSCamera::CAMERA_DIRECTIONS& dir)
+void FPSCamera::UpdatePositionWithKeyboard(float32_t value, const Camera::CAMERA_DIRECTIONS& dir)
 {
 	glm::vec3 deltaMove(0.0f);
 

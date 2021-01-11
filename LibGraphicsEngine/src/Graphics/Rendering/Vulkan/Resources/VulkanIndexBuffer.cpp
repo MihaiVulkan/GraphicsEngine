@@ -1,6 +1,8 @@
 #include "VulkanIndexBuffer.hpp"
+#include "Graphics/Rendering/Vulkan/Common/VulkanUtils.hpp"
 #include "Graphics/Rendering/Vulkan/VulkanRenderer.hpp"
 #include "Graphics/Rendering/Vulkan/Internal/VulkanDevice.hpp"
+#include "Graphics/Rendering/Vulkan/Internal/VulkanCommandBuffer.hpp"
 #include "Graphics/Rendering/Vulkan/Internal/VulkanBuffer.hpp"
 #include "Graphics/Rendering/Vulkan/Internal/VulkanInitializers.hpp"
 #include "Foundation/MemoryManagement/MemoryOperations.hpp"
@@ -11,12 +13,14 @@ using namespace GraphicsEngine;
 using namespace GraphicsEngine::Graphics;
 
 GADRIndexBuffer::GADRIndexBuffer()
-	: mpVulkanBuffer(nullptr)
+	: mpVulkanRenderer(nullptr)
+	, mpVulkanBuffer(nullptr)
 	, mpIndexBuffer(nullptr)
 {}
 
 GADRIndexBuffer::GADRIndexBuffer(Renderer* pRenderer, IndexBuffer* pIndexBuffer)
-	: mpVulkanBuffer(nullptr)
+	: mpVulkanRenderer(nullptr)
+	, mpVulkanBuffer(nullptr)
 	, mpIndexBuffer(pIndexBuffer)
 {
 	Create(pRenderer);
@@ -33,13 +37,15 @@ void GADRIndexBuffer::Create(Renderer* pRenderer)
 	assert(mpIndexBuffer != nullptr);
 	assert(mpIndexBuffer->GetData() != nullptr);
 
-
 	// pRenderer must be a pointer to VulkanRenderer otherwise the cast will fail!
-	VulkanRenderer* pVulkanRenderer = dynamic_cast<VulkanRenderer*>(pRenderer);
-	assert(pVulkanRenderer != nullptr);
+	mpVulkanRenderer = dynamic_cast<VulkanRenderer*>(pRenderer);
+	assert(mpVulkanRenderer != nullptr);
 
-	VulkanDevice* pDevice = pVulkanRenderer->GetDevice();
+	VulkanDevice* pDevice = mpVulkanRenderer->GetDevice();
 	assert(pDevice != nullptr);
+
+	// To copy data from host (CPU) to device (GPU) we use staging buffers
+	// host local buffer is efficient for host, device local buffer is efficient for device
 
 	// Create a host-visible buffer to copy the vertex data to (staging buffer)
 	VulkanBuffer* pStagingIndices = GE_ALLOC(VulkanBuffer)
@@ -85,6 +91,20 @@ void GADRIndexBuffer::Destroy()
 	GE_FREE(mpVulkanBuffer);
 }
 
+void GADRIndexBuffer::OnBind(uint32_t currentBufferIdx)
+{
+	auto cmdBuff = mpVulkanRenderer->GetCommandBuffer(currentBufferIdx);
+	assert(cmdBuff != nullptr);
+
+	VkIndexType vkIndexType = VulkanUtils::IndexTypeToVulkanIndexType(mpIndexBuffer->GetIndexType());
+	vkCmdBindIndexBuffer(cmdBuff->GetHandle(), mpVulkanBuffer->GetHandle(), 0, vkIndexType);
+}
+
+void GADRIndexBuffer::OnUnBind(uint32_t currentBufferIdx)
+{
+
+}
+
 const Buffer::BufferUsage& GADRIndexBuffer::GetBufferUsage() const
 {
 	assert(mpIndexBuffer != nullptr);
@@ -97,32 +117,4 @@ const IndexBuffer::IndexType& GADRIndexBuffer::GetIndexType() const
 	assert(mpIndexBuffer != nullptr);
 
 	return mpIndexBuffer->GetIndexType();
-}
-
-VulkanBuffer* GADRIndexBuffer::GetVkBuffer() const
-{
-	return mpVulkanBuffer;
-}
-
-VkIndexType GADRIndexBuffer::IndexTypeToVulkanIndexType(const IndexBuffer::IndexType& indexType)
-{
-	VkIndexType vulkanIndexType = VkIndexType::VK_INDEX_TYPE_MAX_ENUM;
-
-	switch (indexType)
-	{
-	case IndexBuffer::IndexType::GE_IT_UINT32:
-		vulkanIndexType = VkIndexType::VK_INDEX_TYPE_UINT32;
-		break;
-	case IndexBuffer::IndexType::GE_IT_UINT16:
-		vulkanIndexType = VkIndexType::VK_INDEX_TYPE_UINT16;
-		break;
-	case IndexBuffer::IndexType::GE_IT_UINT8:
-		vulkanIndexType = VkIndexType::VK_INDEX_TYPE_UINT8_EXT; //TOOD - check for extension support - VkPhysicalDeviceIndexTypeUint8FeaturesEXT 
-		break;
-	case IndexBuffer::IndexType::GE_IT_COUNT:
-	default:
-		LOG_ERROR("Invalid Vulkan Index Buffer Index Type!");
-	}
-
-	return vulkanIndexType;
 }

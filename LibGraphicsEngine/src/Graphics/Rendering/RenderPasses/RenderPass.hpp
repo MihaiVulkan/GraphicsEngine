@@ -16,13 +16,24 @@ namespace GraphicsEngine
 			GE_RTTI(GraphicsEngine::Graphics::RenderPass)
 
 		public:
+			enum class PassType : uint8_t
+			{
+				GE_PT_STANDARD = 0,
+				GE_PT_OFFSCREEN,
+				GE_PT_SHADOWS,
+				GE_PT_COUNT
+			};
+
 			RenderPass();
 			virtual ~RenderPass();
 
 			virtual void Render(Renderer* pRenderer, RenderQueue* pRenderQueue, uint32_t currentBufferIdx) {}
 			virtual void Update(Renderer* pRenderer, RenderQueue* pRenderQueue, Camera* pCamera, float32_t deltaTime) {}
 
-		private:
+			const RenderPass::PassType& GetPassType() const;
+
+		protected:
+			PassType mPassType;
 		};
 	}
 }

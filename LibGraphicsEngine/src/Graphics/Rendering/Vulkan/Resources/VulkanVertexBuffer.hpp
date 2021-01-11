@@ -10,6 +10,7 @@ namespace GraphicsEngine
 	namespace Graphics
 	{
 		class Renderer;
+		class VulkanRenderer;
 		class VulkanBuffer;
 
 		// Vulkan implementation of the Graphics API Dependent Resource
@@ -22,21 +23,21 @@ namespace GraphicsEngine
 			explicit GADRVertexBuffer(Renderer* pRenderer, VertexBuffer* pVertexBuffer);
 			virtual ~GADRVertexBuffer();
 
+			virtual void OnBind(uint32_t currentBufferIdx = 0) override;
+			virtual void OnUnBind(uint32_t currentBufferIdx = 0) override;
+
 			const Buffer::BufferUsage& GetBufferUsage() const;
-			const VertexBuffer::InputRate& GetInputRate() const;
+			const VertexBuffer::VertexInputRate& GetVertexInputRate() const;
 
-			VulkanBuffer* GetVkBuffer() const;
 			const VkVertexInputBindingDescription& GetVkInputBinding() const;
-
-			static VkVertexInputRate InputRateToVulkanInputRate(const VertexBuffer::InputRate& inputRate);
 
 		private:
 			void Create(Renderer* pRenderer);
 			void Destroy();
 
+			VulkanRenderer* mpVulkanRenderer;
 
 			VulkanBuffer* mpVulkanBuffer;
-
 			VertexBuffer* mpVertexBuffer;
 
 			VkVertexInputBindingDescription mInputBinding;

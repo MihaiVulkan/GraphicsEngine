@@ -3,7 +3,6 @@
 
 #include "AppConfig.hpp"
 #include "Foundation/Object.hpp"
-#include "Foundation/NoCopyNoMove.hpp"
 #include "Foundation/HashUtils.hpp"
 #include "Graphics/Rendering/RenderQueue.hpp"
 #include <string>
@@ -14,7 +13,7 @@ namespace GraphicsEngine
 {
 	namespace Platform
 	{
-		class GE_Window;
+		class Window;
 	}
 
 
@@ -79,7 +78,7 @@ namespace GraphicsEngine
 			explicit Renderer(Renderer::RendererType type);
 			virtual ~Renderer();
 
-			virtual void Init(Platform::GE_Window* pWindow);
+			virtual void Init(Platform::Window* pWindow);
 			virtual void Terminate();
 
 			virtual void RenderFrame(RenderQueue* pRenderQueue, RenderPass* pRenderPass) {};
@@ -103,12 +102,12 @@ namespace GraphicsEngine
 
 			GADRVertexFormat* Get(VertexFormat* pVertexFormat);
 
-			GADRVertexBuffer* Bind(VertexBuffer* pVertexBuffer);
+			GADRVertexBuffer* Bind(VertexBuffer* pVertexBuffer, uint32_t currentBufferIdx);
 			void UnBind(VertexBuffer* pVertexBuffer);
 
 			GADRVertexBuffer* Get(VertexBuffer* pVertexBuffer);
 
-			GADRIndexBuffer* Bind(IndexBuffer* pIndexBuffer);
+			GADRIndexBuffer* Bind(IndexBuffer* pIndexBuffer, uint32_t currentBufferIdx);
 			void UnBind(IndexBuffer* pIndexBuffer);
 
 			GADRIndexBuffer* Get(IndexBuffer* pIndexBuffer);
@@ -149,7 +148,7 @@ namespace GraphicsEngine
 
 			virtual void UpdateUniformBuffers(RenderQueue::Renderable* pRenderable, Camera* pCamera) {};
 
-			virtual void BindShaderBinds(uint32_t currentBufferIdx) {};
+			virtual void BindPipeline(uint32_t currentBufferIdx) {};
 
 			virtual void DrawObject(RenderQueue::Renderable* pRenderable, uint32_t currentBufferIdx) {};
 			virtual void DrawGeometry(GeometryNode* pGeometryNode, uint32_t currentBufferIdx) {};

@@ -73,10 +73,13 @@ void VulkanSwapChain::CreateSwapChain()
 	// If width (and height) equals the special value 0xFFFFFFFF, the size of the surface will be set by the swapchain
 	if (surfaceCapabilities.currentExtent.width == (uint32_t)-1)
 	{
+		auto pWindow = mpDevice->GetWindow();
+		assert(pWindow != nullptr);
+
 		// If the surface size is undefined, the size is set to
 		// the size of the images requested.
-		swapchainExtent.width = mpDevice->GetWindow()->width;
-		swapchainExtent.height = mpDevice->GetWindow()->height;
+		swapchainExtent.width = pWindow->GetState().width;
+		swapchainExtent.height = pWindow->GetState().height;
 	}
 	else
 	{

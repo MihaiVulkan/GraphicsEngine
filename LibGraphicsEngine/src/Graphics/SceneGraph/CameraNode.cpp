@@ -31,10 +31,7 @@ void CameraNode::Destroy()
 
 }
 
-void CameraNode::Visit(std::function<void(Node*)> callback)
+void CameraNode::Accept(NodeVisitor& visitor)
 {
-	if (callback)
-		callback(this);
-
-	//something else
+	visitor.Visit(this);
 }

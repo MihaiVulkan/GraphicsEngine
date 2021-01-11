@@ -2,6 +2,7 @@
 #define GRAPHICS_SCENE_GRAPH_NODE_HPP
 
 #include "Foundation/Object.hpp"
+#include "Graphics/SceneGraph/Visitors/NodeVisitor.hpp"
 #include <string>
 #include <list>
 #include <unordered_map>
@@ -12,6 +13,9 @@ namespace GraphicsEngine
 	namespace Graphics
 	{
 		class NodeComponent;
+		class GroupNode;
+		class GeometryNode;
+		class CameraNode;
 
 		/* Node is the vase class of every node of the scene graph.
 		   By defauly the node is not a renderable/visual element.
@@ -63,11 +67,13 @@ namespace GraphicsEngine
 			bool_t GetIsEnabled() const;
 			void SetIsEnabled(bool_t isEnabled);
 
-			///////////
-
-			virtual void Visit(std::function<void(Node*)> callback);
+		
+			///////// Visitor Pattern ///////
+			virtual void Traverse(NodeVisitor& visitor);
+			virtual void Accept(NodeVisitor& visitor);
 
 		private:
+
 			void Create();
 			void Destroy();
 

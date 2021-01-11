@@ -8,7 +8,7 @@ namespace GraphicsEngine
 {
 	namespace Platform
 	{
-		class GE_Window;
+		class Window;
 	}
 
 	namespace Graphics
@@ -31,7 +31,7 @@ namespace GraphicsEngine
 		};
 
 		InputSystem();
-		explicit InputSystem(Platform::GE_Window* pWindow, Graphics::Camera* pCamera, InputSystem::InputMode inputMode);
+		explicit InputSystem(Platform::Window* pWindow, Graphics::Camera* pCamera, InputSystem::InputMode inputMode);
 		virtual ~InputSystem();
 
 		void UpdateContinuousInput(float32_t deltaTime);
@@ -45,7 +45,7 @@ namespace GraphicsEngine
 
 		void UpdateCursorPos();
 
-		Platform::GE_Window* mpWindow;
+		Platform::Window* mpWindow;
 		Graphics::Camera* mpCamera;
 
 		InputMode mInputMode;

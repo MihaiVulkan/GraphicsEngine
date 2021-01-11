@@ -21,10 +21,12 @@ Engine::Engine()
 
 void Engine::Init(const std::string& name, uint32_t width, uint32_t height)
 {
-	Platform::Init();
-
-	//TODO - fix window hardcoded pos
-	mpWindow = Platform::CreateWindow(name.c_str(), 0, 0, width, height);
+#if defined(_WIN32)
+	mpWindow = GE_ALLOC(Platform::WindowWin32)(name, width, height);
+#else
+	// other platforms
+#endif //
+	assert(mpWindow != nullptr);
 
 	mpGraphicsSystem = GE_ALLOC(GraphicsSystem)(mpWindow);
 	assert(mpGraphicsSystem != nullptr);
@@ -35,13 +37,16 @@ void Engine::Init(const std::string& name, uint32_t width, uint32_t height)
 	///////////////////////////
 
 	// Window Callbacks
-	Platform::RegisterWindowSizeCallback(mpWindow,
-		[this](Platform::GE_Window* pWindow, uint32_t width, uint32_t height)
+	mpWindow->RegisterWindowSizeCallback(
+		[this](uint32_t width, uint32_t height)
 		{
+			if (mpWindow == nullptr)
+				return;
+
 			if (mpGraphicsSystem->GetRenderer() == nullptr || mpGraphicsSystem->GetMainCamera() == nullptr)
 				return;
 
-			if ((false == Platform::IsWindowMinimized(pWindow)) && mpGraphicsSystem->GetRenderer()->IsPrepared())
+			if ((false == mpWindow->IsWindowMinimized()) && mpGraphicsSystem->GetRenderer()->IsPrepared())
 			{
 				// update projection matrix as aspect ratio is different on window resize
 				mpGraphicsSystem->GetMainCamera()->SetAspectRatio(width / static_cast<float32_t>(height));
@@ -64,22 +69,17 @@ void Engine::Terminate()
 
 	GE_FREE(mpInputSystem);
 
-	if (mpWindow)
-	{
-		Platform::DestroyWindow(mpWindow);
-	}
-
-	Platform::Terminate();
+	GE_FREE(mpWindow);
 }
 
 void Engine::Run()
 {
-	while (Platform::IsWindowVisible(mpWindow) && (false == Platform::ShouldWindowClose(mpWindow)))
+	while (mpWindow->IsWindowVisible() && (false == mpWindow->ShouldWindowClose()))
 	{
 		static float32_t deltaTime = 0.0f;
 		auto startFrameTime = std::chrono::system_clock::now();
 
-		if (false == Platform::IsWindowMinimized(mpWindow))
+		if (false == mpWindow->IsWindowMinimized())
 		{
 			mpGraphicsSystem->Run(deltaTime);
 
@@ -97,7 +97,7 @@ void Engine::Run()
 		//////////////////// FPS Count //////////
 		FPSCount(deltaTime);
 
-		Platform::PollEvents(mpWindow);
+		mpWindow->PollEvents();
 	}
 }
 
@@ -142,10 +142,10 @@ void Engine::FPSCount(float32_t deltaTime)
 
 		// update window title with FPS count
 		std::stringstream ss;
-		static std::string appName = mpWindow->pTitle;
+		static std::string appName = mpWindow->GetWindowTitle();
 		ss << appName << " | FPS: " << fps << " | DeltaTime: " << deltaTime;
 
-		Platform::SetWindowTitle(mpWindow, ss.str().c_str());
+		mpWindow->SetWindowTitle(ss.str().c_str());
 
 		// Reset the frame count to zero and set the initial time to be now
 		frameCount = 0.0f;
@@ -154,7 +154,7 @@ void Engine::FPSCount(float32_t deltaTime)
 
 }
 
-Platform::GE_Window* Engine::GetWindow()
+Platform::Window* Engine::GetWindow()
 {
 	return mpWindow;
 }

@@ -8,6 +8,8 @@ namespace GraphicsEngine
 {
 	namespace Graphics
 	{
+		class RenderQueue;
+
 		class GroupNode : public Node
 		{
 			GE_RTTI(GraphicsEngine::Graphics::GroupNode)
@@ -26,7 +28,10 @@ namespace GraphicsEngine
 			Node* GetNodeAt(uint32_t index);
 			Node* GetNode(const std::string& nodeName);
 
-			virtual void Visit(std::function<void(Node*)> callback) override;
+			void ForEachNode(std::function< void(Node*) > callback);
+
+			///////// Visitor Pattern ///////
+			virtual void Accept(NodeVisitor& visitor) override;
 
 		private:
 			void Create();
