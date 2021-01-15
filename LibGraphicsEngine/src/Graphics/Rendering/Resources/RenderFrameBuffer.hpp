@@ -1,7 +1,7 @@
 #ifndef GRAPHICS_RENDERING_RESOURCES_RENDER_FRAME_BUFFER_HPP
 #define GRAPHICS_RENDERING_RESOURCES_RENDER_FRAME_BUFFER_HPP
 
-#include "Resource.hpp"
+#include "Graphics/Rendering/Resources/Resource.hpp"
 #include <unordered_map>
 
 namespace GraphicsEngine

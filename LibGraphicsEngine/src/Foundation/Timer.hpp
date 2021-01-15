@@ -1,7 +1,7 @@
 #ifndef FOUNDATION_TIMER_HPP
 #define FOUNDATION_TIMER_HPP
 
-#include "Object.hpp"
+#include "Foundation/Object.hpp"
 #include <chrono>
 #include <thread>
 #include <functional>

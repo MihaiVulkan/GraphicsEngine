@@ -1,6 +1,4 @@
-#include "RenderPass.hpp"
-#include "Graphics/Rendering/Renderer.hpp"
-#include "Graphics/Rendering/RenderQueue.hpp"
+#include "Graphics/Rendering/RenderPasses/RenderPass.hpp"
 #include <cassert>
 
 using namespace GraphicsEngine;

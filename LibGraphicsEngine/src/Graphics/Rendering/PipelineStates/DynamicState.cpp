@@ -1,4 +1,4 @@
-#include "DynamicState.hpp"
+#include "Graphics/Rendering/PipelineStates/DynamicState.hpp"
 
 using namespace GraphicsEngine;
 using namespace GraphicsEngine::Graphics;

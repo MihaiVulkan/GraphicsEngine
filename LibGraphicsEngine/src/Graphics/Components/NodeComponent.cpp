@@ -1,4 +1,4 @@
-#include "NodeComponent.hpp"
+#include "Graphics/Components/NodeComponent.hpp"
 #include <cassert>
 
 using namespace GraphicsEngine;

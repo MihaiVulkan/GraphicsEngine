@@ -1,4 +1,4 @@
-#include "VertexFormat.hpp"
+#include "Graphics/Rendering/Resources/VertexFormat.hpp"
 #include "Foundation/Logger.hpp"
 #include <cassert>
 

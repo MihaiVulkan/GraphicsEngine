@@ -1,9 +1,10 @@
 # files to be ignored by git 
 
+# VS files
 *.vs
 
 LibGraphicsEngine/lib
 SampleApplications/Triangle/x64
 
-
-
+#cmake files and others
+build

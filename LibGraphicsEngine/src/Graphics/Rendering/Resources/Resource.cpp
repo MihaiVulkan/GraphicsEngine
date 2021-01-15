@@ -1,4 +1,4 @@
-#include "Resource.hpp"
+#include "Graphics/Rendering/Resources/Resource.hpp"
 
 using namespace GraphicsEngine;
 using namespace GraphicsEngine::Graphics;

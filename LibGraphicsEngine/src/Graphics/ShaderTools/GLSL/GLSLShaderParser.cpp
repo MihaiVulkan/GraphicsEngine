@@ -1,4 +1,4 @@
-#include "GLSLShaderParser.hpp"
+#include "Graphics/ShaderTools/GLSL/GLSLShaderParser.hpp"
 #include "Graphics/ShaderTools/GLSL/GLSLShaderTypes.hpp"
 #include "Foundation/FileUtils.hpp"
 #include "Foundation/Logger.hpp"

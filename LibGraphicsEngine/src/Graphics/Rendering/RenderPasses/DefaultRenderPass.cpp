@@ -1,4 +1,4 @@
-#include "DefaultRenderPass.hpp"
+#include "Graphics/Rendering/RenderPasses/DefaultRenderPass.hpp"
 #include "Graphics/Rendering/Renderer.hpp"
 #include "Graphics/Rendering/RenderQueue.hpp"
 #include <cassert>

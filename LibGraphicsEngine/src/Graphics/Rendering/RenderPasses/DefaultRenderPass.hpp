@@ -1,7 +1,7 @@
 #ifndef GRAPHICS_RENDERING_RENDER_PASSES_DEFAULT_RENDER_PASS_HPP
 #define GRAPHICS_RENDERING_RENDER_PASSES_DEFAULT_RENDER_PASS_HPP
 
-#include "RenderPass.hpp"
+#include "Graphics/Rendering/RenderPasses/RenderPass.hpp"
 
 namespace GraphicsEngine
 {

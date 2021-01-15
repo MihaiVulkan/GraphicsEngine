@@ -1,7 +1,7 @@
 #ifndef GRAPHICS_COMPONENTS_VISUAL_COMPONENT_HPP
 #define GRAPHICS_COMPONENTS_VISUAL_COMPONENT_HPP
 
-#include "NodeComponent.hpp"
+#include "Graphics/Components/NodeComponent.hpp"
 #include "Graphics/Rendering/Resources/Shader.hpp"
 #include "Graphics/Rendering/PipelineStates/CullFaceState.hpp"
 #include "Graphics/Rendering/PipelineStates/DepthStencilState.hpp"

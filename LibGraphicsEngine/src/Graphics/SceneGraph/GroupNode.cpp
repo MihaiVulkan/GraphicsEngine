@@ -1,4 +1,4 @@
-#include "GroupNode.hpp"
+#include "Graphics/SceneGraph/GroupNode.hpp"
 #include <algorithm> // std::remove()
 #include <cassert>
 

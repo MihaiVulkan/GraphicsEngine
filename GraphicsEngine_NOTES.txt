@@ -8,8 +8,6 @@ Maybe add some kind of managers to construct commands, descriptors and queries o
 
 - add global config
 
-- migrate to cmake
-
 - add ref_counted/ref_pointers to manage the memory of resources
 
 - add non-copy-non-move to all required classes
@@ -17,8 +15,6 @@ Maybe add some kind of managers to construct commands, descriptors and queries o
 - work on SceneGraph
 
 - work on RenderQueue
-
-- add spec info to wrappers
 
 - Improve renderer code
 

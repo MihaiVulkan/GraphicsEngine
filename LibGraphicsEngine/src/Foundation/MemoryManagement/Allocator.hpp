@@ -8,7 +8,7 @@
    http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2007/n2271.html
 */
 
-#include "Foundation/TypeDefs.hpp"
+#include "Foundation/TypeDefines.hpp"
 #include "Foundation/NoCopyNoMove.hpp"
 #include "Foundation/RTTI.hpp"
 

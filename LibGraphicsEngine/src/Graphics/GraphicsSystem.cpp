@@ -1,13 +1,13 @@
-#include "GraphicsSystem.hpp"
+#include "Graphics/GraphicsSystem.hpp"
 #include "Foundation/Platform/Platform.hpp"
 #if defined(VULKAN_RENDERER)
-#include "Graphics/Rendering/Vulkan/VulkanRenderer.hpp"
+#include "Graphics/Rendering/Backends/Vulkan/VulkanRenderer.hpp"
 #endif // VULKAN_RENDERER
 #include "Graphics/Rendering/RenderQueue.hpp"
 #include "Graphics/Rendering/RenderPasses/DefaultRenderPass.hpp"
 #include "Graphics/SceneGraph/Node.hpp"
 #include "Graphics/SceneGraph/Visitors/ComputeRenderQueueVisitor.hpp"
-#include "Camera/FPSCamera.hpp"
+#include "Graphics/Cameras/FPSCamera.hpp"
 #include "Foundation/MemoryManagement/MemoryOperations.hpp"
 #include <cassert>
 

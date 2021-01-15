@@ -1,7 +1,7 @@
 #ifndef GRAPHICS_RENDERING_PIPELINE_STATES_DYNAMIC_STATE_HPP
 #define GRAPHICS_RENDERING_PIPELINE_STATES_DYNAMIC_STATE_HPP
 
-#include "PipelineState.hpp"
+#include "Graphics/Rendering/PipelineStates/PipelineState.hpp"
 #include <vector>
 
 namespace GraphicsEngine

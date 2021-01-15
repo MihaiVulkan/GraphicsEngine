@@ -1,4 +1,4 @@
-#include "Texture.hpp"
+#include "Graphics/Rendering/Resources/Texture.hpp"
 
 using namespace GraphicsEngine;
 using namespace GraphicsEngine::Graphics;

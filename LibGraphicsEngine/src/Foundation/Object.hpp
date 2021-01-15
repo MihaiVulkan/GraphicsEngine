@@ -1,8 +1,8 @@
 #ifndef FOUNDATION_OBJECT_HPP
 #define FOUNDATION_OBJECT_HPP
 
-#include "TypeDefs.hpp"
-#include "RTTI.hpp"
+#include "Foundation/TypeDefines.hpp"
+#include "Foundation/RTTI.hpp"
 #include "Foundation/NoCopyNoMove.hpp"
 
 namespace GraphicsEngine

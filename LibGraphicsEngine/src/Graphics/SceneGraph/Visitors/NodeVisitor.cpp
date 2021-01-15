@@ -1,4 +1,4 @@
-#include "NodeVisitor.hpp"
+#include "Graphics/SceneGraph/Visitors/NodeVisitor.hpp"
 #include "Graphics/SceneGraph/Node.hpp"
 #include "Graphics/SceneGraph/GroupNode.hpp"
 #include "Graphics/SceneGraph/GeometryNode.hpp"

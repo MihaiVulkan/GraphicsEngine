@@ -1,4 +1,4 @@
-#include "Shader.hpp"
+#include "Graphics/Rendering/Resources/Shader.hpp"
 #include "Graphics/ShaderTools/GLSL/GLSLShaderParser.hpp"
 #include "Foundation/MemoryManagement/MemoryOperations.hpp"
 

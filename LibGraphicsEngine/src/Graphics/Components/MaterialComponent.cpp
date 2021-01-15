@@ -1,4 +1,4 @@
-#include "MaterialComponent.hpp"
+#include "Graphics/Components/MaterialComponent.hpp"
 #include "Graphics/Rendering/Resources/Material.hpp"
 #include <cassert>
 

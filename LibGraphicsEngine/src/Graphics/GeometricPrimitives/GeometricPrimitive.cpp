@@ -1,4 +1,4 @@
-#include "GeometricPrimitive.hpp"
+#include "Graphics/GeometricPrimitives/GeometricPrimitive.hpp"
 #include "Graphics/Rendering/Resources/VertexFormat.hpp"
 #include "Graphics/Rendering/Resources/VertexBuffer.hpp"
 #include "Graphics/Rendering/Resources/IndexBuffer.hpp"

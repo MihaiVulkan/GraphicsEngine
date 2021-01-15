@@ -1,4 +1,4 @@
-#include "Material.hpp"
+#include "Graphics/Rendering/Resources/Material.hpp"
 //#include "Graphics/Rendering/Resources/Shader.hpp"
 #include "Graphics/Rendering/Resources/Texture.hpp"
 

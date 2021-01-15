@@ -1,6 +1,6 @@
-#include "FileUtils.hpp"
-#include "MemoryManagement/MemoryOperations.hpp"
-#include "Logger.hpp"
+#include "Foundation/FileUtils.hpp"
+#include "Foundation/MemoryManagement/MemoryOperations.hpp"
+#include "Foundation/Logger.hpp"
 #include <fstream>
 #include <sstream>
 #include <cassert>

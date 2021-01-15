@@ -1,7 +1,7 @@
 #ifndef FOUNDATION_DYNAMIC_SINGLETON_HPP
 #define FOUNDATION_DYNAMIC_SINGLETON_HPP
 
-#include "MemoryManagement/MemoryOperations.hpp"
+#include "Foundation/MemoryManagement/MemoryOperations.hpp"
 #include <cassert>
 
 // The Scott Meyers - thread-safe singleton 

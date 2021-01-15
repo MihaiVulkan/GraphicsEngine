@@ -1,7 +1,7 @@
 #ifndef GRAPHICS_SCENE_GRAPH_GROUP_NODE_HPP
 #define GRAPHICS_SCENE_GRAPH_GROUP_NODE_HPP
 
-#include "NodeVisitor.hpp"
+#include "Graphics/SceneGraph/Visitors/NodeVisitor.hpp"
 #include <vector>
 
 namespace GraphicsEngine

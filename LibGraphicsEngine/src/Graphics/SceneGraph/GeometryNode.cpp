@@ -1,4 +1,4 @@
-#include "GeometryNode.hpp"
+#include "Graphics/SceneGraph/GeometryNode.hpp"
 #include "Graphics/Components/VisualComponent.hpp"
 #include "Foundation/MemoryManagement/MemoryOperations.hpp"
 #include <algorithm> // std::remove()

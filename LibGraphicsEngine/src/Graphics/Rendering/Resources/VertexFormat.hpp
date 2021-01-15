@@ -1,7 +1,7 @@
 #ifndef GRAPHICS_RENDERING_RESOURCES_VERTEX_FORMAT_HPP
 #define GRAPHICS_RENDERING_RESOURCES_VERTEX_FORMAT_HPP
 
-#include "Resource.hpp"
+#include "Graphics/Rendering/Resources/Resource.hpp"
 #include <unordered_map>
 
 namespace GraphicsEngine

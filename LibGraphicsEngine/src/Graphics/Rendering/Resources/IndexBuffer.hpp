@@ -1,7 +1,7 @@
 #ifndef GRAPHICS_RENDERING_RESOURCES_INDEX_BUFFER_HPP
 #define GRAPHICS_RENDERING_RESOURCES_INDEX_BUFFER_HPP
 
-#include "Buffer.hpp"
+#include "Graphics/Rendering/Resources/Buffer.hpp"
 
 namespace GraphicsEngine
 {

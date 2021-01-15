@@ -1,7 +1,7 @@
 #ifndef FOUNDATION_FILE_UTILS_HPP
 #define FOUNDATION_FILE_UTILS_HPP
 
-#include "TypeDefs.hpp"
+#include "Foundation/TypeDefines.hpp"
 #include <string>
 
 namespace GraphicsEngine

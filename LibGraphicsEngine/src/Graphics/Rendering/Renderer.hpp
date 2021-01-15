@@ -1,7 +1,7 @@
 #ifndef GRAPHICS_RENDERING_RENDERER_HPP
 #define GRAPHICS_RENDERING_RENDERER_HPP
 
-#include "AppConfig.hpp"
+#include "Core/AppConfig.hpp"
 #include "Foundation/Object.hpp"
 #include "Foundation/HashUtils.hpp"
 #include "Graphics/Rendering/RenderQueue.hpp"

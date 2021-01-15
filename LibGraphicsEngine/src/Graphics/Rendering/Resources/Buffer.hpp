@@ -1,7 +1,7 @@
 #ifndef GRAPHICS_RENDERING_RESOURCES_BUFFER_HPP
 #define GRAPHICS_RENDERING_RESOURCES_BUFFER_HPP
 
-#include "Resource.hpp"
+#include "Graphics/Rendering/Resources/Resource.hpp"
 
 namespace GraphicsEngine
 {

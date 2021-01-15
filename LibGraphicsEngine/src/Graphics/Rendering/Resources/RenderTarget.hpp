@@ -1,7 +1,7 @@
 #ifndef GRAPHICS_RENDERING_RESOURCES_RENDER_TARGET_HPP
 #define GRAPHICS_RENDERING_RESOURCES_RENDER_TARGET_HPP
 
-#include "Resource.hpp"
+#include "Graphics/Rendering/Resources/Resource.hpp"
 #include <vector>
 
 namespace GraphicsEngine

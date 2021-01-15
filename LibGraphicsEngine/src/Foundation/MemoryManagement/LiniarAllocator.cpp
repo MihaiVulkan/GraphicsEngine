@@ -1,5 +1,5 @@
-#include "LiniarAllocator.hpp"
-#include "MemoryUtility.hpp"
+#include "Foundation/MemoryManagement/LiniarAllocator.hpp"
+#include "Foundation/MemoryManagement/MemoryUtility.hpp"
 #include <cstdlib> // malloc(), free()
 #include <algorithm> // std::max
 #include <cassert>

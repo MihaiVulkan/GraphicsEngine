@@ -1,6 +1,6 @@
-#include "MemoryBenchmark.hpp"
-#include "Allocator.hpp"
-#include "MemoryOperations.hpp"
+#include "Foundation/MemoryManagement/MemoryBenchmark.hpp"
+#include "Foundation/MemoryManagement/Allocator.hpp"
+#include "Foundation/MemoryManagement/MemoryOperations.hpp"
 #include <iostream>
 #include <cassert>
 

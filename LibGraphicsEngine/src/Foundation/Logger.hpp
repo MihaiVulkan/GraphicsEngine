@@ -1,8 +1,8 @@
 #ifndef FOUNDATION_LOGGER_HPP
 #define FOUNDATION_LOGGER_HPP
 
-#include "AppConfig.hpp"
-#include "RTTI.hpp"
+#include "Core/AppConfig.hpp"
+#include "Foundation/RTTI.hpp"
 //#include <cstdarg>
 #include <cstdio>
 

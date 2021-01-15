@@ -1,4 +1,4 @@
-#include "VisualComponent.hpp"
+#include "Graphics/Components/VisualComponent.hpp"
 #include "Graphics/Rendering/Resources/UniformBuffer.hpp"
 #include <cassert>
 

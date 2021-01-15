@@ -1,4 +1,4 @@
-#include "DepthStencilState.hpp"
+#include "Graphics/Rendering/PipelineStates/DepthStencilState.hpp"
 
 using namespace GraphicsEngine;
 using namespace GraphicsEngine::Graphics;

@@ -1,7 +1,7 @@
 #ifndef GRAPHICS_GRAPHICS_SYSTEM_HPP
 #define GRAPHICS_GRAPHICS_SYSTEM_HPP
 
-#include "System.hpp"
+#include "Core/System.hpp"
 #include <string>
 
 namespace GraphicsEngine

@@ -1,7 +1,7 @@
 #ifndef GRAPHICS_RENDERING_RESOURCES_SHADER_HPP
 #define GRAPHICS_RENDERING_RESOURCES_SHADER_HPP
 
-#include "Resource.hpp"
+#include "Graphics/Rendering/Resources/Resource.hpp"
 #include <string>
 
 namespace GraphicsEngine

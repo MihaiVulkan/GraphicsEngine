@@ -1,7 +1,7 @@
 #ifndef GRAPHICS_SHADER_TOOLS_GLSL_GLSL_SHADER_TYPES_HPP
 #define GRAPHICS_SHADER_TOOLS_GLSL_GLSL_SHADER_TYPES_HPP
 
-#include "Foundation/TypeDefs.hpp"
+#include "Foundation/TypeDefines.hpp"
 
 namespace GraphicsEngine
 {

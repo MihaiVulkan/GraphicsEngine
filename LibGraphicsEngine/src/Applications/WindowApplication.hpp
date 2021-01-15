@@ -1,7 +1,7 @@
 #ifndef APPLICATIONS_WINDOW_APPLICATION_HPP
 #define APPLICATIONS_WINDOW_APPLICATION_HPP
 
-#include "Application.hpp"
+#include "Applications/Application.hpp"
 
 namespace GraphicsEngine
 {

@@ -1,7 +1,7 @@
 #ifndef GRAPHICS_RENDERING_RESOURCES_UNIFORM_BUFFER_HPP
 #define GRAPHICS_RENDERING_RESOURCES_UNIFORM_BUFFER_HPP
 
-#include "Buffer.hpp"
+#include "Graphics/Rendering/Resources/Buffer.hpp"
 #include "Graphics/ShaderTools/GLSL/GLSLShaderTypes.hpp"
 #include "Foundation/Variant.hpp"
 #include "glm/mat4x4.hpp"

@@ -1,7 +1,7 @@
-#include "UniformBuffer.hpp"
+#include "Graphics/Rendering/Resources/UniformBuffer.hpp"
 #include "Foundation/MemoryManagement/MemoryOperations.hpp"
 #include "Foundation/Logger.hpp"
-#include <cstring> // memcpy()
+#include <cstring> // ::memcpy()
 #include <cassert>
 
 using namespace GraphicsEngine;

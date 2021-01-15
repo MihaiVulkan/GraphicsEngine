@@ -1,4 +1,4 @@
-#include "ConsoleApplication.hpp"
+#include "Applications/ConsoleApplication.hpp"
 
 using namespace GraphicsEngine;
 

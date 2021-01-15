@@ -1,8 +1,8 @@
 //#ifndef FOUNDATION_MEMORYMANAGEMENT_MEMORY_OPERATIONS_HPP
 //#define FOUNDATION_MEMORYMANAGEMENT_MEMORY_OPERATIONS_HPP
 
-#include "AppConfig.hpp"
-#include "LiniarAllocator.hpp"
+#include "Core/AppConfig.hpp"
+#include "Foundation/MemoryManagement/LiniarAllocator.hpp"
 #ifndef ENABLE_ALLOCATOR
 #include <new>
 #endif // ENABLE_ALLOCATOR

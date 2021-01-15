@@ -1,7 +1,7 @@
 #ifndef FOUNDATION_RTTI_HPP
 #define FOUNDATION_RTTI_HPP
 
-#include "TypeDefs.hpp"
+#include "Foundation/TypeDefines.hpp"
 
 namespace GraphicsEngine
 {

@@ -1,7 +1,7 @@
 #ifndef FOUNDATION_MEMORYMANAGEMENT_MEMORY_BENCHMARK_HPP
 #define FOUNDATION_MEMORYMANAGEMENT_MEMORY_BENCHMARK_HPP
 
-#include "Foundation/TypeDefs.hpp"
+#include "Foundation/TypeDefines.hpp"
 #include "Foundation/NoCopyNoMove.hpp"
 #include "Foundation/Timer.hpp"
 

@@ -1,7 +1,7 @@
-#ifndef INPUT_SYSTEM_HPP
-#define INPUT_SYSTEM_HPP
+#ifndef INPUT_INPUT_SYSTEM_HPP
+#define INPUT_INPUT_SYSTEM_HPP
 
-#include "System.hpp"
+#include "Core/System.hpp"
 #include <unordered_map>
 
 namespace GraphicsEngine
@@ -53,4 +53,4 @@ namespace GraphicsEngine
 	};
 }
 
-#endif /* INPUT_SYSTEM_HPP */
+#endif /* INPUT_INPUT_SYSTEM_HPP */

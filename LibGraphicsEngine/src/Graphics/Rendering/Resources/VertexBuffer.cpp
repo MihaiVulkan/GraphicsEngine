@@ -1,6 +1,6 @@
-#include "VertexBuffer.hpp"
+#include "Graphics/Rendering/Resources/VertexBuffer.hpp"
 #include "Foundation/MemoryManagement/MemoryOperations.hpp"
-#include <cstring> // memcpy()
+#include <cstring> // ::memcpy()
 #include <cassert>
 
 using namespace GraphicsEngine;

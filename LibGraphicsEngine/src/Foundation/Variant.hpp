@@ -1,7 +1,7 @@
 #ifndef FOUNDATION_VARIANT_HPP
 #define FOUNDATION_VARIANT_HPP
 
-#include "TypeDefs.hpp"
+#include "Foundation/Object.hpp"
 #include "Foundation/HashUtils.hpp"
 #include "Foundation/Logger.hpp"
 #include "glm/vec2.hpp"
@@ -16,8 +16,9 @@
 namespace GraphicsEngine
 {
 	/* Variant is an object which can store a multitude of types, but the types it can store are known, it's not any type. */
-	class Variant
+	class Variant : public Object
 	{
+		GE_RTTI(GraphicsEngine::Variant)
 
 	public:
 		enum class VariantType : uint8_t

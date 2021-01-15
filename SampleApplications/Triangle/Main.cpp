@@ -4,7 +4,7 @@
 #endif
 
 
-#include "GraphicsEngine.hpp"
+#include <GraphicsEngine.hpp>
 #include <vector>
 #include <cassert>
 
@@ -93,8 +93,9 @@ int main()
 	// material setup
 //	Material mat;
 
-	Shader vertexShader("../../SampleApplications/Triangle/res/shaders/triangle.vert");
-	Shader fragmentShader("../../SampleApplications/Triangle/res/shaders/triangle.frag");
+	//TODO - improve asset paths
+	Shader vertexShader(std::string() + GE_ASSET_PATH + "shaders/triangle.vert");
+	Shader fragmentShader(std::string() + GE_ASSET_PATH + "shaders/triangle.frag");
 
 	//Textures
 	//Materials

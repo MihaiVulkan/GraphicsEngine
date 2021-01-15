@@ -1,4 +1,4 @@
-#include "WindowApplication.hpp"
+#include "Applications/WindowApplication.hpp"
 
 using namespace GraphicsEngine;
 

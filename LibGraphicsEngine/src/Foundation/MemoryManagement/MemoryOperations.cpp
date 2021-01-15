@@ -1,4 +1,4 @@
-#include "MemoryOperations.hpp"
+#include "Foundation/MemoryManagement/MemoryOperations.hpp"
 
 #ifdef ENABLE_ALLOCATOR
 LiniarAllocator gAllocator;

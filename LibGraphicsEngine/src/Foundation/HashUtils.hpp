@@ -1,7 +1,7 @@
 #ifndef FOUNDATION_HASH_UTILS_HPP
 #define FOUNDATION_HASH_UTILS_HPP
 
-#include "TypeDefs.hpp"
+#include "Foundation/TypeDefines.hpp"
 #include <typeinfo> //std::type_info, std::typeid()
 
 namespace GraphicsEngine

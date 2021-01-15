@@ -1,5 +1,5 @@
-#include "RenderQueue.hpp"
-#include "Graphics/Camera/Camera.hpp"
+#include "Graphics/Rendering/RenderQueue.hpp"
+#include "Graphics/Cameras/Camera.hpp"
 #include "Graphics/SceneGraph/GeometryNode.hpp"
 #include "Graphics/Rendering/Resources/Material.hpp"
 #include "Graphics/Components/MaterialComponent.hpp"

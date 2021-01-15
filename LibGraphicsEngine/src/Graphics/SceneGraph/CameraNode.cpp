@@ -1,4 +1,4 @@
-#include "CameraNode.hpp"
+#include "Graphics/SceneGraph/CameraNode.hpp"
 
 using namespace GraphicsEngine;
 using namespace GraphicsEngine::Graphics;

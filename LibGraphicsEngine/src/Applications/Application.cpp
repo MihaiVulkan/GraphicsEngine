@@ -1,5 +1,5 @@
-#include "Application.hpp"
-#include "GraphicsEngineInternal.hpp"
+#include "Applications/Application.hpp"
+#include "Core/GraphicsEngineInternal.hpp"
 #include "Graphics/GraphicsSystem.hpp"
 #include "Input/InputSystem.hpp"
 

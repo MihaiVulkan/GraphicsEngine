@@ -1,9 +1,7 @@
-/* Author: BAIRAC MIHAI */
-
-#include "InputSystem.hpp"
+#include "Input/InputSystem.hpp"
 
 #include "Foundation/Platform/Platform.hpp"
-#include "Graphics/Camera/FPSCamera.hpp"
+#include "Graphics/Cameras/FPSCamera.hpp"
 #include "Foundation/Logger.hpp"
 #include <cassert>
 

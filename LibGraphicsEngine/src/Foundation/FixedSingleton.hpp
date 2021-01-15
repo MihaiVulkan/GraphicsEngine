@@ -1,7 +1,7 @@
 #ifndef FOUNDATION_FIXED_SINGLETON_HPP
 #define FOUNDATION_FIXED_SINGLETON_HPP
 
-#include "MemoryManagement/MemoryOperations.hpp"
+#include "Foundation/MemoryManagement/MemoryOperations.hpp"
 
 // The Scott Meyers - thread-safe singleton 
 // using static variables with block scope

@@ -1,4 +1,4 @@
-#include "ColorBlendState.hpp"
+#include "Graphics/Rendering/PipelineStates/ColorBlendState.hpp"
 
 using namespace GraphicsEngine;
 using namespace GraphicsEngine::Graphics;

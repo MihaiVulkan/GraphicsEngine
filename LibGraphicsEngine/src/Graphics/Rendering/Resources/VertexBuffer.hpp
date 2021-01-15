@@ -1,8 +1,8 @@
 #ifndef GRAPHICS_RENDERING_RESOURCES_VERTEX_BUFFER_HPP
 #define GRAPHICS_RENDERING_RESOURCES_VERTEX_BUFFER_HPP
 
-#include "Buffer.hpp"
-#include "VertexFormat.hpp"
+#include "Graphics/Rendering/Resources/Buffer.hpp"
+#include "Graphics/Rendering/Resources/VertexFormat.hpp"
 
 namespace GraphicsEngine
 {

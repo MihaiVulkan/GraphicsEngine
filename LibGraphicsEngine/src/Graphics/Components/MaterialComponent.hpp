@@ -1,7 +1,7 @@
 #ifndef GRAPHICS_COMPONENTS_MATERIAL_COMPONENT_HPP
 #define GRAPHICS_COMPONENTS_MATERIAL_COMPONENT_HPP
 
-#include "NodeComponent.hpp"
+#include "Graphics/Components/NodeComponent.hpp"
 
 namespace GraphicsEngine
 {

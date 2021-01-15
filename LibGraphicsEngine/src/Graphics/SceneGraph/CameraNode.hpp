@@ -1,7 +1,7 @@
 #ifndef GRAPHICS_SCENE_GRAPH_CAMERA_NODE_HPP
 #define GRAPHICS_SCENE_GRAPH_CAMERA_NODE_HPP
 
-#include "Node.hpp"
+#include "Graphics/SceneGraph/Node.hpp"
 #include <list>
 #include <string>
 #include <functional>

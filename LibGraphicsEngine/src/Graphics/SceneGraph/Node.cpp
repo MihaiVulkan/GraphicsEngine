@@ -1,5 +1,5 @@
-#include "Node.hpp"
-#include "GroupNode.hpp"
+#include "Graphics/SceneGraph/Node.hpp"
+#include "Graphics/SceneGraph/GroupNode.hpp"
 #include "Graphics/Components/NodeComponent.hpp"
 #include <cassert>
 

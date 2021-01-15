@@ -1,5 +1,5 @@
-#include "RenderFrameBuffer.hpp"
-#include "RenderTarget.hpp"
+#include "Graphics/Rendering/Resources/RenderFrameBuffer.hpp"
+#include "Graphics/Rendering/Resources/RenderTarget.hpp"
 
 using namespace GraphicsEngine;
 using namespace GraphicsEngine::Graphics;

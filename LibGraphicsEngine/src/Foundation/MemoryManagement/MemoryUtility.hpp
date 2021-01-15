@@ -1,7 +1,7 @@
 #ifndef FOUNDATION_MEMORYMANAGEMENT_MEMORY_UTILITY_HPP
 #define FOUNDATION_MEMORYMANAGEMENT_MEMORY_UTILITY_HPP
 
-#include "Foundation/TypeDefs.hpp"
+#include "Foundation/TypeDefines.hpp"
 
 namespace GraphicsEngine
 {

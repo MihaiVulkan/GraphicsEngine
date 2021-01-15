@@ -1,4 +1,4 @@
-#include "ComputeRenderQueueVisitor.hpp"
+#include "Graphics/SceneGraph/Visitors/ComputeRenderQueueVisitor.hpp"
 #include "Graphics/Rendering/RenderQueue.hpp"
 #include <cassert>
 

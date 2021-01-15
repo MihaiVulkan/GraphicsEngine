@@ -1,10 +1,10 @@
 #ifndef APPLICATIONS_APPLICATION_HPP
 #define APPLICATIONS_APPLICATION_HPP
 
-#include "Foundation/TypeDefs.hpp"
+#include "Foundation/TypeDefines.hpp"
 #include "Foundation/NoCopyNoMove.hpp"
 #include "Foundation/RTTI.hpp"
-#include "Engine.hpp"
+#include "Core/Engine.hpp"
 #include <functional>
 #include <string>
 
@@ -37,8 +37,6 @@ namespace GraphicsEngine
 		virtual void Terminate();
 
 		virtual void Run();
-
-
 
 	private:
 		NO_COPY_NO_MOVE(Application)
