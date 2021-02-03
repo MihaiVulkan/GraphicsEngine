@@ -121,13 +121,13 @@ void VulkanLogicalDevice::Create()
 	// large point support
 	enabledDeviceFeatures.largePoints = VK_TRUE;
 
-	mpDevice->SetPhysicaltDeviceEnabledFeatures(enabledDeviceFeatures);
+	mpDevice->SetPhysicalDeviceEnabledFeatures(enabledDeviceFeatures);
 
 	//NOTE! If physical device groups are avaialble and there are at least 2 physical devices to create a logical device from
 	// then the VkDeviceGroupDeviceCreateInfo must paased to Next in the VkDeviceCreateInfo struct. It is available since Vulkan 1.1
 
 	VkDeviceCreateInfo deviceCreateInfo =
-		VulkanInitializers::DeviceCreateInfo(static_cast<uint32_t>(queueCreateInfos.size()), queueCreateInfos.data(), &mpDevice->GetPhysicaltDeviceEnabledFeatures());
+		VulkanInitializers::DeviceCreateInfo(static_cast<uint32_t>(queueCreateInfos.size()), queueCreateInfos.data(), &mpDevice->GetPhysicalDeviceEnabledFeatures());
 
 	if (neededDeviceExtensions.size() > 0)
 	{

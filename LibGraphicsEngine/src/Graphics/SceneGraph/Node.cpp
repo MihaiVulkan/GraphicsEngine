@@ -1,22 +1,26 @@
 #include "Graphics/SceneGraph/Node.hpp"
 #include "Graphics/SceneGraph/GroupNode.hpp"
 #include "Graphics/Components/NodeComponent.hpp"
+#include "Foundation/MemoryManagement/MemoryOperations.hpp"
 #include <cassert>
 
 using namespace GraphicsEngine;
 using namespace GraphicsEngine::Graphics;
 
 Node::Node()
-	: mpParent(nullptr)
+	: mName()
+	, mpParent(nullptr)
 	, mIsEnabled(false)
+	, mModelMatrix(glm::mat4(1.0f)) //identity matrix
 {
 	Create();
 }
 
 Node::Node(const std::string& name)
-	: mpParent(nullptr)
+	: mName(name)
+	, mpParent(nullptr)
 	, mIsEnabled(false)
-	, mName(name)
+	, mModelMatrix(glm::mat4(1.0f)) //identity matrix
 {
 	Create();
 }
@@ -152,6 +156,8 @@ void Node::DettachComponentWithName(const std::string& componentName)
 			pComponent->OnDettach();
 			pComponent->SetNode(nullptr);
 		}
+		GE_FREE(pComponent); //TODO - memory management
+
 		mComponentMap.erase(it);
 	}
 }
@@ -166,6 +172,7 @@ void Node::DettachAllComponents()
 				pComponent->SetNode(nullptr);
 			}
 		});
+
 
 	mComponentMap.clear();
 }
@@ -208,6 +215,16 @@ bool_t Node::GetIsEnabled() const
 void Node::SetIsEnabled(bool_t isEnabled)
 {
 	mIsEnabled = isEnabled;
+}
+
+const glm::mat4& Node::GetModelMatrix() const
+{
+	return mModelMatrix;
+}
+
+void Node::SetModelMatrix(const glm::mat4& transform)
+{
+	mModelMatrix = transform;
 }
 
 void Node::Traverse(NodeVisitor& visitor)

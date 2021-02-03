@@ -6,6 +6,29 @@ NOTE! Regarding the Vulkan backend we have:
 - query pools and queries
 Maybe add some kind of managers to construct commands, descriptors and queries on demand from those pools
 
+- add texture support
+#KTX textures
+http://github.khronos.org/KTX-Specification/
+https://github.com/KhronosGroup/KTX-Software
+https://github.com/KhronosGroup/KTX-Software/wiki
+https://github.com/DeanoC/tiny_ktx
+https://github.com/g-truc/gli
+
+# Texture format support on different platforms
+http://vulkan.gpuinfo.org/listformats.php?platform=windows
+
+- add model/mesh support
+https://www.khronos.org/gltf/
+https://github.com/KhronosGroup/glTF-Sample-Models/tree/master/2.0
+https://github.com/SaschaWillems/Vulkan/blob/master/base/VulkanglTFModel.h
+
+NOTE! Check the multi-threaded experimental code!
+https://github.com/tinyobjloader/tinyobjloader
+
+- optimize at startup, add worker threads to reduce loading time
+
+- add out own math lib
+
 - add global config
 
 - add ref_counted/ref_pointers to manage the memory of resources
@@ -21,6 +44,9 @@ Maybe add some kind of managers to construct commands, descriptors and queries o
 - Resource Manager
 
 - Config/Settings wrapper
+
+//NOTE! GL Examples
+https://github.com/McNopper/OpenGL
 
 
 /////////////////////////////////////

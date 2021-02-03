@@ -2,8 +2,12 @@ cmake_minimum_required(VERSION 3.14)
 
 #TODO - add logic for searhing the dependency libs: vulkan, etc.
 
+set(PROJECT_NAME GraphicsEngine)
+
 #project
-project(GraphicsEngine LANGUAGES CXX C)
+project(${PROJECT_NAME} LANGUAGES CXX C)
+
+#if MSVC compiler ALL_BUILD is the default project in this case
 
 # disable ZERO_CHECK proj generation
 set(CMAKE_SUPPRESS_REGENERATION true)
@@ -14,6 +18,7 @@ set(Lib_Dir ${Root_Dir}/LibGraphicsEngine)
 set(Samples_Dir ${Root_Dir}/SampleApplications)
 
 # Build type, supported; Debug, Release
+# Defult conig is Default
 if (NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Debug)
 	message(STATUS "Build type not specified: Use Debug by default")

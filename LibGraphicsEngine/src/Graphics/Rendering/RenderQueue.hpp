@@ -25,8 +25,8 @@ namespace GraphicsEngine
 			{
 				GeometryNode* pGeometryNode;
 				Material* pMaterial;
-				glm::mat4 modelTransform;
-				float64_t distanceFromCamera;
+				//glm::mat4 modelTransform;
+				//float64_t distanceFromCamera;
 			};
 
 			enum class RenderableType : uint8_t

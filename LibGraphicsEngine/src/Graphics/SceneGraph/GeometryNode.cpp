@@ -27,7 +27,7 @@ GeometryNode::~GeometryNode()
 void GeometryNode::Create()
 {
 	// TODO - object lifetime management
-	//AttachComponent(GE_ALLOC(VisualComponent));
+	AttachComponent(GE_ALLOC(VisualComponent)("VisualComponent"));
 }
 
 void GeometryNode::Destroy()
@@ -35,7 +35,7 @@ void GeometryNode::Destroy()
 	mPrimitives.clear();
 
 	// TODO - object lifetime management
-	//GE_FREE(mpVisualComponent);
+	DettachComponentWithName("VisualComponent");
 }
 
 void GeometryNode::AttachGeometry(GeometricPrimitive* pPrimitive)

@@ -43,7 +43,7 @@ void GADRUniformBuffer::Create(Renderer* pRenderer)
 	VulkanDevice* pDevice = pVulkanRenderer->GetDevice();
 	assert(pDevice != nullptr);
 
-	// uniform buffer
+	// uniform buffer - visible to host (CPU) as we will update it per frame
 	mpVulkanBuffer = GE_ALLOC(VulkanBuffer)
 	(
 		pDevice,
@@ -78,6 +78,7 @@ void GADRUniformBuffer::UpdateData(UniformBuffer* pUniformBuffer)
 
 	assert(mpVulkanBuffer != nullptr);
 	assert(mpUniformBuffer != nullptr);
+	assert(mpUniformBuffer->GetSize() <= mpVulkanBuffer->GetSize());
 
 	VK_CHECK_RESULT(mpVulkanBuffer->Map(mpUniformBuffer->GetSize()));
 	mpVulkanBuffer->SetData(mpUniformBuffer->GetData(), static_cast<VkDeviceSize>(mpUniformBuffer->GetSize()));

@@ -10,11 +10,11 @@ namespace GraphicsEngine
 	{
 		class VulkanDevice;
 		class VulkanQueue;
+		class VulkanImage;
 
 		/*
 		TO ADD
 
-		vkCmdCopyBufferToImage
 		vkCmdUpdateBuffer
 		vkCmdFillBuffer
 
@@ -49,6 +49,7 @@ namespace GraphicsEngine
 			VkResult Bind(VkDeviceSize offset = 0);
 
 			void CopyTo(VulkanBuffer* pDestBuffer, VulkanQueue* pQueue, VkBufferCopy* pCopyRegion = nullptr);
+			void CopyTo(VulkanImage* pDestImage, VulkanQueue* pQueue, const std::vector<VkBufferImageCopy>& copyRegions);
 
 			void SetDecriptorInfo(VkDeviceSize size = VK_WHOLE_SIZE, VkDeviceSize offset = 0);
 
@@ -67,7 +68,7 @@ namespace GraphicsEngine
 			VulkanAllocator::Allocation mAllocation;
 			VkDescriptorBufferInfo mDefaultDescriptorInfo;
 			VkDeviceSize mSize;
-			void* mpMappedData;
+			uint8_t* mpMappedData;
 		};
 	}
 }

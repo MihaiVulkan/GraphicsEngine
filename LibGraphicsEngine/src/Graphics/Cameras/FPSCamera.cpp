@@ -54,19 +54,15 @@ void FPSCamera::UpdateOrientationWithMouse(float32_t dx, float32_t dy)
 	// https://en.wikipedia.org/wiki/Spherical_coordinate_system
 	// http://www.opengl-tutorial.org/beginners-tutorials/tutorial-6-keyboard-and-mouse/ 
 
-	static const glm::vec3 worldUp(0.0f, +1.0f, 0.0f);
-
 #if defined(RIGHT_HAND_COORDINATES)
 	mForward.x = glm::cos(mPitch) * glm::sin(mYaw);
 	mForward.z = glm::cos(mPitch) * glm::cos(mYaw);
 	mForward.y = glm::sin(mPitch);
 	mForward = glm::normalize(mForward);
 
-	//mRight.x = glm::sin(mYaw - glm::half_pi<float>());
-	//mRight.z = glm::cos(mYaw - glm::half_pi<float>());
-	//mRight.y = 0.0f;
-	mRight = glm::cross(mForward, worldUp);
-	mRight = glm::normalize(mRight);
+	mRight.x = glm::sin(mYaw - glm::half_pi<float>());
+	mRight.z = glm::cos(mYaw - glm::half_pi<float>());
+	mRight.y = 0.0f;
 
 	mUp = glm::cross(mRight, mForward);
 #elif defined(LEFT_HAND_COORDINATES)
@@ -113,4 +109,9 @@ float32_t FPSCamera::GetPitch() const
 float32_t FPSCamera::GetYaw() const
 {
 	return mYaw;
+}
+
+void FPSCamera::EnableConstraints()
+{
+	mUseConstraints = true;
 }

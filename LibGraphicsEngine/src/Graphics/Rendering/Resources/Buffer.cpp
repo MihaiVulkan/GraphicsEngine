@@ -36,7 +36,6 @@ void Buffer::Destroy()
 	if (mpData)
 	{
 		GE_FREE_ARRAY(mpData);
-		mpData = nullptr;
 	}
 	mSize = 0;
 	mUsage = BufferUsage::GE_BU_COUNT;
@@ -59,7 +58,7 @@ void Buffer::SetData(void* pData, uint32_t size)
 		assert(size > 0);
 		mSize = size;
 
-		mpData = GE_ALLOC_ARRAY(char_t, mSize);
+		mpData = GE_ALLOC_ARRAY(uint8_t, mSize);
 		assert(mpData != nullptr);
 
 		::memcpy(mpData, pData, mSize);

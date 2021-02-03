@@ -7,6 +7,7 @@
 #include "Graphics/Rendering/Resources/VertexFormat.hpp"
 #include "Graphics/Rendering/Resources/VertexBuffer.hpp"
 #include "Graphics/Rendering/Resources/IndexBuffer.hpp"
+#include "Graphics/Rendering/Resources/Texture.hpp"
 #include "Graphics/Rendering/Resources/Shader.hpp"
 
 #include "Graphics/GeometricPrimitives/GeometricPrimitive.hpp"
@@ -34,6 +35,23 @@ namespace GraphicsEngine
 			VkPrimitiveTopology PrimitiveTopologyToVulkanTopolgy(GeometricPrimitive::PrimitiveTopology topology);
 			VkFrontFace PrimitiveFaceWindingToVulkanFaceWinding(GeometricPrimitive::FaceWinding faceWinding);
 			VkPolygonMode PrimitivePolygonModeToVulkanPolygonMode(GeometricPrimitive::PolygonMode polygonMode);
+
+			// texture
+			VkImageType TextureTypeToVulkanImageType(const Texture::TextureType& type);
+			VkImageViewType TextureTypeToVulkanImageViewType(const Texture::TextureType& type);
+			VkFormat TextureFormatToVulkanFormat(const Texture::TextureFormat& format);
+			Texture::TextureFormat VulkanFormatToTextureFormat(const VkFormat& format);
+			VkSamplerAddressMode TextureWrapModeToVulkanWrapMode(const Texture::WrapMode& wrapMode);
+			VkFilter TextureFilterModeToVulkanFilterMode(const Texture::FilterMode& filterMode);
+			VkSamplerMipmapMode TextureMipMapModeToVulkanMipMapMode(const Texture::MipMapMode& mipMapMode);
+
+			// set texture layout
+			void SetImageLayout(VkCommandBuffer commandBufferHandle, VkImage imageHandle,
+				VkImageLayout oldImageLayout, VkImageLayout newImageLayout,
+				VkImageSubresourceRange subresourceRange,
+				// NOTE! To account for all possible stages
+				VkPipelineStageFlags srcStageMask = VkPipelineStageFlagBits::VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
+				VkPipelineStageFlags dstStageMask = VkPipelineStageFlagBits::VK_PIPELINE_STAGE_ALL_COMMANDS_BIT);
 
 			// shader
 			VkShaderStageFlagBits ShaderStageToVulkanShaderStage(const Shader::ShaderStage& stage);

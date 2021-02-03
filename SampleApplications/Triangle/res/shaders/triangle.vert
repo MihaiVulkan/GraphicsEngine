@@ -12,15 +12,12 @@ layout (location = 0) out vec3 v_color;
 out gl_PerVertex 
 {
     vec4 gl_Position;  
-	float gl_PointSize;
 };
 
 
 void main() 
 {
-	gl_PointSize = 10;
-
 	v_color = a_color;
 
-	gl_Position = ubo.PVM * vec4(a_position.xyz, 1.0);
+	gl_Position = ubo.PVM * vec4(a_position, 1.0);
 }

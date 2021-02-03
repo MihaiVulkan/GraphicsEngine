@@ -29,11 +29,11 @@ namespace GraphicsEngine
 		explicit GraphicsSystem(Platform::Window* pWindow);
 		virtual ~GraphicsSystem();
 
-		void Run(float32_t deltaTime);
+		void Run(float32_t crrTime);
 
 
 		void RenderFrame();
-		void UpdateFrame(float32_t deltaTime);
+		void UpdateFrame(float32_t crrTime);
 		void SubmitFrame();
 
 		Graphics::Renderer* GetRenderer();

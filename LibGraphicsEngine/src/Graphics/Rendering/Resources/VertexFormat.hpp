@@ -2,7 +2,7 @@
 #define GRAPHICS_RENDERING_RESOURCES_VERTEX_FORMAT_HPP
 
 #include "Graphics/Rendering/Resources/Resource.hpp"
-#include <unordered_map>
+#include <map>
 
 namespace GraphicsEngine
 {
@@ -16,17 +16,17 @@ namespace GraphicsEngine
 
 		public:
 			// VF presets
-			/*static const VertexFormat VF_P3;
+			static const VertexFormat VF_P3;
 			static const VertexFormat VF_P3_N3;
 			static const VertexFormat VF_P3_C3;
 			static const VertexFormat VF_P3_UV2;
-			static const VertexFormat VF_P3_N3_UV2;
-			static const VertexFormat VF_P3_C3_UV2;
-			static const VertexFormat VF_P3_N3_C3_UV2;
-			static const VertexFormat VF_P3_N3_TG3;
-			static const VertexFormat VF_P3_N3_TG3_C3;
-			static const VertexFormat VF_P3_N3_TG3_UV2;
-			static const VertexFormat VF_P3_N3_TG3_C3_UV2;*/
+			//static const VertexFormat VF_P3_N3_UV2;
+			//static const VertexFormat VF_P3_C3_UV2;
+			//static const VertexFormat VF_P3_N3_C3_UV2;
+			//static const VertexFormat VF_P3_N3_TG3;
+			//static const VertexFormat VF_P3_N3_TG3_C3;
+			//static const VertexFormat VF_P3_N3_TG3_UV2;
+			//static const VertexFormat VF_P3_N3_TG3_C3_UV2;
 
 			// TODO - Graphics API check for maximum number of attributes
 			enum class VertexAttribute : uint8_t
@@ -39,7 +39,8 @@ namespace GraphicsEngine
 				GE_VA_COUNT
 			};
 
-			typedef std::unordered_map<VertexFormat::VertexAttribute, uint8_t, std::hash<VertexFormat::VertexAttribute>> VertexAttributeMap;
+			// NOTE! ordered_map as we want to maintain the order of attributes!
+			typedef std::map<VertexFormat::VertexAttribute, uint8_t> VertexAttributeMap;
 
 			VertexFormat();
 			// TODO - maybe make the constructor variadic ?

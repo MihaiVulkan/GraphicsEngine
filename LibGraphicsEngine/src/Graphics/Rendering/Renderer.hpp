@@ -82,7 +82,7 @@ namespace GraphicsEngine
 			virtual void Terminate();
 
 			virtual void RenderFrame(RenderQueue* pRenderQueue, RenderPass* pRenderPass) {};
-			virtual void UpdateFrame(Camera* pCamera, float32_t deltaTime) {};
+			virtual void UpdateFrame(Camera* pCamera, float32_t crrTime) {};
 			virtual void SubmitFrame() {};
 	
 			virtual void OnWindowResize(uint32_t width = 0, uint32_t height = 0) {};
@@ -146,9 +146,7 @@ namespace GraphicsEngine
 			////////////////////
 			virtual void ComputeGraphicsResources(RenderQueue* pRenderQueue, RenderPass* pRenderPass) {};
 
-			virtual void UpdateUniformBuffers(RenderQueue::Renderable* pRenderable, Camera* pCamera) {};
-
-			virtual void BindPipeline(uint32_t currentBufferIdx) {};
+			virtual void UpdateUniformBuffers(RenderQueue::Renderable* pRenderable, Camera* pCamera, float32_t crrTime) {};
 
 			virtual void DrawObject(RenderQueue::Renderable* pRenderable, uint32_t currentBufferIdx) {};
 			virtual void DrawGeometry(GeometryNode* pGeometryNode, uint32_t currentBufferIdx) {};

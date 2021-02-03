@@ -3,6 +3,7 @@
 
 #include "Graphics/Components/NodeComponent.hpp"
 #include "Graphics/Rendering/Resources/Shader.hpp"
+#include "Graphics/Rendering/Resources/Texture.hpp"
 #include "Graphics/Rendering/PipelineStates/CullFaceState.hpp"
 #include "Graphics/Rendering/PipelineStates/DepthStencilState.hpp"
 #include "Graphics/Rendering/PipelineStates/ColorBlendState.hpp"
@@ -23,6 +24,7 @@ namespace GraphicsEngine
 
 		public:
 			typedef std::unordered_map<Shader::ShaderStage, Shader*> ShaderMap;
+			typedef std::unordered_map<Shader::ShaderStage, Texture*> TextureMap;
 			typedef std::unordered_map<Shader::ShaderStage, UniformBuffer*> UniformBufferMap;
 
 			VisualComponent();
@@ -38,11 +40,13 @@ namespace GraphicsEngine
 			/////////////////////
 
 			void AddShader(Shader* pShader);
-
 			Shader* GetShader(Shader::ShaderStage stage) const;
-
 			void SetShaders(const VisualComponent::ShaderMap& shaders);
 			const VisualComponent::ShaderMap& GetShaders() const;
+
+			void AddTexture(Texture* pTexture, Shader::ShaderStage shaderStage);
+			bool_t HasTextures() const;
+			const VisualComponent::TextureMap& GetTextures() const;
 
 			void AddUniformBuffer(Shader::ShaderStage stage, UniformBuffer* pUniformBuffer);
 			UniformBuffer* GetUniformBuffer(Shader::ShaderStage stage) const;
@@ -67,6 +71,7 @@ namespace GraphicsEngine
 			void Destroy();
 
 			ShaderMap mShaderMap;
+			TextureMap mTextureMap;
 			UniformBufferMap mUniformBufferMap;
 
 			// pipeline/render states

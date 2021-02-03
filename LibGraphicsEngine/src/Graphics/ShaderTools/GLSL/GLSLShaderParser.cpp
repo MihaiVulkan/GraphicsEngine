@@ -52,6 +52,8 @@ constexpr const char_t* UBO_NAME = "UBO";
 constexpr const char_t* SAMPLER_NAME = "sampler";
 constexpr const char_t* IMAGE_NAME = "image";
 
+constexpr const char_t* SINGLE_COMMENT_NAME = "//";
+
 constexpr const char_t DELIMITER_EXTENSION_NAME = '.';
 constexpr const char_t* DELIMITER_LINE_NAME = "\r\n";
 constexpr const char_t DELIMITER_TOKEN_NAME = ' ';
@@ -197,27 +199,56 @@ bool_t GLSLShaderParser::ParseSource(const std::string& shaderCode)
 
 	////////////////////////
 
-	// parse layout info
-	size_t crrLayoutIter = lineIter, nextLayoutIter = 0;
-	do
-	{
-		nextLayoutIter = shaderCode.find(LAYOUT_NAME, crrLayoutIter);
+	size_t crrLayoutIter = 0, nextLayoutIter = 0;
 
-		std::string tempLayoutInfo = shaderCode.substr(crrLayoutIter, nextLayoutIter - crrLayoutIter);
+	// remove comments
+	std::string tempShaderCode(shaderCode);
+
+	while (true)
+	{
+		crrLayoutIter = tempShaderCode.find(SINGLE_COMMENT_NAME);
+		if (crrLayoutIter == std::string::npos)
+			break;
+
+		nextLayoutIter = tempShaderCode.find(DELIMITER_LINE_NAME, crrLayoutIter);
+
+		tempShaderCode.erase(crrLayoutIter, nextLayoutIter - crrLayoutIter);
+	}
+
+	// parse layout info
+	crrLayoutIter = lineIter, nextLayoutIter = 0;
+	while(true)
+	{
+		nextLayoutIter = tempShaderCode.find(LAYOUT_NAME, crrLayoutIter);
+		std::string tempLayoutInfo = tempShaderCode.substr(crrLayoutIter, nextLayoutIter - crrLayoutIter);
+
 		crrLayoutIter = nextLayoutIter + LAYOUT_NAME_SIZE + 1; //layout info without the layout taken itself
 		if (tempLayoutInfo.empty())
 			return false;
 
-		if (tempLayoutInfo.length() < LAYOUT_NAME_SIZE) //doesn't contain the LAYOUT_NAME
+		if ((tempLayoutInfo.length() < LAYOUT_NAME_SIZE) 
+			|| (tempLayoutInfo[0] == DELIMITER_LINE_NAME[0])
+			|| (tempLayoutInfo[1] == DELIMITER_LINE_NAME[1])) //doesn't contain valid layout info
 		{
 			continue;
 		}
 
 		std::string crrLayoutInfo;
-		if (nextLayoutIter == std::string::npos) //last layout info is trimmed till the first /r/n is met, we do not need the extra info
+		if (nextLayoutIter == std::string::npos) //last layout info
 		{
-			size_t eosIter = tempLayoutInfo.find(DELIMITER_LINE_NAME);
-			crrLayoutInfo = tempLayoutInfo.substr(0, eosIter);
+			crrLayoutIter = tempLayoutInfo.find(UBO_NAME);
+			if (crrLayoutIter != std::string::npos) // in case of UBO
+			{
+				crrLayoutIter = tempLayoutInfo.find(DELIMITER_UBO_END_NAME);
+				size_t eosIter = tempLayoutInfo.find(DELIMITER_EXP_NAME, crrLayoutIter);
+
+				crrLayoutInfo = tempLayoutInfo.substr(0, eosIter);
+			}
+			else
+			{
+				size_t eosIter = tempLayoutInfo.find(DELIMITER_LINE_NAME);
+				crrLayoutInfo = tempLayoutInfo.substr(0, eosIter);
+			}
 		}
 		else
 		{
@@ -230,12 +261,9 @@ bool_t GLSLShaderParser::ParseSource(const std::string& shaderCode)
 			return false;
 		}
 
-		if (nextLayoutIter == std::string::npos)
-		{
+		if (nextLayoutIter == std::string::npos) //exit
 			break;
-		}
-
-	} while (true);
+	}
 
 	if ((mStage == Shader::ShaderStage::GE_SS_VERTEX) && ComputeVertexInputs() == false)
 	{
@@ -420,6 +448,7 @@ bool_t GLSLShaderParser::ParseUboData(const std::string& crrUboData)
 			return false;
 
 		// we replace the delimiters for already processed data to avoid this data
+		assert(nextTokenIter != std::string::npos);
 		uboData[nextTokenIter] = ASSIGN_NAME;
 
 		nextTokenIter = uboData.find_first_of(DELIMITER_EXP_NAME, crrTokenIter);
@@ -428,6 +457,7 @@ bool_t GLSLShaderParser::ParseUboData(const std::string& crrUboData)
 		if (name.empty())
 			return false;
 
+		assert(nextTokenIter != std::string::npos);
 		uboData[nextTokenIter] = ASSIGN_NAME;
 
 		mUniformBlock.members[name] = data;

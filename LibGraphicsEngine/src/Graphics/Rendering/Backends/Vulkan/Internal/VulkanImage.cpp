@@ -40,6 +40,7 @@ VulkanImage::~VulkanImage()
 void VulkanImage::Create(const VkImageCreateInfo& imageCreateInfo, VkMemoryPropertyFlags memoryPropertyFlags)
 {
 	assert(mpDevice != nullptr);
+	assert(mpDevice->GetAllocator() != nullptr);
 
 	mImageData.type = imageCreateInfo.imageType;
 	mImageData.format = imageCreateInfo.format;
@@ -55,11 +56,13 @@ void VulkanImage::Create(const VkImageCreateInfo& imageCreateInfo, VkMemoryPrope
 	vkGetImageMemoryRequirements(mpDevice->GetDeviceHandle(), mHandle, &memReqs);
 
 	uint32_t typeIndex = 0;
-	assert(mpDevice->GetMemoryTypeFromProperties(memReqs.memoryTypeBits, memoryPropertyFlags, typeIndex) == true);
+	bool_t res = mpDevice->GetMemoryTypeFromProperties(memReqs.memoryTypeBits, memoryPropertyFlags, typeIndex);
+	assert(res == true);
 
 	// Alloc
 	mpDevice->GetAllocator()->Alloc(memoryPropertyFlags, typeIndex, memReqs.size, mAllocation);
 
+	// Attach the memory to the image object
 	VK_CHECK_RESULT(Bind(mAllocation.offset));
 
 	//SetDecriptorInfo();
@@ -68,6 +71,7 @@ void VulkanImage::Create(const VkImageCreateInfo& imageCreateInfo, VkMemoryPrope
 void VulkanImage::Destroy()
 {
 	assert(mpDevice != nullptr);
+	assert(mpDevice->GetAllocator() != nullptr);
 
 	mDefaultDescriptorInfo = {};
 

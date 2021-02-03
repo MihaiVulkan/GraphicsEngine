@@ -1,4 +1,5 @@
 #include "Graphics/Rendering/Backends/Vulkan/Internal/VulkanBuffer.hpp"
+#include "Graphics/Rendering/Backends/Vulkan/Internal/VulkanImage.hpp"
 #include "Graphics/Rendering/Backends/Vulkan/Internal/VulkanDevice.hpp"
 #include "Graphics/Rendering/Backends/Vulkan/Internal/VulkanQueue.hpp"
 #include "Graphics/Rendering/Backends/Vulkan/Internal/VulkanCommandPool.hpp"
@@ -6,6 +7,7 @@
 #include "Graphics/Rendering/Backends/Vulkan/Internal/VulkanPassThroughAllocator.hpp"
 #include "Graphics/Rendering/Backends/Vulkan/Internal/VulkanInitializers.hpp"
 #include "Graphics/Rendering/Backends/Vulkan/Internal/VulkanHelpers.hpp"
+#include "Graphics/Rendering/Backends/Vulkan/Common/VulkanUtils.hpp"
 
 using namespace GraphicsEngine;
 using namespace GraphicsEngine::Graphics;
@@ -50,10 +52,14 @@ void VulkanBuffer::Create(const VkBufferCreateInfo& bufferCreateInfo, VkMemoryPr
 	vkGetBufferMemoryRequirements(mpDevice->GetDeviceHandle(), mHandle, &memReqs);
 
 	uint32_t typeIndex = 0;
-	assert(mpDevice->GetMemoryTypeFromProperties(memReqs.memoryTypeBits, memoryPropertyFlags, typeIndex) == true);
+	bool_t res = mpDevice->GetMemoryTypeFromProperties(memReqs.memoryTypeBits, memoryPropertyFlags, typeIndex);
+	assert(res == true);
 
 	// Alloc
 	mpDevice->GetAllocator()->Alloc(memoryPropertyFlags, typeIndex, memReqs.size, mAllocation);
+
+	// Attach the memory to the buffer object
+	VK_CHECK_RESULT(Bind(mAllocation.offset));
 
 	// if valid data available, we map it and copy to the buffer
 	if (pData)
@@ -65,14 +71,13 @@ void VulkanBuffer::Create(const VkBufferCreateInfo& bufferCreateInfo, VkMemoryPr
 		UnMap();
 	}
 
-	VK_CHECK_RESULT(Bind(mAllocation.offset));
-
 	SetDecriptorInfo();
 }
 
 void VulkanBuffer::Destroy()
 {
 	assert(mpDevice != nullptr);
+	assert(mpDevice->GetAllocator() != nullptr);
 
 	if (mpMappedData)
 	{
@@ -104,9 +109,8 @@ void VulkanBuffer::Destroy()
 VkResult VulkanBuffer::Map(VkDeviceSize size, VkDeviceSize offset, VkMemoryMapFlags flags)
 {
 	assert(mpDevice != nullptr);
-	// important to use memory property VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT
 
-	return vkMapMemory(mpDevice->GetDeviceHandle(), mAllocation.handle, offset, size, flags, &mpMappedData);
+	return vkMapMemory(mpDevice->GetDeviceHandle(), mAllocation.handle, offset, size, flags, (void**)&mpMappedData);
 }
 
 void VulkanBuffer::UnMap()
@@ -155,6 +159,43 @@ void VulkanBuffer::CopyTo(VulkanBuffer* pDestBuffer, VulkanQueue* pQueue, VkBuff
 	}
 
 	vkCmdCopyBuffer(copyCommandBuffer.GetHandle(), mHandle, pDestBuffer->GetHandle(), 1, &bufferCopy);
+
+	copyCommandBuffer.Flush(pQueue);
+}
+
+void VulkanBuffer::CopyTo(VulkanImage* pDestImage, VulkanQueue* pQueue, const std::vector<VkBufferImageCopy>& copyRegions)
+{
+	assert(mpDevice != nullptr);
+	assert(pDestImage != nullptr);
+	assert(pQueue != nullptr);
+	assert(copyRegions.empty() == false);
+
+	VulkanCommandPool copyCommandPool(mpDevice, pQueue->GetFamilyIndex());
+	VulkanCommandBuffer copyCommandBuffer(mpDevice, copyCommandPool.GetHandle(), VkCommandBufferLevel::VK_COMMAND_BUFFER_LEVEL_PRIMARY, true);
+
+	// needed for image layout change
+	VkImageSubresourceRange subresourceRange {};
+	subresourceRange.aspectMask = VkImageAspectFlagBits::VK_IMAGE_ASPECT_COLOR_BIT;
+	subresourceRange.baseMipLevel = 0;
+	subresourceRange.levelCount = pDestImage->GetData().mipLevels;
+	subresourceRange.layerCount = pDestImage->GetData().arrayLayers; // NOTE! Cube faces count as array layers in Vulkan
+
+	// Image barrier for optimal image (target)
+	// Optimal image will be used as destination for the copy
+	VulkanUtils::SetImageLayout(copyCommandBuffer.GetHandle(), pDestImage->GetHandle(),
+		VkImageLayout::VK_IMAGE_LAYOUT_UNDEFINED, VkImageLayout::VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+		subresourceRange);
+
+	vkCmdCopyBufferToImage(copyCommandBuffer.GetHandle(), mHandle, pDestImage->GetHandle(),
+		VkImageLayout::VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+		static_cast<uint32_t>(copyRegions.size()),
+		copyRegions.data());
+
+	//final image layout
+	// Change texture image layout to shader read after all mip levels have been copied
+	VulkanUtils::SetImageLayout(copyCommandBuffer.GetHandle(), pDestImage->GetHandle(),
+		VkImageLayout::VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VkImageLayout::VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+		subresourceRange);
 
 	copyCommandBuffer.Flush(pQueue);
 }

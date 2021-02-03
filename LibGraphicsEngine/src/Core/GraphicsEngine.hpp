@@ -36,4 +36,11 @@
 #include "Graphics/Cameras/Camera.hpp"
 #include "Foundation/Logger.hpp"
 
+//TODO - to be replaced when I add my own Math lib
+//Math stuff
+#include "glm/common.hpp"
+#include "glm/vec3.hpp"
+#include "glm/mat4x4.hpp"
+#include "glm/gtc/matrix_transform.hpp"
+
 #endif // CORE_GRAPHICS_ENGINE_HPP

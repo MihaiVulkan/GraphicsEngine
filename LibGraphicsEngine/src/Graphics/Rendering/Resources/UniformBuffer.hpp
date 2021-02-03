@@ -23,6 +23,7 @@ namespace GraphicsEngine
 				std::size_t size;
 			};
 
+			// NOTE! This UBO uniform order must respect the shader UBO uniform order
 			typedef std::unordered_map<GLSLShaderTypes::UniformType, Uniform> UniformMap;
 
 			UniformBuffer();
@@ -47,11 +48,11 @@ namespace GraphicsEngine
 
 					mIsUniformMapUpdated = ret;
 				}
-				else
+				/*else
 				{
 					LOG_ERROR("Uniform type not found!");
 					mIsUniformMapUpdated = false;
-				}
+				}*/
 			}
 
 			bool_t HasUniform(GLSLShaderTypes::UniformType type) const;

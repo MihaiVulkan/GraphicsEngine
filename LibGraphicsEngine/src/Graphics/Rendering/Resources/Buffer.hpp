@@ -36,7 +36,7 @@ namespace GraphicsEngine
 			void SetData(void* pData, uint32_t size);
 
 			BufferUsage mUsage;
-			char_t* mpData; //better to have a buffer of known type, char_t size is always 1 byte!
+			uint8_t* mpData; //better to have a buffer of known type, char_t size is always 1 byte!
 			uint32_t mSize;
 		};
 	}

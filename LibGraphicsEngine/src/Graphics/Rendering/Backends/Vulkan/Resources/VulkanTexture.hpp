@@ -9,6 +9,7 @@ namespace GraphicsEngine
 	namespace Graphics
 	{
 		class Renderer;
+		class VulkanDevice;
 		class VulkanImage;
 		class VulkanImageView;
 		class VulkanSampler;
@@ -24,21 +25,21 @@ namespace GraphicsEngine
 			explicit GADRTexture(Renderer* pRenderer, Texture* pTexture);
 			virtual ~GADRTexture();
 
+			const VkDescriptorImageInfo& GetDescriptorInfo() const;
+
+			//TODO add generate mipmaps functionality, see vkloader.c (ktx lib source code)
 
 		private:
 			void Create(Renderer* pRenderer);
 			void Destroy();
 
-			VkImageType TypeToVulkanType(const Texture::TextureType& type) const;
-			VkFormat FormatToVulkanFormat(const Texture::Format& format) const;
-			VkSamplerAddressMode WrapModeToVulkanWrapMode(const Texture::WrapMode& wrapMode) const;
-			VkFilter FilterModeToVulkanFilterMode(const Texture::FilterMode& filterMode) const;
-			VkSamplerMipmapMode MipMapModeToVulkanMipMapMode(const Texture::MipMapMode& mipMapMode) const;
+			void UpdateDecriptorInfo();
 
 			VulkanImage* mpVulkanImage;
 			VulkanImageView* mpVulkanImageView;
 			VulkanSampler* mpVulkanSampler;
 			Texture* mpTexture;
+			VkDescriptorImageInfo mDefaultDescriptorInfo;
 		};
 	}
 }

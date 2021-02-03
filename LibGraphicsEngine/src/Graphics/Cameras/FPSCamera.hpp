@@ -17,12 +17,13 @@ namespace GraphicsEngine
 			explicit FPSCamera(const std::string& name);
 			virtual ~FPSCamera();
 
-			void UpdateOrientationWithMouse(float32_t dx, float32_t dy) override;
-			void UpdatePositionWithKeyboard(float32_t value, const Camera::CAMERA_DIRECTIONS& dir) override;
+			virtual void UpdateOrientationWithMouse(float32_t dx, float32_t dy) override;
+			virtual void UpdatePositionWithKeyboard(float32_t value, const Camera::CAMERA_DIRECTIONS& dir) override;
 
-			float32_t GetPitch() const override;
-			float32_t GetYaw() const override;
+			virtual float32_t GetPitch() const override;
+			virtual float32_t GetYaw() const override;
 
+			virtual void EnableConstraints() override;
 
 		private:
 			NO_COPY_NO_MOVE(FPSCamera);

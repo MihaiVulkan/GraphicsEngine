@@ -58,8 +58,8 @@ namespace GraphicsEngine
 			const VkPhysicalDeviceMemoryProperties& GetPhysicalDeviceMemoryProperties() const;
 			const std::vector<std::string>& GetPhysicalDeviceSupportedExtensions() const;
 			void SetPhysicalDeviceSupportedExtensions(const std::vector<std::string>& extensions);
-			const VkPhysicalDeviceFeatures& GetPhysicaltDeviceEnabledFeatures() const;
-			void SetPhysicaltDeviceEnabledFeatures(const VkPhysicalDeviceFeatures& features);
+			const VkPhysicalDeviceFeatures& GetPhysicalDeviceEnabledFeatures() const;
+			void SetPhysicalDeviceEnabledFeatures(const VkPhysicalDeviceFeatures& features);
 
 			const VkSurfaceCapabilitiesKHR& GetSurfaceCapabilities() const;
 			const std::vector<VkSurfaceFormatKHR>& GetSurfaceFormats() const;

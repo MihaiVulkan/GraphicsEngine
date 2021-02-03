@@ -59,7 +59,7 @@ namespace GraphicsEngine
 			virtual void Terminate() override;
 
 			virtual void RenderFrame(RenderQueue* pRenderQueue, RenderPass* pRenderPass) override;
-			virtual void UpdateFrame(Camera* pCamera, float32_t deltaTime) override;
+			virtual void UpdateFrame(Camera* pCamera, float32_t crrTime) override;
 			virtual void SubmitFrame() override;
 
 			virtual void OnWindowResize(uint32_t width = 0, uint32_t height = 0) override;
@@ -68,10 +68,8 @@ namespace GraphicsEngine
 
 			virtual void ComputeGraphicsResources(RenderQueue* pRenderQueue, RenderPass* pRenderPass) override;
 
-			virtual void UpdateUniformBuffers(RenderQueue::Renderable* pRenderable, Camera* pCamera) override;
+			virtual void UpdateUniformBuffers(RenderQueue::Renderable* pRenderable, Camera* pCamera, float32_t crrTime) override;
 			virtual void UpdateDynamicStates(const DynamicState& dynamicState, uint32_t currentBufferIdx) override;
-
-			virtual void BindPipeline(uint32_t currentBufferIdx) override;
 
 			virtual void DrawObject(RenderQueue::Renderable* pRenderable, uint32_t currentBufferIdx) override;
 
@@ -180,28 +178,42 @@ namespace GraphicsEngine
 
 
 			///////////////////////////////////
-			void setupPipeline(GeometricPrimitive* pGeoPrimitive, VisualComponent* pVisComp);
+			////////// descriptor/uniform map data
+			struct DescriptorSetBindingData
+			{
+				VkShaderStageFlagBits shaderStage;
+				VkDescriptorSetLayoutBinding layoutBinding;
+				VkWriteDescriptorSet writeSet;
+				VkCopyDescriptorSet copySet;
+			};
 
-			// 1 descriptor pool is enough for all needs
-			VulkanDescriptorPool* mpDescriptorPool;
+			typedef std::unordered_map<VkDescriptorType, std::vector<DescriptorSetBindingData>> DescriptorSetBindingMap;
+			std::unordered_map<VisualComponent*, DescriptorSetBindingMap, HashUtils::PointerHash<VisualComponent>> mDescriptorSetBindingMapCollection;
+
+			void setupPipeline(GeometricPrimitive* pGeoPrimitive, VisualComponent* pVisComp);
+			void AddWriteDescriptorSet(VisualComponent* pVisComp, VkShaderStageFlagBits shaderStage, uint32_t binding, VkDescriptorType descriptorType,
+				const VkDescriptorImageInfo* pDescriptorImageInfo, const VkDescriptorBufferInfo* pDescriptorBufferInfo);
+
+			// descriptor pools
+			std::unordered_map<VisualComponent*, VulkanDescriptorPool*, HashUtils::PointerHash<VisualComponent>> mpDescriptorPoolMap;
 
 			struct DescriptorSetData
 			{
-				// 1 per object/effect (render pass)
+				// 1 descriptor set per material/visual effect
 				VulkanDescriptorSetLayout* pDescriptorSetLayout;
 				VulkanDescriptorSet* pDescriptorSet;
 			};
 
-			std::unordered_map<RenderPass::PassType, DescriptorSetData> mDescriptorSetDataCollection;
+			std::unordered_map<VisualComponent*, DescriptorSetData, HashUtils::PointerHash<VisualComponent>> mDescriptorSetDataCollection;
 
 			struct PipelineData
 			{
-				// 1 pipeline per effect (render pass)
+				// 1 pipeline per material/visual effect
 				VulkanPipelineLayout* pPipelineLayout;
 				VulkanGraphicsPipeline* pGraphicsPipeline;
 			};
 
-			std::unordered_map<RenderPass::PassType, PipelineData> mPipelineDataCollection;
+			std::unordered_map<VisualComponent*, PipelineData, HashUtils::PointerHash<VisualComponent>> mPipelineDataCollection;
 		};
 	}
 }

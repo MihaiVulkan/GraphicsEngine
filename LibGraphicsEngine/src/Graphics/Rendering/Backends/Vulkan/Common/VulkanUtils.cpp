@@ -1,4 +1,5 @@
 #include "Graphics/Rendering/Backends/Vulkan/Common/VulkanUtils.hpp"
+#include "Graphics/Rendering/Backends/Vulkan/Internal/VulkanInitializers.hpp"
 #include "Foundation/Logger.hpp"
 
 namespace GraphicsEngine
@@ -172,6 +173,297 @@ namespace GraphicsEngine
 				}
 
 				return vulkanPolygonMode;
+			}
+
+			VkImageType TextureTypeToVulkanImageType(const Texture::TextureType& type)
+			{
+				VkImageType vulkanImageType = VkImageType::VK_IMAGE_TYPE_MAX_ENUM;
+
+				switch (type)
+				{
+				case Texture::TextureType::GE_TT_1D:
+				case Texture::TextureType::GE_TT_1D_ARRAY:
+					vulkanImageType = VkImageType::VK_IMAGE_TYPE_1D;
+					break;
+				case Texture::TextureType::GE_TT_2D:
+				case Texture::TextureType::GE_TT_2D_ARRAY:
+				case Texture::TextureType::GE_TT_CUBEMAP: // a cubemap is formed from 6 faces, each face a 2d map
+					vulkanImageType = VkImageType::VK_IMAGE_TYPE_2D;
+					break;
+				case Texture::TextureType::GE_TT_3D:
+				//case Texture::TextureType::GE_TT_3D_ARRAY: //NOTE! No 3d array textures yet
+					vulkanImageType = VkImageType::VK_IMAGE_TYPE_3D;
+					break;
+				case Texture::TextureType::GE_TT_COUNT:
+				default:
+					LOG_ERROR("Invalid Vulkan Image Type!");
+				}
+
+				return vulkanImageType;
+			}
+
+			VkImageViewType TextureTypeToVulkanImageViewType(const Texture::TextureType& type)
+			{
+				VkImageViewType vulkanImageViewType = VkImageViewType::VK_IMAGE_VIEW_TYPE_MAX_ENUM;
+
+				switch (type)
+				{
+				case Texture::TextureType::GE_TT_1D:
+					vulkanImageViewType = VkImageViewType::VK_IMAGE_VIEW_TYPE_1D;
+					break;
+				case Texture::TextureType::GE_TT_1D_ARRAY:
+					vulkanImageViewType = VkImageViewType::VK_IMAGE_VIEW_TYPE_1D_ARRAY;
+					break;
+				case Texture::TextureType::GE_TT_2D:
+					vulkanImageViewType = VkImageViewType::VK_IMAGE_VIEW_TYPE_2D;
+					break;
+				case Texture::TextureType::GE_TT_2D_ARRAY:
+					vulkanImageViewType = VkImageViewType::VK_IMAGE_VIEW_TYPE_2D_ARRAY;
+					break;
+				case Texture::TextureType::GE_TT_3D:
+					vulkanImageViewType = VkImageViewType::VK_IMAGE_VIEW_TYPE_3D;
+					break;
+				//case Texture::TextureType::GE_TT_3D_ARRAY: //NOTE! No 3d array textures yet
+				case Texture::TextureType::GE_TT_CUBEMAP: // a cubemap is formed from 6 faces, each face a 2d map
+					vulkanImageViewType = VkImageViewType::VK_IMAGE_VIEW_TYPE_CUBE;
+					break;
+				case Texture::TextureType::GE_TT_CUBEMAP_ARRAY: // a cubemap is formed from 6 faces, each face a 2d map
+					vulkanImageViewType = VkImageViewType::VK_IMAGE_VIEW_TYPE_CUBE_ARRAY;
+					break;
+				case Texture::TextureType::GE_TT_COUNT:
+				default:
+					LOG_ERROR("Invalid Vulkan Image View Type!");
+				}
+
+				return vulkanImageViewType;
+			}
+
+			VkFormat TextureFormatToVulkanFormat(const Texture::TextureFormat& format)
+			{
+				VkFormat vulkanFormat = VkFormat::VK_FORMAT_MAX_ENUM;
+
+				//TODO - add check for format support!
+				switch (format)
+				{
+				case Texture::TextureFormat::GE_TF_R8G8B8_UNORM:
+					vulkanFormat = VkFormat::VK_FORMAT_R8G8B8_UNORM;
+					break;
+				case Texture::TextureFormat::GE_TF_R8G8B8A8_UNORM:
+					vulkanFormat = VkFormat::VK_FORMAT_R8G8B8A8_UNORM;
+					break;
+					// TODO - other formats
+				case Texture::TextureFormat::GE_TF_COUNT:
+				default:
+					LOG_ERROR("Invalid Vulkan Format!");
+				}
+
+				return vulkanFormat;
+			}
+
+			Texture::TextureFormat VulkanFormatToTextureFormat(const VkFormat& format)
+			{
+				Texture::TextureFormat textureFormat = Texture::TextureFormat::GE_TF_COUNT;
+
+				//TODO - add check for format support!
+				switch (format)
+				{
+				case VkFormat::VK_FORMAT_R8G8B8_UNORM:
+					textureFormat = Texture::TextureFormat::GE_TF_R8G8B8_UNORM;
+					break;
+				case VkFormat::VK_FORMAT_R8G8B8A8_UNORM:
+					textureFormat = Texture::TextureFormat::GE_TF_R8G8B8A8_UNORM;
+					break;
+					// TODO - other formats
+				case VkFormat::VK_FORMAT_MAX_ENUM:
+				default:
+					LOG_ERROR("Invalid Texture Format!");
+				}
+
+				return textureFormat;
+			}
+
+			VkSamplerAddressMode TextureWrapModeToVulkanWrapMode(const Texture::WrapMode& wrapMode)
+			{
+				VkSamplerAddressMode vulkanWrapMode = VkSamplerAddressMode::VK_SAMPLER_ADDRESS_MODE_MAX_ENUM;
+
+				switch (wrapMode)
+				{
+				case Texture::WrapMode::GE_WM_REPEAT:
+					vulkanWrapMode = VkSamplerAddressMode::VK_SAMPLER_ADDRESS_MODE_REPEAT;
+					break;
+				case Texture::WrapMode::GE_WM_MIRROR_REPEAT:
+					vulkanWrapMode = VkSamplerAddressMode::VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT;
+					break;
+				case Texture::WrapMode::GE_WM_CLAMP_TO_EDGE:
+					vulkanWrapMode = VkSamplerAddressMode::VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+					break;
+				case Texture::WrapMode::GE_WM_MIRROR_CLAMP_TO_EDGE:
+					vulkanWrapMode = VkSamplerAddressMode::VK_SAMPLER_ADDRESS_MODE_MIRROR_CLAMP_TO_EDGE;
+					break;
+				case Texture::WrapMode::GE_WM_CLAMP_TO_BORDER:
+					vulkanWrapMode = VkSamplerAddressMode::VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
+					break;
+				case Texture::WrapMode::GE_WM_COUNT:
+				default:
+					LOG_ERROR("Invalid Vulkan Wrap Mode!");
+				}
+
+				return vulkanWrapMode;
+			}
+
+			VkFilter TextureFilterModeToVulkanFilterMode(const Texture::FilterMode& filterMode)
+			{
+				VkFilter vulkanFilterMode = VkFilter::VK_FILTER_MAX_ENUM;
+				switch (filterMode)
+				{
+				case Texture::FilterMode::GE_FM_NEAREST:
+					vulkanFilterMode = VkFilter::VK_FILTER_NEAREST;
+					break;
+				case Texture::FilterMode::GE_FM_LINEAR:
+					vulkanFilterMode = VkFilter::VK_FILTER_LINEAR;
+					break;
+				case Texture::FilterMode::GE_FM_COUNT:
+				default:
+					LOG_ERROR("Invalid Vulkan Filter Mode!");
+				}
+
+				return vulkanFilterMode;
+			}
+
+			VkSamplerMipmapMode TextureMipMapModeToVulkanMipMapMode(const Texture::MipMapMode& mipMapMode)
+			{
+				VkSamplerMipmapMode vulkanMipMapMode = VkSamplerMipmapMode::VK_SAMPLER_MIPMAP_MODE_MAX_ENUM;
+				switch (mipMapMode)
+				{
+				case Texture::MipMapMode::GE_MM_NEAREST:
+					vulkanMipMapMode = VkSamplerMipmapMode::VK_SAMPLER_MIPMAP_MODE_NEAREST;
+					break;
+				case Texture::MipMapMode::GE_MM_LINEAR:
+					vulkanMipMapMode = VkSamplerMipmapMode::VK_SAMPLER_MIPMAP_MODE_LINEAR;
+					break;
+				case Texture::MipMapMode::GE_MM_COUNT:
+				default:
+					LOG_ERROR("Invalid Vulkan MipMap Mode!");
+				}
+
+				return vulkanMipMapMode;
+			}
+
+			void SetImageLayout(VkCommandBuffer commandBufferHandle, VkImage imageHandle,
+				VkImageLayout oldImageLayout, VkImageLayout newImageLayout,
+				VkImageSubresourceRange subresourceRange,
+				VkPipelineStageFlags srcStageMask, VkPipelineStageFlags dstStageMask)
+			{
+				VkAccessFlags srcAccessMask, dstAccessMask;
+
+				// Source layouts (old)
+				// Source access mask controls actions that have to be finished on the old layout
+				// before it will be transitioned to the new layout
+				switch (oldImageLayout)
+				{
+				case VkImageLayout::VK_IMAGE_LAYOUT_UNDEFINED:
+					// Image layout is undefined (or does not matter)
+					// Only valid as initial layout
+					// No flags required, listed only for completeness
+					srcAccessMask = 0;
+					break;
+
+				case VkImageLayout::VK_IMAGE_LAYOUT_PREINITIALIZED:
+					// Image is preinitialized
+					// Only valid as initial layout for linear images, preserves memory contents
+					// Make sure host writes have been finished
+					srcAccessMask = VkAccessFlagBits::VK_ACCESS_HOST_WRITE_BIT;
+					break;
+
+				case VkImageLayout::VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL:
+					// Image is a color attachment
+					// Make sure any writes to the color buffer have been finished
+					srcAccessMask = VkAccessFlagBits::VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+					break;
+
+				case VkImageLayout::VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL:
+					// Image is a depth/stencil attachment
+					// Make sure any writes to the depth/stencil buffer have been finished
+					srcAccessMask = VkAccessFlagBits::VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+					break;
+
+				case VkImageLayout::VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL:
+					// Image is a transfer source
+					// Make sure any reads from the image have been finished
+					srcAccessMask = VkAccessFlagBits::VK_ACCESS_TRANSFER_READ_BIT;
+					break;
+
+				case VkImageLayout::VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL:
+					// Image is a transfer destination
+					// Make sure any writes to the image have been finished
+					srcAccessMask = VkAccessFlagBits::VK_ACCESS_TRANSFER_WRITE_BIT;
+					break;
+
+				case VkImageLayout::VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL:
+					// Image is read by a shader
+					// Make sure any shader reads from the image have been finished
+					srcAccessMask = VkAccessFlagBits::VK_ACCESS_SHADER_READ_BIT;
+					break;
+				default:
+					// Other source layouts aren't handled (yet)
+					break;
+				}
+
+				// Target layouts (new)
+				// Destination access mask controls the dependency for the new image layout
+				switch (newImageLayout)
+				{
+				case VkImageLayout::VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL:
+					// Image will be used as a transfer destination
+					// Make sure any writes to the image have been finished
+					dstAccessMask = VkAccessFlagBits::VK_ACCESS_TRANSFER_WRITE_BIT;
+					break;
+
+				case VkImageLayout::VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL:
+					// Image will be used as a transfer source
+					// Make sure any reads from the image have been finished
+					dstAccessMask = VkAccessFlagBits::VK_ACCESS_TRANSFER_READ_BIT;
+					break;
+
+				case VkImageLayout::VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL:
+					// Image will be used as a color attachment
+					// Make sure any writes to the color buffer have been finished
+					dstAccessMask = VkAccessFlagBits::VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+					break;
+
+				case VkImageLayout::VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL:
+					// Image layout will be used as a depth/stencil attachment
+					// Make sure any writes to depth/stencil buffer have been finished
+					dstAccessMask = dstAccessMask | VkAccessFlagBits::VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+					break;
+
+				case VkImageLayout::VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL:
+					// Image will be read in a shader (sampler, input attachment)
+					// Make sure any writes to the image have been finished
+					if (srcAccessMask == 0)
+					{
+						srcAccessMask = VkAccessFlagBits::VK_ACCESS_HOST_WRITE_BIT | VkAccessFlagBits::VK_ACCESS_TRANSFER_WRITE_BIT;
+					}
+					dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+					break;
+				default:
+					// Other source layouts aren't handled (yet)
+					break;
+				}
+
+				// Create an image barrier object
+				VkImageMemoryBarrier imageMemoryBarrier = VulkanInitializers::ImageMemoryBarrier(srcAccessMask, dstAccessMask, oldImageLayout, newImageLayout, 
+										VK_QUEUE_FAMILY_IGNORED, VK_QUEUE_FAMILY_IGNORED, imageHandle, subresourceRange);
+
+				// Insert a memory dependency at the proper pipeline stages that will execute the image layout transition
+				vkCmdPipelineBarrier(
+					commandBufferHandle,
+					srcStageMask,
+					dstStageMask,
+					0,
+					0, nullptr,
+					0, nullptr,
+					1, &imageMemoryBarrier);
 			}
 
 			VkShaderStageFlagBits ShaderStageToVulkanShaderStage(const Shader::ShaderStage& stage)

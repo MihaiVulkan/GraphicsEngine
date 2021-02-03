@@ -6,14 +6,14 @@ using namespace GraphicsEngine;
 using namespace GraphicsEngine::Graphics;
 
 MaterialComponent::MaterialComponent()
-	: NodeComponent()
+	: VisualComponent()
 	, mpMaterial(nullptr)
 {
 	Create();
 }
 
 MaterialComponent::MaterialComponent(const std::string& name)
-	: NodeComponent(name)
+	: VisualComponent(name)
 	, mpMaterial(nullptr)
 {
 	Create();

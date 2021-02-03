@@ -1,9 +1,3 @@
-#ifdef _WIN32
-#pragma comment(linker, "/subsystem:console")
-//#pragma comment(linker, "/subsystem:windows")
-#endif
-
-
 #include <GraphicsEngine.hpp>
 #include <vector>
 #include <cassert>
@@ -12,7 +6,6 @@ using namespace GraphicsEngine;
 using namespace GraphicsEngine::Graphics;
 
 int main()
-//int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int)
 {
 	/*
 	material -> shaders -> pipeline shader modules
@@ -63,19 +56,18 @@ int main()
 	WindowApplication app;
 	
 	// TODO - remove hardcoded window size
-	app.Init("My Vulkan App", 1920, 1080);
+	app.Init("Triangle", 1920, 1080);
 
 	// geometry setup
 	std::vector<float32_t> vertexData =
-		// the clip space coordinates are defined as expected by Vulkan viewport - Y points down
-		// coordinates defined in clock-wise winding
-
-		// clip space position, color
-	{ 0.0f,  1.0f, 0.0f, 1.0f, 0.0f, 0.0f,
-	  1.0f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
-	 -1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f
+	// coordinates defined in clock-wise winding
+	// object space position, color
+	{ 1.0f, -1.0f, 0.0f,   1.0f, 0.0f, 0.0f,
+	 -1.0f, -1.0f, 0.0f,   0.0f, 1.0f, 0.0f,
+	  0.0f,  1.0f, 0.0f,   0.0f, 0.0f, 1.0f
 	};
 
+	// Vulkan - CW wwinding
 	std::vector<uint32_t> indexData = { 0, 1, 2 };
 
 	VertexFormat vFormat(3, 0, 0, 3, 0); //P3 C3
@@ -90,66 +82,16 @@ int main()
 	geo.SetVertexBuffer(&vb);
 	geo.SetIndexBuffer(&ib);
 
-	// material setup
-//	Material mat;
-
 	//TODO - improve asset paths
 	Shader vertexShader(std::string() + GE_ASSET_PATH + "shaders/triangle.vert");
 	Shader fragmentShader(std::string() + GE_ASSET_PATH + "shaders/triangle.frag");
 
-	//Textures
-	//Materials
-
-	VisualComponent visComp;
-
-	visComp.AddShader(&vertexShader);
-	visComp.AddShader(&fragmentShader);
-
-	// add uniform buffer
-	UniformBuffer ub;
-	ub.AddUniform(GLSLShaderTypes::UniformType::GE_UT_PVM_MATRIX4);
-
-	visComp.AddUniformBuffer(Shader::ShaderStage::GE_SS_VERTEX, &ub);
-
-	CullFaceState cull_s(true);
-	cull_s.SetCullMode(CullFaceState::CullMode::GE_CM_BACK);
-	visComp.SetCullFaceState(cull_s);
-
-	DepthStencilState depthStencil_s(true);
-	depthStencil_s.SetIsDepthEnabled(true);
-	depthStencil_s.SetIsDepthWritable(true);
-	depthStencil_s.SetDepthCompareOp(DepthStencilState::CompareOp::GE_CO_LESS_OR_EQUAL);
-
-	depthStencil_s.SetIsStencilEnabled(false);
-	visComp.SetDepthStencilState(depthStencil_s);
-
-	ColorBlendState colorBlend_s(true);
-	colorBlend_s.SetIsBlendEnabled(false);
-	colorBlend_s.SetSrcColorBlendFactor(ColorBlendState::BlendFactor::GE_BF_ZERO);
-	colorBlend_s.SetDstColorBlendFactor(ColorBlendState::BlendFactor::GE_BF_ZERO);
-	colorBlend_s.SetColorBlendOp(ColorBlendState::BlendOp::GE_BO_ADD);
-	colorBlend_s.SetSrcAlphaBlendFactor(ColorBlendState::BlendFactor::GE_BF_ZERO);
-	colorBlend_s.SetDstAlphaBlendFactor(ColorBlendState::BlendFactor::GE_BF_ZERO);
-	colorBlend_s.SetAlphaBlendOp(ColorBlendState::BlendOp::GE_BO_ADD);
-	colorBlend_s.SetColorWriteMask(0x0f);
-	visComp.SetColorBlendState(colorBlend_s);
-
-	DynamicState dynamic_s;
-	dynamic_s.Add(DynamicState::State::GE_DS_VIEWPORT);
-	dynamic_s.Add(DynamicState::State::GE_DS_SCISSOR);
-	visComp.SetDynamicState(dynamic_s);
-
-	/////////////////////////////
 	GeometryNode geoNode;
 	geoNode.AttachGeometry(&geo);
-
-	//MaterialComponent matComp;
-	//matComp.SetMaterial(&mat);
-
-	//geoNode.AttachComponent(&matComp);
-	//geoNode.GetComponent< MaterialComponent >()->SetMaterial(&mat);
-
-	geoNode.AttachComponent(&visComp);
+	geoNode.GetComponent<VisualComponent>()->AddShader(&vertexShader);
+	geoNode.GetComponent<VisualComponent>()->AddShader(&fragmentShader);
+	
+	/////////////////////////////
 
 	// camera- TODO - to be moved as cull camera as part of the scene graph
 	app.GetGraphicsSystem()->GetMainCamera()->SetPosition(glm::vec3(0.0f, 0.0f, 2.5f));

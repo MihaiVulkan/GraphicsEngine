@@ -5,10 +5,10 @@
 using namespace GraphicsEngine;
 using namespace GraphicsEngine::Graphics;
 
-//const VertexFormat VertexFormat::VF_P3(3, 0, 0, 0, 0);
-//const VertexFormat VertexFormat::VF_P3_N3(3, 3, 0, 0, 0);
-//const VertexFormat VertexFormat::VF_P3_C3(3, 0, 0, 3, 0);
-//const VertexFormat VertexFormat::VF_P3_UV2(3, 0, 0, 0, 2);
+const VertexFormat VertexFormat::VF_P3(3, 0, 0, 0, 0);
+const VertexFormat VertexFormat::VF_P3_N3(3, 3, 0, 0, 0);
+const VertexFormat VertexFormat::VF_P3_C3(3, 0, 0, 3, 0);
+const VertexFormat VertexFormat::VF_P3_UV2(3, 0, 0, 0, 2);
 //const VertexFormat VertexFormat::VF_P3_N3_UV2(3, 3, 0, 0, 2);
 //const VertexFormat VertexFormat::VF_P3_C3_UV2(3, 0, 0, 3, 2);
 //const VertexFormat VertexFormat::VF_P3_N3_C3_UV2(3, 3, 0, 3, 2);
@@ -104,10 +104,11 @@ void VertexFormat::Destroy()
 	mVertexAttributes.clear();
 }
 
-// TODO - for now we work wih float data as iit is the most inclusive attribute type
+// TODO - for now we work with float data as it is the most inclusive attribute type
 uint32_t VertexFormat::GetVertexAttributeStride(const VertexFormat::VertexAttribute& att) const
 {
 	assert((att >= VertexFormat::VertexAttribute::GE_VA_POSITION) && (att < VertexFormat::VertexAttribute::GE_VA_COUNT));
+	assert(mVertexAttributes.empty() == false);
 
 	uint32_t attributeStride = (HasVertexAttribute(att) ? (mVertexAttributes.at(att) * sizeof(float32_t)) : 0);
 
@@ -117,6 +118,7 @@ uint32_t VertexFormat::GetVertexAttributeStride(const VertexFormat::VertexAttrib
 bool_t VertexFormat::HasVertexAttribute(const VertexFormat::VertexAttribute& att) const
 {
 	assert((att >= VertexFormat::VertexAttribute::GE_VA_POSITION) && (att < VertexFormat::VertexAttribute::GE_VA_COUNT));
+	assert(mVertexAttributes.empty() == false);
 
 	auto it = mVertexAttributes.find(att);
 
@@ -130,20 +132,20 @@ uint32_t VertexFormat::GetVertexAttributeOffset(const VertexFormat::VertexAttrib
 
 	switch (att)
 	{
-	case VertexAttribute::GE_VA_POSITION:
+	case VertexAttribute::GE_VA_POSITION: //first
 		offset = 0;
 		break;
 	case VertexAttribute::GE_VA_NORMAL:
-		offset = (HasVertexAttribute(VertexAttribute::GE_VA_POSITION) ? GetVertexAttributeOffset(VertexAttribute::GE_VA_POSITION) + GetVertexAttributeStride(VertexAttribute::GE_VA_POSITION) : GetVertexAttributeOffset(VertexAttribute::GE_VA_POSITION));
+		offset = GetVertexAttributeOffset(VertexAttribute::GE_VA_POSITION) + GetVertexAttributeStride(VertexAttribute::GE_VA_POSITION);
 		break;
 	case VertexAttribute::GE_VA_TANGENT:
-		offset = (HasVertexAttribute(VertexAttribute::GE_VA_NORMAL) ? GetVertexAttributeOffset(VertexAttribute::GE_VA_NORMAL) + GetVertexAttributeStride(VertexAttribute::GE_VA_NORMAL) : GetVertexAttributeOffset(VertexAttribute::GE_VA_NORMAL));
+		offset = GetVertexAttributeOffset(VertexAttribute::GE_VA_NORMAL) + GetVertexAttributeStride(VertexAttribute::GE_VA_NORMAL);
 		break;
 	case VertexAttribute::GE_VA_COLOR:
-		offset = (HasVertexAttribute(VertexAttribute::GE_VA_TANGENT) ? GetVertexAttributeOffset(VertexAttribute::GE_VA_TANGENT) + GetVertexAttributeStride(VertexAttribute::GE_VA_TANGENT) : GetVertexAttributeOffset(VertexAttribute::GE_VA_TANGENT));
+		offset = GetVertexAttributeOffset(VertexAttribute::GE_VA_TANGENT) + GetVertexAttributeStride(VertexAttribute::GE_VA_TANGENT);
 		break;
 	case VertexAttribute::GE_VA_TEXTURE_COORD:
-		offset = (HasVertexAttribute(VertexAttribute::GE_VA_COLOR) ? GetVertexAttributeOffset(VertexAttribute::GE_VA_COLOR) + GetVertexAttributeStride(VertexAttribute::GE_VA_COLOR) : GetVertexAttributeOffset(VertexAttribute::GE_VA_COLOR));
+		offset = GetVertexAttributeOffset(VertexAttribute::GE_VA_COLOR) + GetVertexAttributeStride(VertexAttribute::GE_VA_COLOR);
 		break;
 	case VertexAttribute::GE_VA_COUNT:
 	default:

@@ -14,10 +14,11 @@ VulkanSampler::VulkanSampler()
 {}
 
 VulkanSampler::VulkanSampler(VulkanDevice* pDevice,
-	VkFilter magFilter, VkFilter minFilter, VkSamplerMipmapMode mipmapMode, VkSamplerAddressMode addressModeU, VkSamplerAddressMode addressModeV,
-	VkSamplerAddressMode addressModeW, float32_t mipLodBias, VkBool32 anisotropyEnable, float32_t maxAnisotropy, VkBool32 compareEnable,
-	VkCompareOp compareOp, float32_t minLod, float32_t maxLod, VkBorderColor borderColor, VkBool32 unnormalizedCoordinates,
-	VkSamplerCreateFlags flags)
+	VkFilter magFilter, VkFilter minFilter, VkSamplerMipmapMode mipmapMode,
+	VkSamplerAddressMode addressModeU, VkSamplerAddressMode addressModeV, VkSamplerAddressMode addressModeW, 
+	float32_t mipLodBias, VkBool32 anisotropyEnable, float32_t maxAnisotropy,
+	VkBool32 compareEnable, VkCompareOp compareOp, float32_t minLod, float32_t maxLod, 
+	VkBorderColor borderColor, VkBool32 unnormalizedCoordinates, VkSamplerCreateFlags flags)
 	: mpDevice(pDevice)
 	, mHandle(VK_NULL_HANDLE)
 	, mSamplerData{}

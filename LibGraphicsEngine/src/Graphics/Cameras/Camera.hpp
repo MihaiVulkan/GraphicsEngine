@@ -26,14 +26,13 @@ Positive Z axis points to the user (away from the screen)
 Positive X azis points to right
 Positive Y axis points up
 
-OpenGL usually uses a right handed coordiante system (world)space)
-
 * Left-hand coordinate system *
 Positive Z axis points into the screen (away from the user)
 Positive X azis points to right
 Positive Y axis points up
 
-Vulkan, Direct3D, Metal usually use left handed coordiante system (world space)
+- OpenGL usually uses a right handed coordiante system (world space)
+- Vulkan, Direct3D, Metal usually use left handed coordiante system (world space)
 
 ** OpenGL **
 
@@ -71,9 +70,7 @@ More info: https://matthewwellings.com/blog/the-new-vulkan-coordinate-system/
 */
 
 /*
- FPS Free Camera implementation
- Used on several purposes, not only as a viewing camera,
- but also for observation, debugging and projection of the ocean grid
+ Camera implementation
  based on : http://www.opengl-tutorial.org/beginners-tutorials/tutorial-6-keyboard-and-mouse/
 
  9.005 Are OpenGL matrices column-major or row-major?
@@ -111,12 +108,10 @@ namespace GraphicsEngine
 			//// Methods ////
 			Camera();
 			explicit Camera(const std::string& name);
-			//explicit Camera(const std::string& name, const GlobalConfig& config);
 			virtual ~Camera();
 
 			virtual void UpdateViewMatrix();
 			virtual void UpdatePerspectiveProjectionMatrix();
-			//virtual void UpdatePerspectiveProjectionMatrix(uint32_t windowWidth, uint32_t windowHeight);
 			virtual void UpdatePerspectiveProjectionMatrix(int32_t fovy, float32_t aspect, float32_t zNear, float32_t zFar);
 			virtual void UpdateOrthographicProjectionMatrix(float32_t left, float32_t right, float32_t bottom, float32_t top, float32_t zNear, float32_t zFar);
 
@@ -140,11 +135,7 @@ namespace GraphicsEngine
 			const glm::mat4& GetViewMatrix() const;
 			const glm::mat4& GetProjectionMatrix() const;
 			const glm::mat4& GetProjectionViewMatrix() const;
-#ifdef USE_INVERSE_MATRICES
-			const glm::mat4& GetInverseViewMatrix() const;
-			const glm::mat4& GetInverseProjectionMatrix() const;
-			const glm::mat4& GetInverseProjectionViewMatrix() const;
-#endif // USE_INVERSE_MATRICES
+
 			//// Setters ////
 			void SetPosition(const glm::vec3& position);
 			void SetAltitude(float altitude);
@@ -181,6 +172,8 @@ namespace GraphicsEngine
 			virtual float32_t GetPitch() const { return 0.0f; };
 			virtual float32_t GetYaw() const { return 0.0f; };
 
+			virtual void EnableConstraints() {}
+
 		protected:
 			float32_t ComputePerspectiveProjectionCorrectionFactor() const;
 
@@ -199,13 +192,8 @@ namespace GraphicsEngine
 			glm::mat4 mView; // world -> camera
 			glm::mat4 mProjection; // camera -> clip
 			glm::mat4 mProjectionView; // world -> clip
-#if USE_INVERSE_MATRICES
-			glm::mat4 mInverseView; // camera -> world
-			glm::mat4 mInverseProjection; // clip -> camera
-			glm::mat4 mInverseProjectionView; // clip -> world
-#endif // USE_INVERSE_MATRICES
 
-	// Projection
+			// Projection
 			int32_t mFOVy, mInitialFOVy;
 			float32_t mAspectRatio;
 			float32_t mZNear;

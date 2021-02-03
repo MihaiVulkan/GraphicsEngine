@@ -21,20 +21,11 @@ void DefaultRenderPass::Render(Renderer* pRenderer, RenderQueue* pRenderQueue, u
 
 	// BeginRender
 
-	BindPipeline(pRenderer, currentBufferIdx);
-
 	RenderOccluders(pRenderer, pRenderQueue, currentBufferIdx);
 	RenderOpaqueObjects(pRenderer, pRenderQueue, currentBufferIdx);
 	RenderTranslucentObjects(pRenderer, pRenderQueue, currentBufferIdx);
 
 	// EndRender
-}
-
-void DefaultRenderPass::BindPipeline(Renderer* pRenderer, uint32_t currentBufferIdx)
-{
-	assert(pRenderer != nullptr);
-
-	pRenderer->BindPipeline(currentBufferIdx);
 }
 
 void DefaultRenderPass::RenderOpaqueObjects(Renderer* pRenderer, RenderQueue* pRenderQueue, uint32_t currentBufferIdx)
@@ -61,12 +52,12 @@ void DefaultRenderPass::RenderOccluders(Renderer* pRenderer, RenderQueue* pRende
 	//TODO
 }
 
-void DefaultRenderPass::Update(Renderer* pRenderer, RenderQueue* pRenderQueue, Camera* pCamera, float32_t deltaTime)
+void DefaultRenderPass::Update(Renderer* pRenderer, RenderQueue* pRenderQueue, Camera* pCamera, float32_t crrTime)
 {
-	UpdateOpaqueObjects(pRenderer, pRenderQueue, pCamera, deltaTime);
+	UpdateOpaqueObjects(pRenderer, pRenderQueue, pCamera, crrTime);
 }
 
-void DefaultRenderPass::UpdateOpaqueObjects(Renderer* pRenderer, RenderQueue* pRenderQueue, Camera* pCamera, float32_t deltaTime)
+void DefaultRenderPass::UpdateOpaqueObjects(Renderer* pRenderer, RenderQueue* pRenderQueue, Camera* pCamera, float32_t crrTime)
 {
 
 	auto renderableList = pRenderQueue->GetRenderables(RenderQueue::RenderableType::GE_RT_OPAQUE);
@@ -77,7 +68,7 @@ void DefaultRenderPass::UpdateOpaqueObjects(Renderer* pRenderer, RenderQueue* pR
 			assert(pRenderable != nullptr);
 
 			// update uniform buffers
-			pRenderer->UpdateUniformBuffers(pRenderable, pCamera);
+			pRenderer->UpdateUniformBuffers(pRenderable, pCamera, crrTime);
 		}
 	);
 }

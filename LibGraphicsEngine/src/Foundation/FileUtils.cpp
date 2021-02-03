@@ -13,19 +13,19 @@ namespace GraphicsEngine
 		{
 			assert(filePath.empty() == false);
 
-			std::ifstream is(filePath.c_str(), std::ios::binary | std::ios::in | std::ios::ate);
+			std::ifstream stream(filePath.c_str(), std::ios::binary | std::ios::in | std::ios::ate);
 
-			if (is.is_open())
+			if (stream.is_open() && stream.good())
 			{
-				int32_t size = is.tellg();
+				int32_t size = stream.tellg();
 				assert(size > 0);
-				is.seekg(0, std::ios::beg);
+				stream.seekg(0, std::ios::beg);
 
 				std::ostringstream ss;
-				ss << is.rdbuf(); // reading data directly form the file stream to the outputstream
+				ss << stream.rdbuf(); // reading data directly from the file stream to the outputstream
 				fileContentOut = ss.str();
 
-				is.close();
+				stream.close();
 			}
 			else
 			{

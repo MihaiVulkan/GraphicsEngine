@@ -62,6 +62,12 @@ void UniformBuffer::AddUniform(GLSLShaderTypes::UniformType type)
 		ref.size = sizeof(glm::mat4);
 	}
 		break;
+	case GLSLShaderTypes::UniformType::GE_UT_CRR_TIME:
+	{
+		ref.data = Variant(Variant::VariantType::GE_VT_FLOAT32);
+		ref.size = sizeof(float32_t);
+	}
+		break;
 	case GLSLShaderTypes::UniformType::GE_UT_COUNT:
 	default:
 		LOG_ERROR("Invalid uniform type!");
@@ -109,7 +115,9 @@ void* UniformBuffer::GetData()
 
 	if (mpData == nullptr)
 	{
-		mpData = GE_ALLOC_ARRAY(char_t, mSize);
+		assert(mSize > 0);
+
+		mpData = GE_ALLOC_ARRAY(uint8_t, mSize);
 	}
 
 	// repopulate mpData only if needed
@@ -138,6 +146,14 @@ void* UniformBuffer::GetData()
 			case GLSLShaderTypes::UniformType::GE_UT_PVM_MATRIX4:
 			{
 				auto& ref = uniform.data.Value<glm::mat4>();
+				::memcpy(mpData + offset, &ref, uniform.size);
+
+				offset += uniform.size;
+			}
+			break;
+			case GLSLShaderTypes::UniformType::GE_UT_CRR_TIME:
+			{
+				auto& ref = uniform.data.Value<float32_t>();
 				::memcpy(mpData + offset, &ref, uniform.size);
 
 				offset += uniform.size;

@@ -3,7 +3,7 @@
 
 #include "Graphics/Rendering/Backends/Vulkan/Resources/VulkanResource.hpp"
 #include "Graphics/Rendering/Resources/VertexFormat.hpp"
-#include <unordered_map>
+#include <map>
 
 namespace GraphicsEngine
 {
@@ -17,7 +17,8 @@ namespace GraphicsEngine
 			GE_RTTI(GraphicsEngine::Graphics::GADRVertexFormat)
 
 		public:
-			typedef std::unordered_map<VertexFormat::VertexAttribute, VkVertexInputAttributeDescription> InputAttributeMap;
+			// NOTE! ordered_map as we want to maintain the order of attributes!
+			typedef std::map<VertexFormat::VertexAttribute, VkVertexInputAttributeDescription> InputAttributeMap;
 
 			GADRVertexFormat();
 			explicit GADRVertexFormat(Renderer* pRenderer, VertexFormat* pVertexFormat);

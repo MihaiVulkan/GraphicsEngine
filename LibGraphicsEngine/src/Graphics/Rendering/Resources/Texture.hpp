@@ -2,6 +2,8 @@
 #define GRAPHICS_RENDERING_RESOURCES_TEXTURE_HPP
 
 #include "Graphics/Rendering/Resources/Resource.hpp"
+#include <string>
+#include <vector>
 
 namespace GraphicsEngine
 {
@@ -20,13 +22,14 @@ namespace GraphicsEngine
 				GE_TT_2D,
 				GE_TT_2D_ARRAY,
 				GE_TT_3D,
-				GE_TT_3D_ARRAY,
+				//GE_TT_3D_ARRAY, //NOTE! No 3d array textures yet
 				GE_TT_CUBEMAP,
+				GE_TT_CUBEMAP_ARRAY,
 				GE_TT_COUNT
 			};
 
 			// Pixel format + pixel type into one enum
-			enum class Format : uint8_t
+			enum class TextureFormat : uint8_t
 			{
 				// 8-bit formats
 				GE_TF_R8_UNORM = 0,
@@ -61,15 +64,19 @@ namespace GraphicsEngine
 				GE_TF_R16G16B16A16_SFLOAT,
 
 				// 32-bit formats
+				GE_TF_R32_UNORM,
 				GE_TF_R32_UINT,
 				GE_TF_R32_SINT,
 				GE_TF_R32_SFLOAT,
+				GE_TF_R32G32_UNORM,
 				GE_TF_R32G32_UINT,
 				GE_TF_R32G32_SINT,
 				GE_TF_R32G32_SFLOAT,
+				GE_TF_R32G32B32_UNORM,
 				GE_TF_R32G32B32_UINT,
 				GE_TF_R32G32B32_SINT,
 				GE_TF_R32G32B32_SFLOAT,
+				GE_TF_R32G32B32A32_UNORM,
 				GE_TF_R32G32B32A32_UINT,
 				GE_TF_R32G32B32A32_SINT,
 				GE_TF_R32G32B32A32_SFLOAT,
@@ -112,20 +119,36 @@ namespace GraphicsEngine
 
 			typedef struct
 			{
+				uint32_t width;
+				uint32_t height;
+				uint32_t offset;
+			} MipMapMetaData;
+
+			typedef struct
+			{
 				Texture::TextureType type;
-				Texture::Format format;
+				Texture::TextureFormat format;
 				Texture::WrapMode wrapMode;
 				Texture::FilterMode filterMode;
 				Texture::MipMapMode mipMapMode;
 
 				uint32_t width, height, depth;
 				uint32_t mipLevels;
+				std::vector<MipMapMetaData> mipmaps;
 				uint32_t layerCount;
-			} Data;
+				uint32_t faceCount;
+
+				uint64_t dataSize;
+
+				// in case we need to load a texture
+				uint8_t* mpData; //we specify the data as char_t so we now its size (1 byte)
+			} MetaData;
 
 			virtual ~Texture();
 
-			const Texture::Data& GetData() const;
+			bool_t LoadFromFile(const std::string& texturePath);
+
+			const Texture::MetaData& GetMetaData() const;
 
 			bool_t HasMipMaps() const;
 
@@ -134,15 +157,10 @@ namespace GraphicsEngine
 			// abstract class
 			// constructor to be called only by the derived class
 			Texture();
-			explicit Texture(Texture::TextureType type, Texture::Format format, Texture::WrapMode wrapMode, Texture::FilterMode filterMode, Texture::MipMapMode mipMapMode,
+			explicit Texture(Texture::TextureType type, Texture::TextureFormat format, Texture::WrapMode wrapMode, Texture::FilterMode filterMode, Texture::MipMapMode mipMapMode,
 				uint32_t width, uint32_t height, uint32_t depth, uint32_t mipLevels, uint32_t layerCount);
 
-
-		private:
-			Texture::Data mTextureData;
-			
-			// in case we need to load a texture
-			char_t* mpData; //we specify the data as char_t so we now its size (1 byte)
+			Texture::MetaData mTextureMetaData;
 		};
 
 		//////// SPECIALIZATIONS ////////
@@ -153,10 +171,9 @@ namespace GraphicsEngine
 
 		public:
 			Texture1D();
-			explicit Texture1D(Texture::TextureType type, Texture::Format format, uint32_t width);
-
-			//TODO - determine what texture formats we support loading from file e.g. ktx, dds, others?
-			//bool_t LoadFromFile(const char* pPath);
+			explicit Texture1D(const std::string& texturePath);
+			explicit Texture1D(Texture::TextureType type, Texture::TextureFormat format, uint32_t width);
+			virtual ~Texture1D();
 
 			//char_t* GetData(uint32_t level) const;
 
@@ -170,10 +187,9 @@ namespace GraphicsEngine
 
 		public:
 			Texture1DArray();
-			explicit Texture1DArray(Texture::TextureType type, Texture::Format format, uint32_t width, uint32_t layerCount);
-
-			//TODO - determine what texture formats we support loading from file e.g. ktx, dds, others?
-			//bool_t LoadFromFile(const char* pPath);
+			explicit Texture1DArray(const std::string& texturePath);
+			explicit Texture1DArray(Texture::TextureType type, Texture::TextureFormat format, uint32_t width, uint32_t layerCount);
+			virtual ~Texture1DArray();
 
 			//char_t* GetData(uint32_t index, uint32_t level) const;
 
@@ -187,16 +203,14 @@ namespace GraphicsEngine
 
 		public:
 			Texture2D();
-			explicit Texture2D(Texture::TextureType type, Texture::Format format, Texture::WrapMode wrapMode, Texture::FilterMode filterMode,
+			explicit Texture2D(const std::string& texturePath);
+			explicit Texture2D(Texture::TextureType type, Texture::TextureFormat format, Texture::WrapMode wrapMode, Texture::FilterMode filterMode,
 				 Texture::MipMapMode mipMapMode, uint32_t width, uint32_t height, uint32_t mipLevels);
-
-			//TODO - determine what texture formats we support loading from file e.g. ktx, dds, others?
-			//bool_t LoadFromFile(const char* pPath);
+			virtual ~Texture2D();
 
 			//char_t* GetData(uint32_t level) const;
 
 		private:
-
 		};
 
 		class Texture2DArray : public Texture
@@ -205,11 +219,11 @@ namespace GraphicsEngine
 
 		public:
 			Texture2DArray();
-			explicit Texture2DArray(Texture::TextureType type, Texture::Format format, Texture::WrapMode wrapMode, Texture::FilterMode filterMode, Texture::MipMapMode mipMapMode,
+			explicit Texture2DArray(const std::string& texturePath);
+			explicit Texture2DArray(Texture::TextureType type, Texture::TextureFormat format, Texture::WrapMode wrapMode, Texture::FilterMode filterMode, Texture::MipMapMode mipMapMode,
 				uint32_t width, uint32_t height, uint32_t mipLevels);
+			virtual ~Texture2DArray();
 
-			//TODO - determine what texture formats we support loading from file e.g. ktx, dds, others?
-			//bool_t LoadFromFile(const char* pPath);
 
 			//char_t* GetData(uint32_t index, uint32_t level) const;
 
@@ -223,11 +237,11 @@ namespace GraphicsEngine
 
 		public:
 			Texture3D();
-			explicit Texture3D(Texture::TextureType type, Texture::Format format, Texture::WrapMode wrapMode, Texture::FilterMode filterMode, Texture::MipMapMode mipMapMode,
+			explicit Texture3D(const std::string& texturePath);
+			explicit Texture3D(Texture::TextureType type, Texture::TextureFormat format, Texture::WrapMode wrapMode, Texture::FilterMode filterMode, Texture::MipMapMode mipMapMode,
 				uint32_t width, uint32_t height, uint32_t depth, uint32_t mipLevels);
-
-			//TODO - determine what texture formats we support loading from file e.g. ktx, dds, others?
-			//bool_t LoadFromFile(const char* pPath);
+			virtual ~Texture3D();
+			
 
 			//char_t* GetData(uint32_t level) const;
 
@@ -235,23 +249,23 @@ namespace GraphicsEngine
 
 		};
 
-		class Texture3DArray : public Texture
-		{
-			GE_RTTI(GraphicsEngine::Graphics::Texture3DArray)
+		// NOT YET SUPPORTED BY GENERAL GRAPHICS APIS !
+		//class Texture3DArray : public Texture
+		//{
+		//	GE_RTTI(GraphicsEngine::Graphics::Texture3DArray)
 
-		public:
-			Texture3DArray();
-			explicit Texture3DArray(Texture::TextureType type, Texture::Format format, Texture::WrapMode wrapMode, Texture::FilterMode filterMode, Texture::MipMapMode mipMapMode,
-				uint32_t width, uint32_t height, uint32_t depth, uint32_t mipLevels, uint32_t layerCount);
+		//public:
+		//	Texture3DArray();
+		//	explicit Texture3DArray(const std::string& texturePath);
+		//	explicit Texture3DArray(Texture::TextureType type, Texture::TextureFormat format, Texture::WrapMode wrapMode, Texture::FilterMode filterMode, Texture::MipMapMode mipMapMode,
+		//		uint32_t width, uint32_t height, uint32_t depth, uint32_t mipLevels, uint32_t layerCount);
+		//	virtual ~Texture3DArray();
 
-			//TODO - determine what texture formats we support loading from file e.g. ktx, dds, others?
-			//bool_t LoadFromFile(const char* pPath);
+		//	//char_t* GetData(uint32_t index, uint32_t level) const;
 
-			//char_t* GetData(uint32_t index, uint32_t level) const;
+		//private:
 
-		private:
-
-		};
+		//};
 
 		class TextureCubeMap : public Texture
 		{
@@ -259,12 +273,29 @@ namespace GraphicsEngine
 
 		public:
 			TextureCubeMap();
+			explicit TextureCubeMap(const std::string& texturePath);
 			// 1 cubemap is composed of 6 2D textures
-			explicit TextureCubeMap(Texture::TextureType type, Texture::Format format, Texture::WrapMode wrapMode, Texture::FilterMode filterMode, Texture::MipMapMode mipMapMode,
+			explicit TextureCubeMap(Texture::TextureType type, Texture::TextureFormat format, Texture::WrapMode wrapMode, Texture::FilterMode filterMode, Texture::MipMapMode mipMapMode,
 				uint32_t width, uint32_t height, uint32_t mipLevels);
+			virtual ~TextureCubeMap();
 
-			//TODO - determine what texture formats we support loading from file e.g. ktx, dds, others?
-			//bool_t LoadFromFile(const char* pPath);
+			//char_t* GetData(uint32_t face, uint32_t level) const;
+
+		private:
+
+		};
+
+		class TextureCubeMapArray : public Texture
+		{
+			GE_RTTI(GraphicsEngine::Graphics::TextureCubeMapArray)
+
+		public:
+			TextureCubeMapArray();
+			explicit TextureCubeMapArray(const std::string& texturePath);
+			// 1 cubemap is composed of 6 2D textures
+			explicit TextureCubeMapArray(Texture::TextureType type, Texture::TextureFormat format, Texture::WrapMode wrapMode, Texture::FilterMode filterMode, Texture::MipMapMode mipMapMode,
+				uint32_t width, uint32_t height, uint32_t mipLevels);
+			virtual ~TextureCubeMapArray();
 
 			//char_t* GetData(uint32_t face, uint32_t level) const;
 

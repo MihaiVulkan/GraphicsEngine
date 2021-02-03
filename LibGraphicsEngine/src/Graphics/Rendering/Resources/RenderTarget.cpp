@@ -33,24 +33,24 @@ RenderTarget::~RenderTarget()
 
 void RenderTarget::Create()
 {
-	Texture::Format format = Texture::Format::GE_TF_COUNT;
+	Texture::TextureFormat format = Texture::TextureFormat::GE_TF_COUNT;
 
 	switch (mType)
 	{
 	case TargetType::GE_TT_COLOR_RGB:
-		format = mIsFloatData ? Texture::Format::GE_TF_R32G32B32_SFLOAT : Texture::Format::GE_TF_R32G32B32_SINT;
+		format = mIsFloatData ? Texture::TextureFormat::GE_TF_R32G32B32_SFLOAT : Texture::TextureFormat::GE_TF_R32G32B32_SINT;
 		break;
 	case TargetType::GE_TT_COLOR_RGBA:
-		format = mIsFloatData ? Texture::Format::GE_TF_R32G32B32A32_SFLOAT : Texture::Format::GE_TF_R32G32B32A32_SINT;
+		format = mIsFloatData ? Texture::TextureFormat::GE_TF_R32G32B32A32_SFLOAT : Texture::TextureFormat::GE_TF_R32G32B32A32_SINT;
 		break;
 	case TargetType::GE_TT_DEPTH_16:
-		format = Texture::Format::GE_TF_D16;
+		format = Texture::TextureFormat::GE_TF_D16;
 		break;
 	case TargetType::GE_TT_DEPTH_24:
-		format = Texture::Format::GE_TF_D24;
+		format = Texture::TextureFormat::GE_TF_D24;
 		break;
 	case TargetType::GE_TT_DEPTH_32:
-		format = Texture::Format::GE_TF_D32;
+		format = Texture::TextureFormat::GE_TF_D32;
 		break;
 	}
 

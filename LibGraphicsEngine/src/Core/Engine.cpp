@@ -74,6 +74,7 @@ void Engine::Terminate()
 
 void Engine::Run()
 {
+	static float32_t crrTime = 0.0f; // timer crr time for animations
 	while (mpWindow->IsWindowVisible() && (false == mpWindow->ShouldWindowClose()))
 	{
 		static float32_t deltaTime = 0.0f;
@@ -81,7 +82,7 @@ void Engine::Run()
 
 		if (false == mpWindow->IsWindowMinimized())
 		{
-			mpGraphicsSystem->Run(deltaTime);
+			mpGraphicsSystem->Run(crrTime);
 
 			mpInputSystem->UpdateContinuousInput(deltaTime);
 		}
@@ -90,9 +91,12 @@ void Engine::Run()
 		std::chrono::duration<float32_t> diffFrameTime = endFrameTime - startFrameTime;
 		deltaTime = diffFrameTime.count();
 
-		deltaTime += 1; // offset TO BE REMOVED WHEN RENDERING SOMETHING
+		crrTime += deltaTime;
 
-		//LOG_DEBUG("deltaTime: %.10lf %.10f", deltaTime);
+	//	deltaTime += 1; // offset TO BE REMOVED WHEN RENDERING SOMETHING
+
+	//	LOG_DEBUG("deltaTime: %.10lf", deltaTime);
+	//	LOG_DEBUG("crrTime: %.10lf", crrTime);
 
 		//////////////////// FPS Count //////////
 		FPSCount(deltaTime);

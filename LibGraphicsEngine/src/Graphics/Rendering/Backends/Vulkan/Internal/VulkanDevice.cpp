@@ -202,14 +202,14 @@ void VulkanDevice::SetPhysicalDeviceSupportedExtensions(const std::vector<std::s
 	mpPhysicalDevice->SetSupportedExtensions(extensions);
 }
 
-const VkPhysicalDeviceFeatures& VulkanDevice::GetPhysicaltDeviceEnabledFeatures() const
+const VkPhysicalDeviceFeatures& VulkanDevice::GetPhysicalDeviceEnabledFeatures() const
 {
 	assert(mpPhysicalDevice != nullptr);
 
 	return mpPhysicalDevice->GetEnabledFeatures();
 }
 
-void VulkanDevice::SetPhysicaltDeviceEnabledFeatures(const VkPhysicalDeviceFeatures& features)
+void VulkanDevice::SetPhysicalDeviceEnabledFeatures(const VkPhysicalDeviceFeatures& features)
 {
 	assert(mpPhysicalDevice != nullptr);
 

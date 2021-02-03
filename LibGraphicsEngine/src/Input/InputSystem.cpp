@@ -138,8 +138,9 @@ void InputSystem::UpdateFPSInput(float32_t deltaTime)
 {
 	{
 		///////// KEYBOARD ///////////
-		const float32_t KeySpeed = 0.01f;
-		float32_t deltaVal = KeySpeed * deltaTime;
+		//TODO - put key speed in config
+		const float32_t KeySpeed = 0.005f;
+		float32_t deltaVal = KeySpeed;// *deltaTime;
 
 		if (mpWindow->GetState().keys[GE_KEY_W] || mpWindow->GetState().keys[GE_KEY_UP])
 		{
@@ -188,9 +189,10 @@ void InputSystem::UpdateFPSInput(float32_t deltaTime)
 		int32_t halfWidth = winWidth / 2;
 		int32_t halfHeight = winHeight / 2;
 
-		const float32_t MouseSpeed = 0.005f;
-		float32_t dx = (halfWidth - cursorXPos) * MouseSpeed * deltaTime;
-		float32_t dy = (halfHeight - cursorYPos) * MouseSpeed * deltaTime;
+		//TODO - put mouse speed in config
+		const float32_t MouseSpeed = 0.001f;
+		float32_t dx = (halfWidth - cursorXPos) * MouseSpeed;// *deltaTime;
+		float32_t dy = (halfHeight - cursorYPos) * MouseSpeed;// *deltaTime;
 
 		//	LOG_DEBUG("Delta Mouse Pos: dx: %f, dy: %f", dx, dy);
 

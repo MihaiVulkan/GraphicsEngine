@@ -49,10 +49,7 @@ void RenderQueue::Push(GeometryNode* pGeoNode)
 		renderable.pMaterial = pMaterial;
 	}
 
-	RenderableList queue;
-	queue.push_back(renderable);
-
-	mRenderables[RenderQueue::RenderableType::GE_RT_OPAQUE] = queue;
+	mRenderables[RenderQueue::RenderableType::GE_RT_OPAQUE].push_back(renderable);
 }
 
 //TODO push light object

@@ -107,6 +107,13 @@ void VulkanPhysicalDevice::SelectPhysicalDevice()
 	}
 #endif
 
+	//list which formats are supoorted and which not (iteratinf through most of them, not all of them) 
+	for (uint32_t format = VkFormat::VK_FORMAT_UNDEFINED; format != VkFormat::VK_FORMAT_ASTC_12x12_SRGB_BLOCK; ++format)
+	{
+		VkFormatProperties formatProperties;
+		vkGetPhysicalDeviceFormatProperties(mHandle, (VkFormat)format, &formatProperties);
+	}
+
 	if (foundSuitableGPU == false)
 	{
 		LOG_ERROR("Failed to find suitable GPU!");

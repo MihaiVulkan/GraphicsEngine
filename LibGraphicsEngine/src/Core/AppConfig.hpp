@@ -33,11 +33,13 @@
 #endif // VULKAN_RENDERER
 
 // GLM config //
-#define GLM_FORCE_MESSAGES
-#define GLM_FORCE_RADIANS
+#define GLM_FORCE_MESSAGES // see GLM message output
+#define GLM_FORCE_RADIANS // we use radians instead of degrees for angles
 // DEPTH RANGE: GLM DEFAULT = [-1.0f, 1.0f]
 // COORDIANTE SYSTEM HANDINESS: GLM DEFAULT = RIGHT HAND
 #if defined(VULKAN_RENDERER)
+//NOTE! To allign the Vulkan viewport to GL one there is also the VK_KHR_MAINTENANCE1_EXTENSION_NAME supported since Vulkan 1.1
+// more info: https://www.saschawillems.de/blog/2019/03/29/flipping-the-vulkan-viewport/
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE //correct depth range in Vulkan (0.0f, 1.0f) compared to OpenGL (-1.0f, 1.0f)
 #endif // VULKAN_RENDERER
 

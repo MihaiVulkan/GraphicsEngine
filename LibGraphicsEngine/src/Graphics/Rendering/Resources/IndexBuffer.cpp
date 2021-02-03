@@ -1,6 +1,5 @@
 #include "Graphics/Rendering/Resources/IndexBuffer.hpp"
 #include "Foundation/MemoryManagement/MemoryOperations.hpp"
-#include <cstring> // ::memcpy()
 #include <cassert>
 
 using namespace GraphicsEngine;

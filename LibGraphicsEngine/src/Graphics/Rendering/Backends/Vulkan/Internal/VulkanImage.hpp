@@ -63,8 +63,9 @@ namespace GraphicsEngine
 			VulkanImage();
 			explicit VulkanImage(VulkanDevice* pDevice, VkMemoryPropertyFlags memoryPropertyFlags, 
 				VkImageType imageType, VkFormat format, const VkExtent3D& extent, uint32_t mipLevels, uint32_t arrayLayers, VkSampleCountFlagBits samples,
-				VkImageTiling tiling, VkImageUsageFlags usage, VkSharingMode sharingMode = VkSharingMode::VK_SHARING_MODE_EXCLUSIVE, uint32_t queueFamilyIndexCount = 0,
-				const uint32_t * pQueueFamilyIndices = nullptr, VkImageLayout initialLayout = VkImageLayout::VK_IMAGE_LAYOUT_UNDEFINED, VkImageCreateFlags flags = 0);
+				VkImageTiling tiling = VkImageTiling::VK_IMAGE_TILING_OPTIMAL, VkImageUsageFlags usage = VkImageUsageFlagBits::VK_IMAGE_USAGE_SAMPLED_BIT,
+				VkSharingMode sharingMode = VkSharingMode::VK_SHARING_MODE_EXCLUSIVE, uint32_t queueFamilyIndexCount = 0, const uint32_t * pQueueFamilyIndices = nullptr,
+				VkImageLayout initialLayout = VkImageLayout::VK_IMAGE_LAYOUT_UNDEFINED, VkImageCreateFlags flags = 0);
 			virtual ~VulkanImage();
 
 

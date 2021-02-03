@@ -3,6 +3,7 @@
 
 #include "Foundation/Object.hpp"
 #include "Graphics/SceneGraph/Visitors/NodeVisitor.hpp"
+#include "glm/mat4x4.hpp"
 #include <string>
 #include <list>
 #include <unordered_map>
@@ -67,6 +68,9 @@ namespace GraphicsEngine
 			bool_t GetIsEnabled() const;
 			void SetIsEnabled(bool_t isEnabled);
 
+			const glm::mat4& GetModelMatrix() const;
+			void SetModelMatrix(const glm::mat4& transform);
+
 		
 			///////// Visitor Pattern ///////
 			virtual void Traverse(NodeVisitor& visitor);
@@ -83,7 +87,8 @@ namespace GraphicsEngine
 
 			std::unordered_map<std::string, NodeComponent*, std::hash<std::string>> mComponentMap;
 
-			//TODO - add local/world transforms
+			//TODO - to improve when we add our own Math lib
+			glm::mat4 mModelMatrix; //local -> world transform
 		};
 	}
 }

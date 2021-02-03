@@ -7,11 +7,15 @@
 #include <string>
 #include <vector>
 #include <unordered_map>
+#include <map>
 
 namespace GraphicsEngine
 {
 	namespace Graphics
 	{
+		/*
+			A simple GLSL shader parser, for now limited to only retrieve input, outputs, uniform and uniform block info per shader.
+		*/
 		class GLSLShaderParser: public Object
 		{
 			GE_RTTI(GraphicsEngine::Graphics::GLSLShaderParser)
@@ -81,7 +85,7 @@ namespace GraphicsEngine
 			{
 				std::string name;
 				int32_t binding;
-				std::unordered_map <std::string, UniformMember> members;
+				std::unordered_map<std::string, UniformMember> members;
 
 				bool_t IsValid() const
 				{
@@ -90,10 +94,11 @@ namespace GraphicsEngine
 				}
 			};
 
-			typedef std::unordered_map <std::string, Input> InputMap;
-			typedef std::unordered_map <VertexFormat::VertexAttribute, VertexInput> VertexAttributeMap;
-			typedef std::unordered_map <std::string, Output> OutputMap;
-			typedef std::unordered_map <std::string, Uniform> UniformMap;
+			typedef std::unordered_map<std::string, Input> InputMap;
+			typedef std::unordered_map<std::string, Output> OutputMap;
+			typedef std::unordered_map<std::string, Uniform> UniformMap;
+			// NOTE! ordered_map as we want to maitain the order of attributes!
+			typedef std::map<VertexFormat::VertexAttribute, VertexInput> VertexAttributeMap;
 			
 			GLSLShaderParser();
 			explicit GLSLShaderParser(const std::string& shaderSourcePath);

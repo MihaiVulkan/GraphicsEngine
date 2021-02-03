@@ -98,9 +98,9 @@ void GraphicsSystem::Terminate()
 	}
 }
 
-void GraphicsSystem::Run(float32_t deltaTime)
+void GraphicsSystem::Run(float32_t crrTime)
 {
-	UpdateFrame(deltaTime);
+	UpdateFrame(crrTime);
 	RenderFrame();
 	SubmitFrame();
 }
@@ -114,12 +114,12 @@ void GraphicsSystem::RenderFrame()
 #endif // VULKAN_RENDERER
 }
 
-void GraphicsSystem::UpdateFrame(float32_t deltaTime)
+void GraphicsSystem::UpdateFrame(float32_t crrTime)
 {
 	assert(mpRenderer != nullptr);
 
 #if defined(VULKAN_RENDERER)
-	mpRenderer->UpdateFrame(mpMainCamera, deltaTime);
+	mpRenderer->UpdateFrame(mpMainCamera, crrTime);
 #endif // VULKAN_RENDERER
 }
 

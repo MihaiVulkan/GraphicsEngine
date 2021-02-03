@@ -1,7 +1,7 @@
 #ifndef GRAPHICS_COMPONENTS_MATERIAL_COMPONENT_HPP
 #define GRAPHICS_COMPONENTS_MATERIAL_COMPONENT_HPP
 
-#include "Graphics/Components/NodeComponent.hpp"
+#include "Graphics/Components/VisualComponent.hpp"
 
 namespace GraphicsEngine
 {
@@ -10,7 +10,7 @@ namespace GraphicsEngine
 		class Material;
 
 		/* MaterialComponent used for the nodes who want to have materials */
-		class MaterialComponent : public NodeComponent
+		class MaterialComponent : public VisualComponent
 		{
 			GE_RTTI(GraphicsEngine::Graphics::MaterialComponent)
 

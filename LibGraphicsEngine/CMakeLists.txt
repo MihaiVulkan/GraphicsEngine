@@ -1,7 +1,14 @@
 cmake_minimum_required(VERSION 3.14)
 
+set(PROJECT_NAME LibGraphicsEngine)
+
 #project
-project(LibGraphicsEngine LANGUAGES CXX C)
+project(${PROJECT_NAME} LANGUAGES CXX C)
+
+# if MSVC compiler set the current proj as the default startup one
+if (${CMAKE_CXX_COMPILER_ID} STREQUAL MSVC)
+	set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT ${PROJECT_NAME})
+endif()
 
 # disable ZERO_CHECK proj generation
 set(CMAKE_SUPPRESS_REGENERATION true)
@@ -48,6 +55,8 @@ file(GLOB_RECURSE SOURCE_LIST
 	${PROJECT_SOURCE_DIR}/src/Graphics/SceneGraph/*.cpp
 	${PROJECT_SOURCE_DIR}/src/Graphics/ShaderTools/GLSL/*.hpp
 	${PROJECT_SOURCE_DIR}/src/Graphics/ShaderTools/GLSL/*.cpp
+	${PROJECT_SOURCE_DIR}/src/Graphics/Loaders/*.hpp
+	${PROJECT_SOURCE_DIR}/src/Graphics/Loaders/*.cpp
 	${PROJECT_SOURCE_DIR}/src/Graphics/*.hpp
 	${PROJECT_SOURCE_DIR}/src/Graphics/*.cpp
 	${PROJECT_SOURCE_DIR}/src/Input/*.hpp
@@ -55,13 +64,13 @@ file(GLOB_RECURSE SOURCE_LIST
 )
 
 # our target is a static lib
-add_library(LibGraphicsEngine STATIC ${SOURCE_LIST})
+add_library(${PROJECT_NAME} STATIC ${SOURCE_LIST})
 
 # this allows for us to have file filters in IDEs like MS Visual Studio
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SOURCE_LIST})
 
 # includes
-target_include_directories(LibGraphicsEngine PRIVATE
+target_include_directories(${PROJECT_NAME} PRIVATE
 	${PROJECT_SOURCE_DIR}/src
 	${PROJECT_SOURCE_DIR}/dep/include
 )

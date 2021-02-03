@@ -28,7 +28,7 @@ namespace GraphicsEngine
 			virtual ~RenderPass();
 
 			virtual void Render(Renderer* pRenderer, RenderQueue* pRenderQueue, uint32_t currentBufferIdx) {}
-			virtual void Update(Renderer* pRenderer, RenderQueue* pRenderQueue, Camera* pCamera, float32_t deltaTime) {}
+			virtual void Update(Renderer* pRenderer, RenderQueue* pRenderQueue, Camera* pCamera, float32_t crrTime) {}
 
 			const RenderPass::PassType& GetPassType() const;
 
