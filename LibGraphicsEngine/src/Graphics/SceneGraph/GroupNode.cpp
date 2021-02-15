@@ -1,4 +1,5 @@
 #include "Graphics/SceneGraph/GroupNode.hpp"
+#include "Foundation/MemoryManagement/MemoryOperations.hpp"
 #include <algorithm> // std::remove()
 #include <cassert>
 
@@ -31,9 +32,7 @@ void GroupNode::Create()
 
 void GroupNode::Destroy()
 {
-	// TODO - properly destroy all children
-
-	mChildren.clear();
+	DettachAllNodes();
 }
 
 bool_t GroupNode::HasChildren() const
@@ -64,7 +63,7 @@ void GroupNode::DettachNode(Node* pNode)
 
 	pNode->SetParent(nullptr);
 
-	// efficiant remove
+	// efficient remove
 	mChildren.erase(std::remove(mChildren.begin(), mChildren.end(), pNode), mChildren.end());
 }
 
@@ -73,6 +72,8 @@ void GroupNode::DettachAllNodes()
 	for (auto& pNode : mChildren)
 	{
 		pNode->SetParent(nullptr);
+
+		GE_FREE(pNode); //TODO - memory management
 	}
 
 	mChildren.clear();

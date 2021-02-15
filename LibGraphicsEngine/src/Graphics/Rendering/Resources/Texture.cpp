@@ -46,15 +46,16 @@ bool_t Texture::LoadFromFile(const std::string& texturePath)
 	//TODO - what if we want several textures at once
 	// shpuld I have a ktxloder for each texture or 
 	// one loader for all of them
-	KTX2Loader ktxLoader(texturePath);
-
-	auto* pKtxTexture = ktxLoader.GetMetaData();
-	assert(pKtxTexture != nullptr);
-
-
-	// check is desired texture type is matched with loaded image data
-	switch (mTextureMetaData.type)
 	{
+		KTX2Loader ktxLoader(texturePath);
+
+		auto* pKtxTexture = ktxLoader.GetMetaData();
+		assert(pKtxTexture != nullptr);
+
+
+		// check is desired texture type is matched with loaded image data
+		switch (mTextureMetaData.type)
+		{
 		case TextureType::GE_TT_1D:
 			assert(pKtxTexture->numDimensions == 1 && pKtxTexture->isArray == false);
 			break;
@@ -70,7 +71,7 @@ bool_t Texture::LoadFromFile(const std::string& texturePath)
 		case TextureType::GE_TT_3D:
 			assert(pKtxTexture->numDimensions == 3 && pKtxTexture->isArray == false && pKtxTexture->isCubemap == false);
 			break;
-		//case TextureType::GE_TT_3D_ARRAY: //NOTE! No 3d array textures yet
+			//case TextureType::GE_TT_3D_ARRAY: //NOTE! No 3d array textures yet
 		case TextureType::GE_TT_CUBEMAP:
 			assert(pKtxTexture->numDimensions == 2 && pKtxTexture->isArray == false && pKtxTexture->isCubemap);
 			break;
@@ -81,52 +82,53 @@ bool_t Texture::LoadFromFile(const std::string& texturePath)
 		default:
 			LOG_ERROR("Invalid texture type!");
 			return false;
-	}
+		}
 
-	mTextureMetaData.format = VulkanUtils::VulkanFormatToTextureFormat(pKtxTexture->vkFormat);
+		mTextureMetaData.format = VulkanUtils::VulkanFormatToTextureFormat(pKtxTexture->vkFormat);
 
-	mTextureMetaData.width = pKtxTexture->baseWidth;
-	mTextureMetaData.height = pKtxTexture->baseHeight;
-	mTextureMetaData.depth = pKtxTexture->baseDepth;
-	mTextureMetaData.mipLevels = pKtxTexture->numLevels;
-	mTextureMetaData.layerCount = pKtxTexture->numLayers;
-	mTextureMetaData.faceCount = pKtxTexture->numFaces;
+		mTextureMetaData.width = pKtxTexture->baseWidth;
+		mTextureMetaData.height = pKtxTexture->baseHeight;
+		mTextureMetaData.depth = pKtxTexture->baseDepth;
+		mTextureMetaData.mipLevels = pKtxTexture->numLevels;
+		mTextureMetaData.layerCount = pKtxTexture->numLayers;
+		mTextureMetaData.faceCount = pKtxTexture->numFaces;
 
-	mTextureMetaData.dataSize = pKtxTexture->dataSize;
-	assert(mTextureMetaData.dataSize > 0);
+		mTextureMetaData.dataSize = pKtxTexture->dataSize;
+		assert(mTextureMetaData.dataSize > 0);
 
-	mTextureMetaData.mpData = GE_ALLOC_ARRAY(uint8_t, mTextureMetaData.dataSize);
-	assert(mTextureMetaData.mpData != nullptr);
+		mTextureMetaData.mpData = GE_ALLOC_ARRAY(uint8_t, mTextureMetaData.dataSize);
+		assert(mTextureMetaData.mpData != nullptr);
 
-	assert(pKtxTexture->pData != nullptr);
-	::memcpy(mTextureMetaData.mpData, pKtxTexture->pData, mTextureMetaData.dataSize);
+		assert(pKtxTexture->pData != nullptr);
+		::memcpy(mTextureMetaData.mpData, pKtxTexture->pData, mTextureMetaData.dataSize);
 
-	size_t imageCount = mTextureMetaData.mipLevels * mTextureMetaData.faceCount * mTextureMetaData.layerCount;
-	mTextureMetaData.mipmaps.resize(imageCount);
+		size_t imageCount = mTextureMetaData.mipLevels * mTextureMetaData.faceCount * mTextureMetaData.layerCount;
+		mTextureMetaData.mipmaps.resize(imageCount);
 
-	// NOTE! These loops are specific to the KTX2 image data internal layout
-	for (uint32_t layer = 0; layer < mTextureMetaData.layerCount; ++layer)
-	{
-		for (uint32_t face = 0; face < mTextureMetaData.faceCount; ++face)
+		// NOTE! These loops are specific to the KTX2 image data internal layout
+		for (uint32_t layer = 0; layer < mTextureMetaData.layerCount; ++layer)
 		{
-			for (uint32_t level = 0; level < mTextureMetaData.mipLevels; ++level)
+			for (uint32_t face = 0; face < mTextureMetaData.faceCount; ++face)
 			{
-				uint8_t index = mTextureMetaData.faceCount * layer +
-					mTextureMetaData.mipLevels * face + level;
-				auto& mipmapRef = mTextureMetaData.mipmaps[index];
+				for (uint32_t level = 0; level < mTextureMetaData.mipLevels; ++level)
+				{
+					uint8_t index = mTextureMetaData.faceCount * layer +
+						mTextureMetaData.mipLevels * face + level;
+					auto& mipmapRef = mTextureMetaData.mipmaps[index];
 
-				size_t imageOffset = ktxLoader.ComputeImageOffset(level, layer, face);
+					size_t imageOffset = ktxLoader.ComputeImageOffset(level, layer, face);
 
-				mipmapRef.width = glm::max(1u, mTextureMetaData.width >> level);
-				mipmapRef.height = glm::max(1u, mTextureMetaData.height >> level);
-				mipmapRef.offset = imageOffset;
+					mipmapRef.width = glm::max(1u, mTextureMetaData.width >> level);
+					mipmapRef.height = glm::max(1u, mTextureMetaData.height >> level);
+					mipmapRef.offset = imageOffset;
+				}
 			}
 		}
-	}
 
-	mTextureMetaData.wrapMode = WrapMode::GE_WM_REPEAT;
-	mTextureMetaData.filterMode = FilterMode::GE_FM_LINEAR;
-	mTextureMetaData.mipMapMode = MipMapMode::GE_MM_LINEAR;
+		mTextureMetaData.wrapMode = WrapMode::GE_WM_REPEAT;
+		mTextureMetaData.filterMode = FilterMode::GE_FM_LINEAR;
+		mTextureMetaData.mipMapMode = MipMapMode::GE_MM_LINEAR;
+	}
 
 	return true;
 }

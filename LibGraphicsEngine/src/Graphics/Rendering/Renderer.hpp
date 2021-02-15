@@ -75,11 +75,8 @@ namespace GraphicsEngine
 			typedef std::unordered_map<Material*, GADRMaterial*, HashUtils::PointerHash<Material>> MaterialMap;
 
 			Renderer();
-			explicit Renderer(Renderer::RendererType type);
+			explicit Renderer(Platform::Window* pWindow, Renderer::RendererType type = Renderer::RendererType::GE_RT_FORWARD);
 			virtual ~Renderer();
-
-			virtual void Init(Platform::Window* pWindow);
-			virtual void Terminate();
 
 			virtual void RenderFrame(RenderQueue* pRenderQueue, RenderPass* pRenderPass) {};
 			virtual void UpdateFrame(Camera* pCamera, float32_t crrTime) {};
@@ -87,15 +84,34 @@ namespace GraphicsEngine
 	
 			virtual void OnWindowResize(uint32_t width = 0, uint32_t height = 0) {};
 
+			virtual void ComputeGraphicsResources(RenderQueue* pRenderQueue, RenderPass* pRenderPass) {};
+
+			virtual void UpdateUniformBuffers(RenderQueue::Renderable* pRenderable, Camera* pCamera, float32_t crrTime) {};
+			virtual void UpdateDynamicStates(const DynamicState& dynamicState, uint32_t currentBufferIdx) {};
+
+			virtual void DrawObject(RenderQueue::Renderable* pRenderable, uint32_t currentBufferIdx) {};
+			virtual void DrawGeometry(GeometryNode* pGeometryNode, uint32_t currentBufferIdx) {};
+
 			uint32_t GetWindowWidth() const;
 			uint32_t GetWindowHeight() const;
-
+	
 			Renderer::RendererType GetRendererType() const { return mRendererType; };
 
 			bool_t IsPrepared() { return mIsPrepared; }
 
+			// cleanup Graphics API Independed Resources
+			virtual void CleanUpGAIR();
 
-			////////////////////
+		protected:
+
+			virtual void Init(Platform::Window* pWindow);
+			virtual void Terminate();
+
+			virtual void BeginFrame() {};
+			virtual void EndFrame() {};
+
+			////////////////////////////////
+
 
 			GADRVertexFormat* Bind(VertexFormat* pVertexFormat);
 			void UnBind(VertexFormat* pVertexFormat);
@@ -142,25 +158,7 @@ namespace GraphicsEngine
 
 			GADRMaterial* Get(Material* pMaterial);
 
-
 			////////////////////
-			virtual void ComputeGraphicsResources(RenderQueue* pRenderQueue, RenderPass* pRenderPass) {};
-
-			virtual void UpdateUniformBuffers(RenderQueue::Renderable* pRenderable, Camera* pCamera, float32_t crrTime) {};
-
-			virtual void DrawObject(RenderQueue::Renderable* pRenderable, uint32_t currentBufferIdx) {};
-			virtual void DrawGeometry(GeometryNode* pGeometryNode, uint32_t currentBufferIdx) {};
-			virtual void DrawGemetricPrimitve() {};
-
-			virtual void UpdateDynamicStates(const DynamicState& dynamicState, uint32_t currentBufferIdx) {};
-
-			////////////////////
-
-
-
-		protected:
-			virtual void BeginFrame() {};
-			virtual void EndFrame() {};
 
 			bool_t mIsPrepared;
 			uint32_t mWindowWidth;
@@ -183,7 +181,7 @@ namespace GraphicsEngine
 			Camera* mpCamera;
 
 		private:
-			NO_COPY_NO_MOVE(Renderer)
+			NO_COPY_NO_MOVE_CLASS(Renderer)
 
 			void CleanUpResources();
 

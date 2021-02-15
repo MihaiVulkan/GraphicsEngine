@@ -3,7 +3,6 @@
 
 #include "Core/AppConfig.hpp"
 #include "Foundation/Object.hpp"
-#include "Foundation/NoCopyNoMove.hpp"
 
 namespace GraphicsEngine
 {
@@ -16,7 +15,7 @@ namespace GraphicsEngine
 		virtual ~System();
 
 	private:
-		NO_COPY_NO_MOVE(System)
+		NO_COPY_NO_MOVE_CLASS(System)
 	};
 }
 #endif // CORE_SYSTEM_HPP

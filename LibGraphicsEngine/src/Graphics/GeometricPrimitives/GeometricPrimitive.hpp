@@ -70,6 +70,8 @@ namespace GraphicsEngine
 			bool_t IsIndexed() const;
 
 		private:
+			NO_COPY_NO_MOVE_CLASS(GeometricPrimitive)
+
 			PrimitiveTopology mTopology;
 			FaceWinding mFaceWinding;
 			PolygonMode mPolygonMode;

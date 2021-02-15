@@ -1,6 +1,7 @@
 #include "Core/GraphicsEngineInternal.hpp"
 #include "Core/AppConfig.hpp"
-#include "Foundation/MemoryManagement/LiniarAllocator.hpp"
+#include "Foundation/MemoryManagement/MemoryOperations.hpp"
+#include "Foundation/Logger.hpp"
 
 using namespace GraphicsEngine;
 

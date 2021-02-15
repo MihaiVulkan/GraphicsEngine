@@ -45,7 +45,7 @@ namespace GraphicsEngine
 
 
 	private:
-		NO_COPY_NO_MOVE(GraphicsSystem)
+		NO_COPY_NO_MOVE_CLASS(GraphicsSystem)
 
 		void Init(Platform::Window* pWindow);
 		void Terminate();
@@ -53,6 +53,8 @@ namespace GraphicsEngine
 		void ComputeRenderQueue();
 		void ComputeGraphicsResources();
 
+		// Window ref
+		Platform::Window* mpWindow;
 
 		// Renderer
 		Graphics::Renderer* mpRenderer;

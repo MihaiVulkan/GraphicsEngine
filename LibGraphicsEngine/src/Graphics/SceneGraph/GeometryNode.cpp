@@ -32,6 +32,11 @@ void GeometryNode::Create()
 
 void GeometryNode::Destroy()
 {
+	for (auto& primitive : mPrimitives)
+	{
+		if (primitive)
+			GE_FREE(primitive);
+	}
 	mPrimitives.clear();
 
 	// TODO - object lifetime management

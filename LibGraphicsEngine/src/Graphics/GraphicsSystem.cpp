@@ -15,7 +15,8 @@ using namespace GraphicsEngine;
 using namespace GraphicsEngine::Graphics;
 
 GraphicsSystem::GraphicsSystem()
-: mpRenderer(nullptr)
+: mpWindow(nullptr)
+, mpRenderer(nullptr)
 , mpRenderQueue(nullptr)
 , mpScene(nullptr)
 , mpMainCamera(nullptr)
@@ -37,10 +38,12 @@ void GraphicsSystem::Init(Platform::Window* pWindow)
 {
 	assert(pWindow != nullptr);
 
+	mpWindow = pWindow;
+
 	//TODO - for now the vulkan renderer supports only one view - viewport
 	// use Vulkan renderer
 #if defined(VULKAN_RENDERER)
-	mpRenderer = GE_ALLOC(VulkanRenderer);
+	mpRenderer = GE_ALLOC(VulkanRenderer)(pWindow);
 #else
 	// other
 #endif // VULKAN_RENDERER
@@ -53,9 +56,6 @@ void GraphicsSystem::Init(Platform::Window* pWindow)
 	pWindow->GetWindowSize(&windowWidth, &windowHeight);
 
 	mpMainCamera->SetAspectRatio(windowWidth / static_cast<float32_t>(windowHeight));
-
-	// Renderer init
-	mpRenderer->Init(pWindow);
 
 	// RenderQueue
 	mpRenderQueue = GE_ALLOC(RenderQueue);
@@ -79,7 +79,7 @@ void GraphicsSystem::Terminate()
 
 	if (mpScene)
 	{
-		//TODO - cleaup scene tree
+		GE_FREE(mpScene);
 	}
 
 	if (mpRenderPass)
@@ -95,6 +95,11 @@ void GraphicsSystem::Terminate()
 	if (mpRenderer)
 	{
 		GE_FREE(mpRenderer);
+	}
+
+	if (mpWindow)
+	{
+		mpWindow = nullptr;
 	}
 }
 
@@ -149,6 +154,7 @@ void GraphicsSystem::ComputeGraphicsResources()
 
 	assert(mpRenderer != nullptr);
 	assert(mpRenderQueue != nullptr);
+	assert(mpWindow != nullptr);
 
 	mpRenderer->ComputeGraphicsResources(mpRenderQueue, mpRenderPass);
 
@@ -156,6 +162,15 @@ void GraphicsSystem::ComputeGraphicsResources()
 	// NOTE! With Vulkan we record all rendering upfront!
 	mpRenderer->RenderFrame(mpRenderQueue, mpRenderPass);
 #endif // VULKAN_RENDERER
+
+	//TODO - proper handling of uneeded GAIR resources
+	// NOTE! If window is resizable then this will not work, as we need the resources on window resize
+	if (mpWindow->IsWindowResizable() == false)
+	{
+		mpRenderer->CleanUpGAIR();
+	}
+
+	// NOTE! We can not free the scene graph here as we still need it to update the objects/components each frame!
 }
 
 Graphics::Renderer* GraphicsSystem::GetRenderer()

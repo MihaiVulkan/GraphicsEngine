@@ -36,7 +36,7 @@ VulkanComputePipeline::~VulkanComputePipeline()
 void VulkanComputePipeline::Create(VkPipelineCache cacheHandle, const VkComputePipelineCreateInfo& computePipelineCreateInfo)
 {
 	assert(mpDevice != nullptr);
-	assert(cacheHandle != nullptr);
+	assert(cacheHandle != VK_NULL_HANDLE);
 
 	VK_CHECK_RESULT(vkCreateComputePipelines(mpDevice->GetDeviceHandle(), cacheHandle, 1, &computePipelineCreateInfo, nullptr, &mHandle));
 }

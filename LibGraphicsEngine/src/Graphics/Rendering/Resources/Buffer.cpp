@@ -51,6 +51,7 @@ void* Buffer::GetData() const
 	return mpData;
 }
 
+//TODO - maybe replace void* array with std::vector<uint8_t> ?
 void Buffer::SetData(void* pData, uint32_t size)
 {
 	if (pData)

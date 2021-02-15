@@ -65,10 +65,8 @@ Engine::~Engine()
 
 void Engine::Terminate()
 {
-	GE_FREE(mpGraphicsSystem);
-
 	GE_FREE(mpInputSystem);
-
+	GE_FREE(mpGraphicsSystem);
 	GE_FREE(mpWindow);
 }
 

@@ -26,7 +26,7 @@ namespace GraphicsEngine
 			virtual void Visit(CameraNode* pNode) override;
 
 		private:
-			NO_COPY_NO_MOVE(ComputeRenderQueueVisitor);
+			NO_COPY_NO_MOVE_CLASS(ComputeRenderQueueVisitor);
 
 			RenderQueue* mpRenderQueue;
 		};

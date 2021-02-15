@@ -53,10 +53,8 @@ namespace GraphicsEngine
 
 		public:
 			VulkanRenderer();
+			explicit VulkanRenderer(Platform::Window* pWindow);
 			virtual ~VulkanRenderer();
-
-			virtual void Init(Platform::Window* pWindow) override;
-			virtual void Terminate() override;
 
 			virtual void RenderFrame(RenderQueue* pRenderQueue, RenderPass* pRenderPass) override;
 			virtual void UpdateFrame(Camera* pCamera, float32_t crrTime) override;
@@ -83,6 +81,9 @@ namespace GraphicsEngine
 			VulkanCommandBuffer* GetCommandBuffer(uint32_t currentBufferIdx) const;
 
 		private:
+			virtual void Init(Platform::Window* pWindow) override;
+			virtual void Terminate() override;
+
 			void Prepare();
 
 			void setupDefaultRenderPass();
@@ -114,7 +115,7 @@ namespace GraphicsEngine
 			void PresentFrame();
 
 		private:
-			NO_COPY_NO_MOVE(VulkanRenderer)
+			NO_COPY_NO_MOVE_CLASS(VulkanRenderer)
 
 			// VULKAN RESOURCES
 
@@ -202,6 +203,14 @@ namespace GraphicsEngine
 				// 1 descriptor set per material/visual effect
 				VulkanDescriptorSetLayout* pDescriptorSetLayout;
 				VulkanDescriptorSet* pDescriptorSet;
+
+				DescriptorSetData& operator = (const DescriptorSetData& other)
+				{
+					pDescriptorSetLayout = other.pDescriptorSetLayout;
+					pDescriptorSet = other.pDescriptorSet;
+
+					return *this;
+				}
 			};
 
 			std::unordered_map<VisualComponent*, DescriptorSetData, HashUtils::PointerHash<VisualComponent>> mDescriptorSetDataCollection;

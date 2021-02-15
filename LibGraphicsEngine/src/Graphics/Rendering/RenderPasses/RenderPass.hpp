@@ -33,6 +33,8 @@ namespace GraphicsEngine
 			const RenderPass::PassType& GetPassType() const;
 
 		protected:
+			NO_COPY_NO_MOVE_CLASS(RenderPass)
+
 			PassType mPassType;
 		};
 	}

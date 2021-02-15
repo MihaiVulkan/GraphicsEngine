@@ -22,7 +22,7 @@ namespace GraphicsEngine
 		virtual void Free(void* ptr) override;
 
 	private:
-		NO_COPY_NO_MOVE(LiniarAllocator)
+		NO_COPY_NO_MOVE_CLASS(LiniarAllocator)
 
 		void* mpMemoryBuffer;
 		uint64_t mOffset;

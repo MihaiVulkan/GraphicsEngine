@@ -8,8 +8,15 @@ using namespace GraphicsEngine;
 Application::Application()
 {}
 
+Application::Application(const std::string& name, uint32_t width, uint32_t height)
+{
+	Init(name, width, height);
+}
+
 Application::~Application()
-{}
+{
+	Terminate();
+}
 
 void Application::Init(const std::string& name, uint32_t width, uint32_t height)
 {

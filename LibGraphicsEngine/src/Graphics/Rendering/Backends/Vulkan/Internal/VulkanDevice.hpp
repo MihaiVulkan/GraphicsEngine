@@ -34,7 +34,7 @@ namespace GraphicsEngine
 
 		public:
 			VulkanDevice();
-			explicit VulkanDevice(Platform::Window* pWindow, bool_t enableValidation);
+			explicit VulkanDevice(Platform::Window* pWindow, bool_t enableValidation = false);
 			virtual ~VulkanDevice();
 
 			void ResetSwapChain();

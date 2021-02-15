@@ -21,6 +21,8 @@ namespace GraphicsEngine
 			bool_t GetIsEnabled() const;
 
 		protected:
+			//NO_COPY_NO_MOVE_CLASS(PipelineState)
+
 			bool_t mIsEnabled;
 		};
 	}

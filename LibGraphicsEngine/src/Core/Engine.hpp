@@ -57,7 +57,7 @@ namespace GraphicsEngine
 		InputSystem* GetInputSystem();
 
 	private:
-		NO_COPY_NO_MOVE(Engine)
+		NO_COPY_NO_MOVE_CLASS(Engine)
 
 		Engine();
 		virtual ~Engine();
@@ -65,9 +65,7 @@ namespace GraphicsEngine
 
 		void FPSCount(float32_t deltaTime);
 
-		// Window - TODO - only one window for now
 		Platform::Window* mpWindow;
-
 		GraphicsSystem* mpGraphicsSystem;
 		InputSystem* mpInputSystem;
 	};

@@ -30,6 +30,8 @@ namespace GraphicsEngine
 			const CullFaceState::CullMode& GetCullMode() const;
 
 		private:
+			//NO_COPY_NO_MOVE_CLASS(CullFaceState)
+
 			CullMode mCullMode;
 		};
 	}

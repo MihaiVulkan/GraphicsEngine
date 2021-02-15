@@ -2,8 +2,8 @@
 
 using namespace GraphicsEngine;
 
-Object::Object()
-{}
-
-Object::~Object()
-{}
+//Object::Object()
+//{}
+//
+//Object::~Object()
+//{}

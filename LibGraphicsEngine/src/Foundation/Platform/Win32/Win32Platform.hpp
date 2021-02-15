@@ -29,7 +29,7 @@ namespace GraphicsEngine
 			const KeyMapWin32::PlatformData& GetPlatformData() const;
 
 		private:
-			NO_COPY_NO_MOVE(KeyMapWin32)
+			NO_COPY_NO_MOVE_CLASS(KeyMapWin32)
 
 			void CreateTable();
 			void DestroyTable();
@@ -50,9 +50,10 @@ namespace GraphicsEngine
 
 
 			WindowWin32();
-			// NOTE! By default the window is visible, resizable and focused
+			// NOTE! By default the window is visible and focused
 			explicit WindowWin32(const std::string& title, uint32_t width, uint32_t height, 
-				uint32_t flags = Window::GE_WindowFlags::GE_WF_VISIBLE | Window::GE_WindowFlags::GE_WF_RESIZABLE | Window::GE_WindowFlags::GE_WF_INPUT_GRABBED);
+				//uint32_t flags = Window::GE_WindowFlags::GE_WF_VISIBLE | Window::GE_WindowFlags::GE_WF_RESIZABLE | Window::GE_WindowFlags::GE_WF_INPUT_GRABBED);
+				uint32_t flags = Window::GE_WindowFlags::GE_WF_VISIBLE | Window::GE_WindowFlags::GE_WF_INPUT_GRABBED);
 			virtual ~WindowWin32();
 
 			////////////////// WINDOW API //////////////////
@@ -94,7 +95,7 @@ namespace GraphicsEngine
 			KeyMapWin32* GetKeyMap() const;
 
 		private:
-			NO_COPY_NO_MOVE(WindowWin32)
+			NO_COPY_NO_MOVE_CLASS(WindowWin32)
 
 			bool_t CreateWindowNative(const std::string& title, uint32_t width, uint32_t height, uint32_t flags);
 			void DestroyWindowNative();

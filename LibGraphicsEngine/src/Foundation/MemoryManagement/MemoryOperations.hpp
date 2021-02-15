@@ -1,14 +1,16 @@
-//#ifndef FOUNDATION_MEMORYMANAGEMENT_MEMORY_OPERATIONS_HPP
-//#define FOUNDATION_MEMORYMANAGEMENT_MEMORY_OPERATIONS_HPP
+#ifndef FOUNDATION_MEMORYMANAGEMENT_MEMORY_OPERATIONS_HPP
+#define FOUNDATION_MEMORYMANAGEMENT_MEMORY_OPERATIONS_HPP
 
 #include "Core/AppConfig.hpp"
 #include "Foundation/MemoryManagement/LiniarAllocator.hpp"
+#include <memory> // std smart pointers
 #ifndef ENABLE_ALLOCATOR
 #include <new>
 #endif // ENABLE_ALLOCATOR
+#include <cassert>
 
 #define GE_ALLOC(T) ::new (T)
-#define GE_ALLOC_ARRAY(T, size) ::new T[size] 
+#define GE_ALLOC_ARRAY(T, size) ::new T[size]
 #define GE_FREE(T) if (T) { ::delete (T); T = nullptr; }
 #define GE_FREE_ARRAY(T) if (T) { ::delete[] (T); T = nullptr; }
 
@@ -32,4 +34,4 @@ extern LiniarAllocator gAllocator;
 
 #endif // ENABLE_ALLOCATOR
 
-//#endif // FOUNDATION_MEMORYMANAGEMENT_MEMORY_OPERATIONS_HPP
+#endif // FOUNDATION_MEMORYMANAGEMENT_MEMORY_OPERATIONS_HPP

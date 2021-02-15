@@ -67,6 +67,8 @@ namespace GraphicsEngine
 
 
 		private:
+			NO_COPY_NO_MOVE_CLASS(VisualComponent)
+
 			void Create();
 			void Destroy();
 

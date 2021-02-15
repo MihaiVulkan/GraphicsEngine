@@ -8,14 +8,12 @@
    http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2007/n2271.html
 */
 
-#include "Foundation/TypeDefines.hpp"
-#include "Foundation/NoCopyNoMove.hpp"
-#include "Foundation/RTTI.hpp"
+#include "Foundation/Object.hpp"
 
 namespace GraphicsEngine
 {
 	/* Base class for all Allocators */
-	class Allocator : public RTTI
+	class Allocator : public Object
 	{
 		GE_RTTI(GraphicsEngine::Allocator)
 
@@ -52,7 +50,7 @@ namespace GraphicsEngine
 		uint64_t mPeak;
 
 	private:
-		NO_COPY_NO_MOVE(Allocator)
+		NO_COPY_NO_MOVE_CLASS(Allocator)
 	};
 }
 #endif /* FOUNDATION_MEMORYMANAGEMENT_ALLOCATOR_HPP */

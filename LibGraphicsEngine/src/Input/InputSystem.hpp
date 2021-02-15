@@ -38,7 +38,7 @@ namespace GraphicsEngine
 		void UpdateFPSInput(float32_t deltaTime);
 
 	private:
-		NO_COPY_NO_MOVE(InputSystem)
+		NO_COPY_NO_MOVE_CLASS(InputSystem)
 
 		void Init();
 		void Terminate();

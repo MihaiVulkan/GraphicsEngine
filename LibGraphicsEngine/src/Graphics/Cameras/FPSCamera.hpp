@@ -26,7 +26,7 @@ namespace GraphicsEngine
 			virtual void EnableConstraints() override;
 
 		private:
-			NO_COPY_NO_MOVE(FPSCamera);
+			NO_COPY_NO_MOVE_CLASS(FPSCamera);
 
 			// ORIENTATION - Euler Angles
 			float32_t mPitch; // around OX axis

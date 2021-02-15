@@ -6,11 +6,6 @@
 #include <vector>
 #include <string>
 
-#ifdef USE_GLSLANG
-#include "glslang/SPIRV/GlslangToSpv.h"
-#endif // USE_GLSLANG
-
-
 namespace GraphicsEngine
 {
 	namespace Graphics
@@ -40,11 +35,6 @@ namespace GraphicsEngine
 			void Create(const std::string& sourcePath);
 			void Destroy();
 
-#ifdef USE_GLSLANG
-			bool_t GLSLtoSPV(const std::string& sourcePath, VkShaderStageFlagBits shaderStage, const std::string& shaderSourceCode, std::vector<uint32_t>& SPIRVVecOut);
-			void InitResources(TBuiltInResource& Resources);
-			EShLanguage FindLanguage(const VkShaderStageFlagBits shaderStage);
-#endif // USE_GLSLANG
 			VulkanDevice* mpDevice;
 
 			VkShaderModule mHandle;

@@ -3,7 +3,8 @@
 
 #include "Foundation/TypeDefines.hpp"
 #include "Foundation/RTTI.hpp"
-#include "Foundation/NoCopyNoMove.hpp"
+#include "Foundation/DefaultClass.hpp"
+#include "Foundation/NoCopyNoMoveClass.hpp"
 
 namespace GraphicsEngine
 {
@@ -12,8 +13,7 @@ namespace GraphicsEngine
 		GE_RTTI(GraphicsEngine::Object)
 
 	public:
-		Object();
-		virtual ~Object();
+		DEFAULT_CLASS(Object)
 	};
 }
 

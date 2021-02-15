@@ -39,25 +39,10 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 target_link_libraries(${PROJECT_NAME} PRIVATE LibGraphicsEngine)
 			
 # as cmake can't link static libs to other static libs when generating VS projs we link those to the app directly
-if (CMAKE_BUILD_TYPE AND CMAKE_BUILD_TYPE MATCHES Debug)
-target_link_libraries(${PROJECT_NAME} PRIVATE		
-	${Lib_Dir}/dep/lib/vulkan-1.lib
-	${Lib_Dir}/dep/lib/Debug/glslangd.lib
-	${Lib_Dir}/dep/lib/Debug/OGLCompilerd.lib
-	${Lib_Dir}/dep/lib/Debug/OSDependentd.lib
-	${Lib_Dir}/dep/lib/Debug/SPIRVd.lib
-	${Lib_Dir}/dep/lib/Debug/HLSLd.lib
+target_link_libraries(${PROJECT_NAME} PRIVATE
+	${Vulkan_Lib_Dir}
 )
-elseif (CMAKE_BUILD_TYPE AND CMAKE_BUILD_TYPE MATCHES Release)
-target_link_libraries(${PROJECT_NAME} PRIVATE		
-	${Lib_Dir}/dep/lib/vulkan-1.lib
-	${Lib_Dir}/dep/lib/Release/glslang.lib
-	${Lib_Dir}/dep/lib/Release/OGLCompiler.lib
-	${Lib_Dir}/dep/lib/Release/OSDependent.lib
-	${Lib_Dir}/dep/lib/Release/SPIRV.lib
-	${Lib_Dir}/dep/lib/Release/HLSL.lib
-)
-endif()
+
 #defines
 # Asset path
 add_definitions(-DGE_ASSET_PATH=\"${PROJECT_SOURCE_DIR}/res/\")

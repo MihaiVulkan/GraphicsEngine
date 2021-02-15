@@ -2,7 +2,7 @@
 #define FOUNDATION_MEMORYMANAGEMENT_MEMORY_BENCHMARK_HPP
 
 #include "Foundation/TypeDefines.hpp"
-#include "Foundation/NoCopyNoMove.hpp"
+#include "Foundation/NoCopyNoMoveClass.hpp"
 #include "Foundation/Timer.hpp"
 
 namespace GraphicsEngine
@@ -22,7 +22,7 @@ namespace GraphicsEngine
 		void CollectResults(int64_t elapsedTime, uint64_t memoryPeak);
 
 	private:
-		NO_COPY_NO_MOVE(MemoryBenchmark)
+		NO_COPY_NO_MOVE_CLASS(MemoryBenchmark)
 
 		uint64_t mOperationCount;
 		Timer mTimer;

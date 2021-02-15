@@ -53,7 +53,7 @@ namespace GraphicsEngine
 			size_t ComputeImageSize(uint32_t level);
 
 		private:
-			NO_COPY_NO_MOVE(KTX2Loader)
+			NO_COPY_NO_MOVE_CLASS(KTX2Loader)
 
 			struct Impl;
 			Impl* mpImpl;

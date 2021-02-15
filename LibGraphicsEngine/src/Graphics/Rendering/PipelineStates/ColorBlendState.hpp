@@ -78,6 +78,8 @@ namespace GraphicsEngine
             void SetConstantColor(const Color4f& color);
     
         private:
+            //NO_COPY_NO_MOVE_CLASS(ColorBlendState)
+
             bool_t mIsBlendEnabled;
             BlendFactor mSrcColorBlendFactor;
             BlendFactor mDstColorBlendFactor;

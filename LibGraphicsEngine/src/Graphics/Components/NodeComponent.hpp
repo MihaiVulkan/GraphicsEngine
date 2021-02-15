@@ -36,6 +36,8 @@ namespace GraphicsEngine
 			void SetIsEnabled(bool_t isEnabled);
 
 		private:
+			NO_COPY_NO_MOVE_CLASS(NodeComponent)
+
 			void Create();
 			void Destroy();
 

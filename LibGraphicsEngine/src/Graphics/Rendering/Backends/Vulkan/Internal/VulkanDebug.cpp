@@ -188,82 +188,82 @@ namespace GraphicsEngine
 
 			void SetCommandBufferName(VkDevice deviceHandle, VkCommandBuffer cmdBuffer, const char_t* pName)
 			{
-				SetObjectName(deviceHandle, reinterpret_cast<uint64_t>(cmdBuffer), VkDebugReportObjectTypeEXT::VK_DEBUG_REPORT_OBJECT_TYPE_COMMAND_BUFFER_EXT, pName);
+				SetObjectName(deviceHandle, reinterpret_cast<uint64_t&>(cmdBuffer), VkDebugReportObjectTypeEXT::VK_DEBUG_REPORT_OBJECT_TYPE_COMMAND_BUFFER_EXT, pName);
 			}
 
 			void SetQueueName(VkDevice deviceHandle, VkQueue queueHandle, const char_t* pName)
 			{
-				SetObjectName(deviceHandle, reinterpret_cast<uint64_t>(queueHandle), VkDebugReportObjectTypeEXT::VK_DEBUG_REPORT_OBJECT_TYPE_QUEUE_EXT, pName);
+				SetObjectName(deviceHandle, reinterpret_cast<uint64_t&>(queueHandle), VkDebugReportObjectTypeEXT::VK_DEBUG_REPORT_OBJECT_TYPE_QUEUE_EXT, pName);
 			}
 
 			void SetImageName(VkDevice deviceHandle, VkImage imageHandle, const char_t* pName)
 			{
-				SetObjectName(deviceHandle, reinterpret_cast<uint64_t>(imageHandle), VkDebugReportObjectTypeEXT::VK_DEBUG_REPORT_OBJECT_TYPE_IMAGE_EXT, pName);
+				SetObjectName(deviceHandle, reinterpret_cast<uint64_t&>(imageHandle), VkDebugReportObjectTypeEXT::VK_DEBUG_REPORT_OBJECT_TYPE_IMAGE_EXT, pName);
 			}
 
 			void SetSamplerName(VkDevice deviceHandle, VkSampler samplerHandle, const char_t* pName)
 			{
-				SetObjectName(deviceHandle, reinterpret_cast<uint64_t>(samplerHandle), VkDebugReportObjectTypeEXT::VK_DEBUG_REPORT_OBJECT_TYPE_SAMPLER_EXT, pName);
+				SetObjectName(deviceHandle, reinterpret_cast<uint64_t&>(samplerHandle), VkDebugReportObjectTypeEXT::VK_DEBUG_REPORT_OBJECT_TYPE_SAMPLER_EXT, pName);
 			}
 
 			void SetBufferName(VkDevice deviceHandle, VkBuffer bufferHandle, const char_t* pName)
 			{
-				SetObjectName(deviceHandle, reinterpret_cast<uint64_t>(bufferHandle), VkDebugReportObjectTypeEXT::VK_DEBUG_REPORT_OBJECT_TYPE_BUFFER_EXT, pName);
+				SetObjectName(deviceHandle, reinterpret_cast<uint64_t&>(bufferHandle), VkDebugReportObjectTypeEXT::VK_DEBUG_REPORT_OBJECT_TYPE_BUFFER_EXT, pName);
 			}
 
 			void SetDeviceMemoryName(VkDevice deviceHandle, VkDeviceMemory memoryHandle, const char_t* pName)
 			{
-				SetObjectName(deviceHandle, reinterpret_cast<uint64_t>(memoryHandle), VkDebugReportObjectTypeEXT::VK_DEBUG_REPORT_OBJECT_TYPE_DEVICE_MEMORY_EXT, pName);
+				SetObjectName(deviceHandle, reinterpret_cast<uint64_t&>(memoryHandle), VkDebugReportObjectTypeEXT::VK_DEBUG_REPORT_OBJECT_TYPE_DEVICE_MEMORY_EXT, pName);
 			}
 
 			void SetShaderModuleName(VkDevice deviceHandle, VkShaderModule shaderModuleHandle, const char_t* pName)
 			{
-				SetObjectName(deviceHandle, reinterpret_cast<uint64_t>(shaderModuleHandle), VkDebugReportObjectTypeEXT::VK_DEBUG_REPORT_OBJECT_TYPE_SHADER_MODULE_EXT, pName);
+				SetObjectName(deviceHandle, reinterpret_cast<uint64_t&>(shaderModuleHandle), VkDebugReportObjectTypeEXT::VK_DEBUG_REPORT_OBJECT_TYPE_SHADER_MODULE_EXT, pName);
 			}
 
 			void SetPipelineName(VkDevice deviceHandle, VkPipeline pipelineHandle, const char_t* pName)
 			{
-				SetObjectName(deviceHandle, reinterpret_cast<uint64_t>(pipelineHandle), VkDebugReportObjectTypeEXT::VK_DEBUG_REPORT_OBJECT_TYPE_PIPELINE_EXT, pName);
+				SetObjectName(deviceHandle, reinterpret_cast<uint64_t&>(pipelineHandle), VkDebugReportObjectTypeEXT::VK_DEBUG_REPORT_OBJECT_TYPE_PIPELINE_EXT, pName);
 			}
 
 			void SetPipelineLayoutName(VkDevice deviceHandle, VkPipelineLayout pipelineLayout, const char_t* pName)
 			{
-				SetObjectName(deviceHandle, reinterpret_cast<uint64_t>(pipelineLayout), VkDebugReportObjectTypeEXT::VK_DEBUG_REPORT_OBJECT_TYPE_PIPELINE_LAYOUT_EXT, pName);
+				SetObjectName(deviceHandle, reinterpret_cast<uint64_t&>(pipelineLayout), VkDebugReportObjectTypeEXT::VK_DEBUG_REPORT_OBJECT_TYPE_PIPELINE_LAYOUT_EXT, pName);
 			}
 
 			void SetRenderPassName(VkDevice deviceHandle, VkRenderPass renderPassHandle, const char_t* pName)
 			{
-				SetObjectName(deviceHandle, reinterpret_cast<uint64_t>(renderPassHandle), VkDebugReportObjectTypeEXT::VK_DEBUG_REPORT_OBJECT_TYPE_RENDER_PASS_EXT, pName);
+				SetObjectName(deviceHandle, reinterpret_cast<uint64_t&>(renderPassHandle), VkDebugReportObjectTypeEXT::VK_DEBUG_REPORT_OBJECT_TYPE_RENDER_PASS_EXT, pName);
 			}
 
 			void SetFramebufferName(VkDevice deviceHandle, VkFramebuffer framebufferHandle, const char_t* pName)
 			{
-				SetObjectName(deviceHandle, reinterpret_cast<uint64_t>(framebufferHandle), VkDebugReportObjectTypeEXT::VK_DEBUG_REPORT_OBJECT_TYPE_FRAMEBUFFER_EXT, pName);
+				SetObjectName(deviceHandle, reinterpret_cast<uint64_t&>(framebufferHandle), VkDebugReportObjectTypeEXT::VK_DEBUG_REPORT_OBJECT_TYPE_FRAMEBUFFER_EXT, pName);
 			}
 
 			void SetDescriptorSetLayoutName(VkDevice deviceHandle, VkDescriptorSetLayout descriptorSetLayoutHandle, const char_t* pName)
 			{
-				SetObjectName(deviceHandle, reinterpret_cast<uint64_t>(descriptorSetLayoutHandle), VkDebugReportObjectTypeEXT::VK_DEBUG_REPORT_OBJECT_TYPE_DESCRIPTOR_SET_LAYOUT_EXT, pName);
+				SetObjectName(deviceHandle, reinterpret_cast<uint64_t&>(descriptorSetLayoutHandle), VkDebugReportObjectTypeEXT::VK_DEBUG_REPORT_OBJECT_TYPE_DESCRIPTOR_SET_LAYOUT_EXT, pName);
 			}
 
 			void SetDescriptorSetName(VkDevice deviceHandle, VkDescriptorSet descriptorSetHandle, const char_t* pName)
 			{
-				SetObjectName(deviceHandle, reinterpret_cast<uint64_t>(descriptorSetHandle), VkDebugReportObjectTypeEXT::VK_DEBUG_REPORT_OBJECT_TYPE_DESCRIPTOR_SET_EXT, pName);
+				SetObjectName(deviceHandle, reinterpret_cast<uint64_t&>(descriptorSetHandle), VkDebugReportObjectTypeEXT::VK_DEBUG_REPORT_OBJECT_TYPE_DESCRIPTOR_SET_EXT, pName);
 			}
 
 			void SetSemaphoreName(VkDevice deviceHandle, VkSemaphore semaphoreHandle, const char_t* pName)
 			{
-				SetObjectName(deviceHandle, reinterpret_cast<uint64_t>(semaphoreHandle), VkDebugReportObjectTypeEXT::VK_DEBUG_REPORT_OBJECT_TYPE_SEMAPHORE_EXT, pName);
+				SetObjectName(deviceHandle, reinterpret_cast<uint64_t&>(semaphoreHandle), VkDebugReportObjectTypeEXT::VK_DEBUG_REPORT_OBJECT_TYPE_SEMAPHORE_EXT, pName);
 			}
 
 			void SetFenceName(VkDevice deviceHandle, VkFence fenceHandle, const char_t* pName)
 			{
-				SetObjectName(deviceHandle, reinterpret_cast<uint64_t>(fenceHandle), VkDebugReportObjectTypeEXT::VK_DEBUG_REPORT_OBJECT_TYPE_FENCE_EXT, pName);
+				SetObjectName(deviceHandle, reinterpret_cast<uint64_t&>(fenceHandle), VkDebugReportObjectTypeEXT::VK_DEBUG_REPORT_OBJECT_TYPE_FENCE_EXT, pName);
 			}
 
 			void SetEventName(VkDevice deviceHandle, VkEvent eventHandle, const char_t* pName)
 			{
-				SetObjectName(deviceHandle, reinterpret_cast<uint64_t>(eventHandle), VkDebugReportObjectTypeEXT::VK_DEBUG_REPORT_OBJECT_TYPE_EVENT_EXT, pName);
+				SetObjectName(deviceHandle, reinterpret_cast<uint64_t&>(eventHandle), VkDebugReportObjectTypeEXT::VK_DEBUG_REPORT_OBJECT_TYPE_EVENT_EXT, pName);
 			}
 		}
 	}

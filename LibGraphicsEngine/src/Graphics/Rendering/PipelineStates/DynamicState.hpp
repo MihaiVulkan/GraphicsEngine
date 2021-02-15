@@ -39,6 +39,8 @@ namespace GraphicsEngine
 			const std::vector<DynamicState::State>& GetStates() const;
 
 		private:
+			//NO_COPY_NO_MOVE_CLASS(DynamicState)
+
 			std::vector<DynamicState::State> mStates;
 		};
 	}

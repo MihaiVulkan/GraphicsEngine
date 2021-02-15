@@ -27,6 +27,8 @@ namespace GraphicsEngine
 
 
 		private:
+			NO_COPY_NO_MOVE_CLASS(MaterialComponent)
+
 			void Create();
 			void Destroy();
 

@@ -120,6 +120,9 @@ namespace GraphicsEngine
 			{
 				LOG_ERROR("Unsupported type!");
 			}
+
+			//NOTE! Shouldn't get here!
+			return *(T*)&mBool;
 		}
 
 		template <typename T>

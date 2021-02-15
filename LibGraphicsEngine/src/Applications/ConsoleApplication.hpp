@@ -11,7 +11,7 @@ namespace GraphicsEngine
 
 	public:
 		ConsoleApplication();
-		explicit ConsoleApplication(const std::string& name);
+		explicit ConsoleApplication(const std::string& name, uint32_t width = 0, uint32_t height = 0);
 		virtual ~ConsoleApplication();
 
 		virtual void Init(const std::string& name, uint32_t width = 0, uint32_t height = 0) override;
@@ -20,6 +20,7 @@ namespace GraphicsEngine
 		virtual void Run() override;
 
 		private:
+			NO_COPY_NO_MOVE_CLASS(ConsoleApplication)
 	};
 }
 #endif // APPLICATIONS_CONSOLE_APPLICATION_HPP

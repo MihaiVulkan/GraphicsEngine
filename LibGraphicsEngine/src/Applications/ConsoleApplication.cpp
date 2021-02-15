@@ -6,9 +6,10 @@ ConsoleApplication::ConsoleApplication()
 	: Application()
 {}
 
-ConsoleApplication::ConsoleApplication(const std::string& name)
-	: Application()
-{}
+ConsoleApplication::ConsoleApplication(const std::string& name, uint32_t width, uint32_t height)
+{
+	Init(name, width, height);
+}
 
 ConsoleApplication::~ConsoleApplication()
 {}

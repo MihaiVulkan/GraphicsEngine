@@ -6,8 +6,15 @@ WindowApplication::WindowApplication()
 	: Application()
 {}
 
+WindowApplication::WindowApplication(const std::string& name, uint32_t width, uint32_t height)
+{
+	Init(name, width, height);
+}
+
 WindowApplication::~WindowApplication()
-{}
+{
+	Terminate();
+}
 
 void WindowApplication::Init(const std::string& name, uint32_t width, uint32_t height)
 {

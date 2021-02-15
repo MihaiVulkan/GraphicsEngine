@@ -21,7 +21,7 @@ namespace GraphicsEngine
 			virtual int32_t GetKeyScancode(int32_t key) { return -1; }
 
 		private:
-			NO_COPY_NO_MOVE(KeyMap)
+			NO_COPY_NO_MOVE_CLASS(KeyMap)
 		};
 
 		class Window : public Object
@@ -99,6 +99,7 @@ namespace GraphicsEngine
 			virtual bool_t IsWindowMinimized() { return false; }
 			virtual bool_t IsWindowMaximized() { return false; }
 			virtual bool_t IsWindowFocused() { return false; }
+			virtual bool_t IsWindowResizable() { return (mState.flags & GE_WindowFlags::GE_WF_RESIZABLE); }
 
 			virtual bool_t GetShouldWindowClose();
 			virtual void SetShouldWindowClose(bool_t shouldClose);
@@ -201,7 +202,7 @@ namespace GraphicsEngine
 			} mCallbacks;
 
 		private:
-			NO_COPY_NO_MOVE(Window)
+			NO_COPY_NO_MOVE_CLASS(Window)
 
 		};
 	}

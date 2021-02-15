@@ -203,7 +203,7 @@ namespace GraphicsEngine
 			// or add a CullCmera which culls scene graph nodes based on calculated planes and geometric intersection
 
 		private:
-			NO_COPY_NO_MOVE(Camera);
+			NO_COPY_NO_MOVE_CLASS(Camera);
 		};
 	}
 }

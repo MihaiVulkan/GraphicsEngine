@@ -37,7 +37,7 @@ namespace GraphicsEngine
 		int64_t TimeoutInterval() const;
 
 	private:
-		NO_COPY_NO_MOVE(Timer)
+		NO_COPY_NO_MOVE_CLASS(Timer)
 
 		std::chrono::time_point<std::chrono::high_resolution_clock> mStartTime, mEndTime;
 		bool_t mIsRunning;

@@ -11,8 +11,7 @@ namespace GraphicsEngine
 		class VulkanObject : public Object
 		{
 		public:
-			VulkanObject();
-			virtual ~VulkanObject();
+			DEFAULT_CLASS(VulkanObject)
 		};
 
 	}

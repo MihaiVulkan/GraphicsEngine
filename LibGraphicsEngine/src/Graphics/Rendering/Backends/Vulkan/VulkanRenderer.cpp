@@ -66,7 +66,7 @@ using namespace GraphicsEngine;
 using namespace GraphicsEngine::Graphics;
 
 VulkanRenderer::VulkanRenderer()
-	: Renderer(RendererType::GE_RT_FORWARD)
+	: Renderer()
 	, mpDevice(nullptr)
 	, mpDefaultRenderPass(nullptr)
 	, mpRenderCompleteSemaphore(nullptr)
@@ -78,6 +78,20 @@ VulkanRenderer::VulkanRenderer()
 	, mpQueryPool(nullptr)
 {}
 
+VulkanRenderer::VulkanRenderer(Platform::Window* pWindow)
+	: Renderer(pWindow)
+	, mpDevice(nullptr)
+	, mpDefaultRenderPass(nullptr)
+	, mpRenderCompleteSemaphore(nullptr)
+	, mpPresentCompleteSemaphore(nullptr)
+	, mpCommandPool(nullptr)
+	, mCurrentBufferIdx(0)
+	, mSubmitInfo{}
+	, mpPipelineCache(nullptr)
+	, mpQueryPool(nullptr)
+{
+	Init(pWindow);
+}
 
 VulkanRenderer::~VulkanRenderer()
 {
@@ -86,8 +100,6 @@ VulkanRenderer::~VulkanRenderer()
 
 void VulkanRenderer::Init(Platform::Window* pWindow)
 {
-	Renderer::Init(pWindow);
-
 	mpDevice = GE_ALLOC(VulkanDevice)(pWindow, VULKAN_DEBUG);
 	assert(mpDevice != nullptr);
 
@@ -822,6 +834,9 @@ void VulkanRenderer::ComputeGraphicsResources(RenderQueue* pRenderQueue, RenderP
 				});
 		}
 	);
+
+	//TODO - cleanup
+	mDescriptorSetBindingMapCollection.clear();
 }
 
 void VulkanRenderer::setupPipeline(GeometricPrimitive* pGeoPrimitive, VisualComponent* pVisComp)

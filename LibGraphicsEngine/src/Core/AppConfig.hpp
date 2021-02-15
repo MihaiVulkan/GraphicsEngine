@@ -1,8 +1,6 @@
 #ifndef CORE_APP_CONFIG_HPP
 #define CORE_APP_CONFIG_HPP
 
-#define USE_GLSLANG //TODO - using glsltospriv lib for shader introspection, maybe create our own code for introspection
-
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__WINDOWS__)
 //#define ENABLE_ALLOCATOR
 #define ENABLE_LOG

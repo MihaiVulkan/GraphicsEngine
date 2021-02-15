@@ -120,7 +120,7 @@ namespace GraphicsEngine
 			const GLSLShaderParser::Uniform& GetUniform(const std::string& name) const;*/
 
 		private:
-			NO_COPY_NO_MOVE(GLSLShaderParser)
+			NO_COPY_NO_MOVE_CLASS(GLSLShaderParser)
 
 			bool_t ParseExtension(const std::string& shaderSourcePath);
 			bool_t ParseSource(const std::string& shaderCode);

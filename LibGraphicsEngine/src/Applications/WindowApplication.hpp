@@ -11,6 +11,7 @@ namespace GraphicsEngine
 
 	public:
 		WindowApplication();
+		explicit WindowApplication(const std::string& name, uint32_t width = 0, uint32_t height = 0);
 		virtual ~WindowApplication();
 
 		virtual void Init(const std::string& name, uint32_t width = 0, uint32_t height = 0) override;
@@ -19,6 +20,7 @@ namespace GraphicsEngine
 		virtual void Run() override;
 
 	private:
+		NO_COPY_NO_MOVE_CLASS(WindowApplication)
 	};
 }
 #endif // APPLICATIONS_WINDOW_APPLICATION_HPP

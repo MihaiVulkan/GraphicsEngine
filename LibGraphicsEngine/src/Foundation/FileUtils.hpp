@@ -3,12 +3,14 @@
 
 #include "Foundation/TypeDefines.hpp"
 #include <string>
+#include <vector>
 
 namespace GraphicsEngine
 {
 	namespace FileUtils
 	{
-		void ReadFile(const std::string& filePath, std::string& fileContentOut);
+		void ReadTextFile(const std::string& filePath, std::string& fileContentOut);
+		void ReadBinaryFile(const std::string& filePath, std::vector<char_t>& dataOut);
 	}
 }
 

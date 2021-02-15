@@ -27,7 +27,7 @@ namespace GraphicsEngine
 			virtual void Visit(CameraNode* pNode);
 
 		private:
-			NO_COPY_NO_MOVE(NodeVisitor);
+			NO_COPY_NO_MOVE_CLASS(NodeVisitor);
 
 		};
 	}

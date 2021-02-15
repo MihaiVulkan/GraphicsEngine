@@ -103,7 +103,7 @@ bool_t GLSLShaderParser::Parse(const std::string& shaderSourcePath)
 	}
 
 	std::string shaderCode;
-	FileUtils::ReadFile(shaderSourcePath, shaderCode);
+	FileUtils::ReadTextFile(shaderSourcePath, shaderCode);
 	if (shaderCode.empty())
 	{
 		LOG_ERROR("Failed to read shader: %s", shaderSourcePath.c_str());
