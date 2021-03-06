@@ -17,19 +17,30 @@ https://github.com/g-truc/gli
 # Texture format support on different platforms
 http://vulkan.gpuinfo.org/listformats.php?platform=windows
 
-- add model/mesh support
+- add model/mesh support (or even entire scene config file support)
 https://www.khronos.org/gltf/
-https://github.com/KhronosGroup/glTF-Sample-Models/tree/master/2.0
+https://github.com/KhronosGroup/glTF/blob/master/specification/2.0/README.md
+https://github.com/KhronosGroup/glTF/blob/master/specification/2.0/README.md#complete-model
+
+https://github.com/KhronosGroup/glTF-Tutorials/blob/master/gltfTutorial/README.md
+
 https://github.com/SaschaWillems/Vulkan/blob/master/base/VulkanglTFModel.h
+
+// Most complete implementation for Vulkan support
+https://github.com/SaschaWillems/Vulkan-glTF-PBR/blob/master/base/VulkanglTFModel.cpp
+
+glTF sample models
+https://github.com/KhronosGroup/glTF-Sample-Models/tree/master/2.0
+
 
 NOTE! Check the multi-threaded experimental code!
 https://github.com/tinyobjloader/tinyobjloader
 
+
+
 - optimize at startup, add worker threads to reduce loading time
 
-- add out own math lib
-
-- add global config
+- add our own math lib
 
 - add ref_counted/ref_pointers to manage the memory of resources
 
@@ -60,7 +71,7 @@ Ideas on the GraphicsFramework:
 
 - Heavily usage of inheritance
 
-- Logging must be good - cross-platforms
+- Logging must be good - cross-platform
 
 - Resource access - cross platform: files, 3d objects, images, audio files
 
