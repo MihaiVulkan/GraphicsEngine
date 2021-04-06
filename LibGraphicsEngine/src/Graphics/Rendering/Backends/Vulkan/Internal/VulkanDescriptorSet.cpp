@@ -12,12 +12,14 @@ using namespace GraphicsEngine::Graphics;
 VulkanDescriptorSet::VulkanDescriptorSet()
 	: mpDevice(nullptr)
 	, mpDescriptorPool(nullptr)
+	, mId(0)
 	, mHandle(VK_NULL_HANDLE)
 {}
 
-VulkanDescriptorSet::VulkanDescriptorSet(VulkanDevice* pDevice, VulkanDescriptorPool* pDescriptorPool, const std::vector<VulkanDescriptorSetLayout*>& setLayouts)
+VulkanDescriptorSet::VulkanDescriptorSet(VulkanDevice* pDevice, VulkanDescriptorPool* pDescriptorPool, uint32_t id, const std::vector<VulkanDescriptorSetLayout*>& setLayouts)
 	: mpDevice(pDevice)
 	, mpDescriptorPool(pDescriptorPool)
+	, mId(id)
 	, mHandle(VK_NULL_HANDLE)
 {
 	Create(setLayouts);
@@ -63,6 +65,8 @@ void VulkanDescriptorSet::Destroy()
 		mHandle = VK_NULL_HANDLE;
 	}
 
+	mId = 0;
+
 	if (mpDescriptorPool)
 	{
 		mpDescriptorPool = nullptr;
@@ -80,6 +84,11 @@ void VulkanDescriptorSet::Update(const std::vector<VkWriteDescriptorSet>& writeS
 
 	vkUpdateDescriptorSets(mpDevice->GetDeviceHandle(), static_cast<uint32_t>(writeSet.size()), writeSet.data(),
 														static_cast<uint32_t>(copySet.size()), copySet.data());
+}
+
+const uint32_t& VulkanDescriptorSet::GetId() const
+{
+	return mId;
 }
 
 const VkDescriptorSet& VulkanDescriptorSet::GetHandle() const

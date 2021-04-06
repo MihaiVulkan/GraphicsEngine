@@ -16,6 +16,7 @@
 #include "Graphics/Components/MaterialComponent.hpp"
 
 #include "Graphics/Rendering/Resources/Material.hpp"
+#include "Graphics/Rendering/Resources/Model.hpp"
 #include "Graphics/Rendering/Resources/UniformBuffer.hpp"
 
 #include "Graphics/ShaderTools/GLSL/GLSLShaderParser.hpp"
@@ -28,10 +29,11 @@
 #include "Graphics/Rendering/Backends/Vulkan/Resources/VulkanVertexFormat.hpp"
 #include "Graphics/Rendering/Backends/Vulkan/Resources/VulkanVertexBuffer.hpp"
 #include "Graphics/Rendering/Backends/Vulkan/Resources/VulkanIndexBuffer.hpp"
+#include "Graphics/Rendering/Backends/Vulkan/Resources/VulkanUniformBuffer.hpp"
 #include "Graphics/Rendering/Backends/Vulkan/Resources/VulkanShader.hpp"
 #include "Graphics/Rendering/Backends/Vulkan/Resources/VulkanTexture.hpp"
 #include "Graphics/Rendering/Backends/Vulkan/Resources/VulkanMaterial.hpp"
-#include "Graphics/Rendering/Backends/Vulkan/Resources/VulkanUniformBuffer.hpp"
+#include "Graphics/Rendering/Backends/Vulkan/Resources/VulkanModel.hpp"
 
 //Internal
 #include "Graphics/Rendering/Backends/Vulkan/Internal/VulkanPassThroughAllocator.hpp"
@@ -740,8 +742,6 @@ void VulkanRenderer::DrawObject(RenderQueue::Renderable* pRenderable, uint32_t c
 	Bind(pRenderable->pMaterial, currentBufferIdx);
 }*/
 
-	//TODO - per render pass type
-
 	//bind pipeline 
 	//TODO - per render pass type
 	auto pipeline = mPipelineDataCollection[pVisComp].pGraphicsPipeline;
@@ -756,7 +756,7 @@ void VulkanRenderer::DrawObject(RenderQueue::Renderable* pRenderable, uint32_t c
 	assert(descriptorSet != nullptr);
 	auto pipelineLayout = mPipelineDataCollection[pVisComp].pPipelineLayout;
 	assert(pipelineLayout != nullptr);
-	vkCmdBindDescriptorSets(pCrrDrawCommandBuffer->GetHandle(), VkPipelineBindPoint::VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout->GetHandle(), 0, 1, &descriptorSet->GetHandle(), 0, nullptr);
+	vkCmdBindDescriptorSets(pCrrDrawCommandBuffer->GetHandle(), VkPipelineBindPoint::VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout->GetHandle(), descriptorSet->GetId(), 1, &descriptorSet->GetHandle(), 0, nullptr);
 
 	// draw geometric primitives
 	auto& geoPrimitives = pGeoNode->GetGeometricPrimitives();
@@ -795,7 +795,22 @@ void VulkanRenderer::DrawObject(RenderQueue::Renderable* pRenderable, uint32_t c
 			//TODO - improve instance count logic
 			uint32_t instanceCount = (pVertexBuffer->GetVertexInputRate() == VertexBuffer::VertexInputRate::GE_VIR_VERTEX ? 1 : 0);
 
-			DrawDirect(count, instanceCount, currentBufferIdx, primitive->IsIndexed());
+			// in case of model loading
+			if (primitive->IsModel())
+			{
+				Model* pModel = dynamic_cast<Model*>(primitive);
+				if (pModel)
+				{
+					auto* gadrModel = Get(pModel);
+					assert(gadrModel != nullptr);
+
+					gadrModel->Draw(currentBufferIdx);
+				}
+			}
+			else
+			{
+				DrawDirect(count, 0, instanceCount, currentBufferIdx, primitive->IsIndexed());
+			}
 		}
 	}
 }
@@ -893,9 +908,8 @@ void VulkanRenderer::setupPipeline(GeometricPrimitive* pGeoPrimitive, VisualComp
 				// descriptor metadata
 				VkDescriptorType descriptorType = VkDescriptorType::VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 
-				int32_t uboBinding = parser->GetUniformBlock().binding;
-
-				AddWriteDescriptorSet(pVisComp, shaderStage, uboBinding, descriptorType, nullptr, &(pGadrUniformBuffer->GetVKBuffer()->GetDescriptorInfo()));
+				AddWriteDescriptorSet(pVisComp, shaderStage, parser->GetUniformBlock().setId, parser->GetUniformBlock().binding,
+					descriptorType, nullptr, &(pGadrUniformBuffer->GetVKBuffer()->GetDescriptorInfo()));
 			}
 			else if (parser->GetUniforms().empty() == false) // texture sampler
 			{
@@ -916,7 +930,8 @@ void VulkanRenderer::setupPipeline(GeometricPrimitive* pGeoPrimitive, VisualComp
 						auto* gadrTexture = Get(tex_iter->second);
 						assert(gadrTexture != nullptr);
 
-						AddWriteDescriptorSet(pVisComp, shaderStage, unif_iter->second.binding, descriptorType, &(gadrTexture->GetDescriptorInfo()), nullptr);
+						AddWriteDescriptorSet(pVisComp, shaderStage, unif_iter->second.setId, unif_iter->second.binding,
+							descriptorType, &(gadrTexture->GetDescriptorInfo()), nullptr);
 					}
 				}
 			}
@@ -937,23 +952,69 @@ void VulkanRenderer::setupPipeline(GeometricPrimitive* pGeoPrimitive, VisualComp
 		}
 	}
 
+
+	// in case we have a model to load
+	if (pGeoPrimitive->IsModel())
+	{
+		Model* pModel = dynamic_cast<Model*>(pGeoPrimitive);
+		if (pModel)
+		{
+			Get(pModel);
+		}
+	}
 	////////////////////////////////////
+
+	auto iter = mDescriptorSetBindingMapCollection.find(pVisComp);
+	if (iter == mDescriptorSetBindingMapCollection.end()) //not found
+	{
+		LOG_ERROR("pVisComp not found in descriptor set binding map collection !");
+		return;
+	}
+	auto& descriptorSetBindingMap = iter->second;
 
 	//// setup Descriptor pool
 	{
 		std::vector<VkDescriptorPoolSize> poolSizes;
-
-		auto& descriptorSetBindingMap = mDescriptorSetBindingMapCollection[pVisComp];
 		for (auto iter = descriptorSetBindingMap.begin(); iter != descriptorSetBindingMap.end(); ++ iter)
 		{
-			auto descriptorType = iter->first;
+			auto descriptorSetId = iter->first;
 			uint32_t descriptorCount = static_cast<uint32_t>(iter->second.size());
 
-			VkDescriptorPoolSize descriptorPoolSize{};
-			descriptorPoolSize.type = descriptorType;
-			descriptorPoolSize.descriptorCount = descriptorCount;
+			auto& setBindingDataVector = iter->second;
 
-			poolSizes.push_back(descriptorPoolSize);
+			for (auto& bindingData : setBindingDataVector)
+			{
+				if (poolSizes.empty())
+				{
+					VkDescriptorPoolSize poolSize{};
+					poolSize.type = bindingData.layoutBinding.descriptorType;
+					poolSize.descriptorCount = bindingData.layoutBinding.descriptorCount;
+
+					poolSizes.push_back(poolSize);
+				}
+				else
+				{
+					bool_t found = false;
+					for (auto& poolSize : poolSizes)
+					{
+						if (bindingData.layoutBinding.descriptorType == poolSize.type)
+						{
+							poolSize.descriptorCount += bindingData.layoutBinding.descriptorCount;
+							found = true;
+							break;
+						}
+					}
+						
+					if (found == false)
+					{
+						VkDescriptorPoolSize poolSize{};
+						poolSize.type = bindingData.layoutBinding.descriptorType;
+						poolSize.descriptorCount = bindingData.layoutBinding.descriptorCount;
+
+						poolSizes.push_back(poolSize);
+					}
+				}
+			}
 		}
 
 		//////////////
@@ -965,57 +1026,43 @@ void VulkanRenderer::setupPipeline(GeometricPrimitive* pGeoPrimitive, VisualComp
 		assert(ref != nullptr);
 	}
 
-	auto& descriptorSetBindingMap = mDescriptorSetBindingMapCollection[pVisComp];
 	// setup Descriptor sets
 	{
-		// Basically connects the different shader stages to descriptors for binding uniform buffers, image samplers, etc.
-		std::vector<VkDescriptorSetLayoutBinding> layoutBindings;
-
-		for (auto iter = descriptorSetBindingMap.begin(); iter != descriptorSetBindingMap.end(); ++iter)
+		for (auto iter =  descriptorSetBindingMap.begin(); iter != descriptorSetBindingMap.end(); ++iter)
 		{
-			auto descriptorType = iter->first;
-			auto& descritptorSetBidingDataCollection = iter->second;
+			DescriptorSetData descriptorData{};
 
-			for (auto& data : descritptorSetBidingDataCollection)
+			auto& setId = iter->first;
+			auto& setBindingDataVector = iter->second;
+
+			// Basically connects the different shader stages to descriptors for binding uniform buffers, image samplers, etc.
+			std::vector<VkDescriptorSetLayoutBinding> layoutBindings;
+			for (auto& bindingData : setBindingDataVector)
 			{
-				layoutBindings.push_back(data.layoutBinding);
+				layoutBindings.push_back(bindingData.layoutBinding);
 			}
-		}
 
-		DescriptorSetData descriptorData{};
+			//TODO - for now we reuse the same descriptor set layout for all descriptor sets!
+			descriptorData.pDescriptorSetLayout = GE_ALLOC(VulkanDescriptorSetLayout)(mpDevice, layoutBindings);
+			assert(descriptorData.pDescriptorSetLayout != nullptr);
 
-		descriptorData.pDescriptorSetLayout = GE_ALLOC(VulkanDescriptorSetLayout)(mpDevice, layoutBindings);
-		assert(descriptorData.pDescriptorSetLayout != nullptr);
+			// Allocate a new descriptor set from the global descriptor pool
+			descriptorData.pDescriptorSet = GE_ALLOC(VulkanDescriptorSet)(mpDevice, mpDescriptorPoolMap[pVisComp], setId, { descriptorData.pDescriptorSetLayout });
+			assert(descriptorData.pDescriptorSet != nullptr);
 
-		// Allocate a new descriptor set from the global descriptor pool
-		descriptorData.pDescriptorSet = GE_ALLOC(VulkanDescriptorSet)(mpDevice, mpDescriptorPoolMap[pVisComp], { descriptorData.pDescriptorSetLayout });
-		assert(descriptorData.pDescriptorSet != nullptr);
-
-		// Update the descriptor set determining the shader binding points
-		// For every binding point used in a shader there needs to be one
-		// descriptor set matching that binding point
-		std::vector<VkWriteDescriptorSet> writeDescriptorSets;
-
-		for (auto iter = descriptorSetBindingMap.begin(); iter != descriptorSetBindingMap.end(); ++iter)
-		{
-			auto descriptorType = iter->first;
-			auto& descritptorSetBidingDataCollection = iter->second;
-
-			for (auto& data : descritptorSetBidingDataCollection)
+			std::vector<VkWriteDescriptorSet> writeDescriptorSets;
+			for (auto& bindingData : setBindingDataVector)
 			{
-				// set descriptorset handle
-				data.writeSet.dstSet = descriptorData.pDescriptorSet->GetHandle();
+				bindingData.writeSet.dstSet = descriptorData.pDescriptorSet->GetHandle();
 
-				writeDescriptorSets.push_back(data.writeSet);
+				writeDescriptorSets.push_back(bindingData.writeSet);
 			}
+
+			//TODO - for now only write descriptor sets
+			descriptorData.pDescriptorSet->Update(writeDescriptorSets, {});
+
+			mDescriptorSetDataCollection[pVisComp] = descriptorData;
 		}
-
-		//TODO - for now only write descriptor sets
-		descriptorData.pDescriptorSet->Update(writeDescriptorSets, {});
-
-		// TODO - improve render pass management
-		// TODO - per render pass type
-		mDescriptorSetDataCollection[pVisComp] = descriptorData;
 	}	
 	////////////
 
@@ -1231,7 +1278,7 @@ void VulkanRenderer::setupPipeline(GeometricPrimitive* pGeoPrimitive, VisualComp
 	}
 }
 
-void VulkanRenderer::AddWriteDescriptorSet(VisualComponent* pVisComp, VkShaderStageFlagBits shaderStage, uint32_t binding, VkDescriptorType descriptorType,
+void VulkanRenderer::AddWriteDescriptorSet(VisualComponent* pVisComp, VkShaderStageFlagBits shaderStage, uint32_t setId, uint32_t binding, VkDescriptorType descriptorType,
 	const VkDescriptorImageInfo* pDescriptorImageInfo, const VkDescriptorBufferInfo* pDescriptorBufferInfo)
 {
 	assert(pVisComp != nullptr);
@@ -1243,7 +1290,8 @@ void VulkanRenderer::AddWriteDescriptorSet(VisualComponent* pVisComp, VkShaderSt
 	descriptorSetLayoutBinding.binding = binding; // taken from the shader
 	descriptorSetLayoutBinding.descriptorType = descriptorType;
 	descriptorSetLayoutBinding.descriptorCount = 1;
-	descriptorSetLayoutBinding.stageFlags = shaderStage;
+	descriptorSetLayoutBinding.stageFlags = shaderStage; //NOTE! Can have more than one shader stage!
+
 	descriptorSetBindingData.layoutBinding = descriptorSetLayoutBinding;
 
 	VkWriteDescriptorSet writeDescriptorSet = VulkanInitializers::WriteDescriptorSet
@@ -1258,7 +1306,9 @@ void VulkanRenderer::AddWriteDescriptorSet(VisualComponent* pVisComp, VkShaderSt
 
 	descriptorSetBindingData.writeSet = writeDescriptorSet;
 
-	mDescriptorSetBindingMapCollection[pVisComp][descriptorType].push_back(descriptorSetBindingData);
+
+	auto& descriptorSetBindingMap = mDescriptorSetBindingMapCollection[pVisComp];
+	descriptorSetBindingMap[setId].push_back(descriptorSetBindingData);
 }
 
 void VulkanRenderer::UpdateUniformBuffers(RenderQueue::Renderable* pRenderable, Camera* pCamera, float32_t crrTime)
@@ -1392,7 +1442,7 @@ void VulkanRenderer::DrawSceneToCommandBuffer()
 	}
 }
 
-void VulkanRenderer::DrawDirect(uint32_t vertexIndexCount, uint32_t instanceCount, uint32_t currentBufferIdx, bool_t isIndexedDrawing)
+void VulkanRenderer::DrawDirect(uint32_t indexCount, uint32_t firstIndex, uint32_t instanceCount, uint32_t currentBufferIdx, bool_t isIndexedDrawing)
 {
 	assert(currentBufferIdx < mDrawCommandBuffers.size());
 
@@ -1402,16 +1452,16 @@ void VulkanRenderer::DrawDirect(uint32_t vertexIndexCount, uint32_t instanceCoun
 	if (isIndexedDrawing)
 	{
 		// TODO - for now firstVertex/Index, firstInstance, vertexOffset are all 0
-		vkCmdDrawIndexed(pCrrDrawCommandBuffer->GetHandle(), vertexIndexCount, instanceCount, 0, 0, 0);
+		vkCmdDrawIndexed(pCrrDrawCommandBuffer->GetHandle(), indexCount, instanceCount, firstIndex, 0, 0);
 	}
 	else
 	{
 		// TODO - for now firstVertex/Index, firstInstance are all 0
-		vkCmdDraw(pCrrDrawCommandBuffer->GetHandle(), vertexIndexCount, instanceCount, 0, 0);
+		vkCmdDraw(pCrrDrawCommandBuffer->GetHandle(), indexCount, instanceCount, 0, 0);
 	}
 }
 
-void VulkanRenderer::DrawIndirect(uint32_t vertexIndexCount, uint32_t instanceCount, uint32_t currentBufferIdx, bool_t isIndexedDrawing)
+void VulkanRenderer::DrawIndirect(uint32_t indexCount, uint32_t firstIndex, uint32_t instanceCount, uint32_t currentBufferIdx, bool_t isIndexedDrawing)
 {
 	// TODO - indirect draw
 }

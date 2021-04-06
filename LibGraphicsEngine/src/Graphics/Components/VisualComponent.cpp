@@ -103,7 +103,7 @@ void VisualComponent::AddShader(Shader* pShader)
 	mShaderMap[pShader->GetShaderStage()] = pShader;
 }
 
-Shader* VisualComponent::GetShader(Shader::ShaderStage stage) const
+Shader* VisualComponent::GetShader(Shader::ShaderStage stage)
 {
 	auto iter = mShaderMap.find(stage);
 
@@ -165,7 +165,7 @@ bool_t VisualComponent::HasUniformBuffers() const
 	return (mUniformBufferMap.empty() != true);
 }
 
-const CullFaceState& VisualComponent::GetCullFaceState() const
+CullFaceState& VisualComponent::GetCullFaceState()
 {
 	return mCullFaceState;
 }
@@ -175,7 +175,7 @@ void VisualComponent::SetCullFaceState(const CullFaceState& cullFaceState)
 	mCullFaceState = cullFaceState;
 }
 
-const DepthStencilState& VisualComponent::GetDepthStencilState() const
+DepthStencilState& VisualComponent::GetDepthStencilState()
 {
 	return mDepthStencilState;
 }
@@ -185,7 +185,7 @@ void VisualComponent::SetDepthStencilState(const DepthStencilState& depthStencil
 	mDepthStencilState = depthStencilState;
 }
 
-const ColorBlendState& VisualComponent::GetColorBlendState() const
+ColorBlendState& VisualComponent::GetColorBlendState()
 {
 	return mColorBlendState;
 }
@@ -195,7 +195,7 @@ void VisualComponent::SetColorBlendState(const ColorBlendState& colorBlendState)
 	mColorBlendState = colorBlendState;
 }
 
-const DynamicState& VisualComponent::GetDynamicState() const
+DynamicState& VisualComponent::GetDynamicState()
 {
 	return mDynamicState;
 }

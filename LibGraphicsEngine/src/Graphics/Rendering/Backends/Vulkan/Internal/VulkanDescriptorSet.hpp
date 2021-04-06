@@ -37,11 +37,12 @@ namespace GraphicsEngine
 
 		public:
 			VulkanDescriptorSet();
-			explicit VulkanDescriptorSet(VulkanDevice* pDevice, VulkanDescriptorPool* pDescriptorPool, const std::vector<VulkanDescriptorSetLayout*>& layouts);
+			explicit VulkanDescriptorSet(VulkanDevice* pDevice, VulkanDescriptorPool* pDescriptorPool, uint32_t id, const std::vector<VulkanDescriptorSetLayout*>& layouts);
 			virtual ~VulkanDescriptorSet();
 
 			void Update(const std::vector<VkWriteDescriptorSet>& writeSet, const std::vector<VkCopyDescriptorSet>& copySet);
 
+			const uint32_t& GetId() const;
 			const VkDescriptorSet& GetHandle() const;
 			const std::vector<VulkanDescriptorSetLayout*>& GetLayouts() const;
 
@@ -50,8 +51,9 @@ namespace GraphicsEngine
 			void Destroy();
 
 			VulkanDevice* mpDevice;
-
 			VulkanDescriptorPool* mpDescriptorPool;
+
+			uint32_t mId;
 			VkDescriptorSet mHandle;
 			std::vector<VulkanDescriptorSetLayout*> mLayouts;
 		};

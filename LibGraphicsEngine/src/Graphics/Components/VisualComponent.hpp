@@ -40,7 +40,7 @@ namespace GraphicsEngine
 			/////////////////////
 
 			void AddShader(Shader* pShader);
-			Shader* GetShader(Shader::ShaderStage stage) const;
+			Shader* GetShader(Shader::ShaderStage stage);
 			void SetShaders(const VisualComponent::ShaderMap& shaders);
 			const VisualComponent::ShaderMap& GetShaders() const;
 
@@ -53,16 +53,16 @@ namespace GraphicsEngine
 			bool_t HasUniformBuffers() const;
 
 			// pipeline states
-			const CullFaceState& GetCullFaceState() const;
+			CullFaceState& GetCullFaceState();
 			void SetCullFaceState(const CullFaceState& cullFaceState);
 
-			const DepthStencilState& GetDepthStencilState() const;
+			DepthStencilState& GetDepthStencilState();
 			void SetDepthStencilState(const DepthStencilState& depthStencilState);
 
-			const ColorBlendState& GetColorBlendState() const;
+			ColorBlendState& GetColorBlendState();
 			void SetColorBlendState(const ColorBlendState& colorBlendState);
 
-			const DynamicState& GetDynamicState() const;
+			DynamicState& GetDynamicState();
 			void SetDynamicState(const DynamicState& dynamicState);
 
 

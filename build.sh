@@ -41,10 +41,14 @@ then
 	fi
 fi
 
-if [ "$4" != "-b" ] && [ "$4" != "-sc" ]
+if [ "$4" != "-b" ] && [ "$5" != "-b" ]
 then
 	echo "No -b provided, so the script shall not build the code!"
-	echo "No -sc provided, so the script shall not compile the shaders!"
+fi
+
+if [ "$4" != "-cs" ] && [ "$5" != "-cs" ]
+then
+	echo "No -cs provided, so the script shall not compile the shaders!"
 fi
 
 echo "Build dir: " $BUILD_DIR
@@ -55,13 +59,12 @@ echo "Build config: " $BUILD_CONFIG
 
 cmake -DCMAKE_BUILD_TYPE=$BUILD_CONFIG -G "$IDE" -A $VS_ARCH -S . -B $BUILD_DIR
 
-if [ "$4" == "-b -sc" ]
+if [ "$4" == "-b" ] || [ "$5" == "-b" ]
 then
 	cmake --build $BUILD_DIR --parallel 4
-	./compileShaders.sh
-elif [ "$4" == "-sc" ]
+fi
+
+if [ "$4" == "-cs" ] || [ "$5" == "-cs" ]
 then
-	./compileShaders.sh
-else
-	cmake --build $BUILD_DIR --parallel 4
+	./setupShaders.sh -c
 fi

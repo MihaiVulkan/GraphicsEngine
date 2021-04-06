@@ -71,6 +71,9 @@ namespace GraphicsEngine
 
 			virtual void DrawObject(RenderQueue::Renderable* pRenderable, uint32_t currentBufferIdx) override;
 
+			void DrawDirect(uint32_t indexCount, uint32_t firstIndex, uint32_t instanceCount, uint32_t currentBufferIdx, bool_t isIndexedDrawing = false);
+			void DrawIndirect(uint32_t indexCount, uint32_t firstIndex, uint32_t instanceCount, uint32_t currentBufferIdx, bool_t isIndexedDrawing = false);
+
 			//////////////////////////////
 
 			VulkanDevice* GetDevice() const;
@@ -104,9 +107,6 @@ namespace GraphicsEngine
 			void endQuery(uint32_t currentBufferIdx);
 
 			void DrawSceneToCommandBuffer();
-
-			void DrawDirect(uint32_t vertexIndexCount, uint32_t instanceCount, uint32_t currentBufferIdx, bool_t isIndexedDrawing = false);
-			void DrawIndirect(uint32_t vertexIndexCount, uint32_t instanceCount, uint32_t currentBufferIdx, bool_t isIndexedDrawing = false);
 
 			virtual void BeginFrame() override;
 			virtual void EndFrame() override;
@@ -182,17 +182,17 @@ namespace GraphicsEngine
 			////////// descriptor/uniform map data
 			struct DescriptorSetBindingData
 			{
-				VkShaderStageFlagBits shaderStage;
 				VkDescriptorSetLayoutBinding layoutBinding;
 				VkWriteDescriptorSet writeSet;
-				VkCopyDescriptorSet copySet;
+			//	VkCopyDescriptorSet copySet;
 			};
 
-			typedef std::unordered_map<VkDescriptorType, std::vector<DescriptorSetBindingData>> DescriptorSetBindingMap;
+			// key - is descriptor setId, value - vector of descriptor binding data
+			typedef std::unordered_map<uint32_t, std::vector<DescriptorSetBindingData>> DescriptorSetBindingMap;
 			std::unordered_map<VisualComponent*, DescriptorSetBindingMap, HashUtils::PointerHash<VisualComponent>> mDescriptorSetBindingMapCollection;
 
 			void setupPipeline(GeometricPrimitive* pGeoPrimitive, VisualComponent* pVisComp);
-			void AddWriteDescriptorSet(VisualComponent* pVisComp, VkShaderStageFlagBits shaderStage, uint32_t binding, VkDescriptorType descriptorType,
+			void AddWriteDescriptorSet(VisualComponent* pVisComp, VkShaderStageFlagBits shaderStage, uint32_t setId, uint32_t binding, VkDescriptorType descriptorType,
 				const VkDescriptorImageInfo* pDescriptorImageInfo, const VkDescriptorBufferInfo* pDescriptorBufferInfo);
 
 			// descriptor pools
@@ -213,6 +213,7 @@ namespace GraphicsEngine
 				}
 			};
 
+			//TOOD - for now only 1 descriptor set per visual component!
 			std::unordered_map<VisualComponent*, DescriptorSetData, HashUtils::PointerHash<VisualComponent>> mDescriptorSetDataCollection;
 
 			struct PipelineData

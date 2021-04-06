@@ -60,12 +60,13 @@ namespace GraphicsEngine
 			struct Uniform
 			{
 				std::string type;
+				uint32_t setId;
 				uint32_t binding;
 				int32_t location;
 
 				bool_t IsValid() const
 				{ 
-					bool_t res = (type.empty() != true) && (location != -1);
+					bool_t res = (type.empty() != true) && (setId != -1) && (binding != -1) && (location != -1);
 					return res;
 				}
 			};
@@ -84,12 +85,13 @@ namespace GraphicsEngine
 			struct UniformBlock
 			{
 				std::string name;
+				uint32_t setId;
 				int32_t binding;
 				std::unordered_map<std::string, UniformMember> members;
 
 				bool_t IsValid() const
 				{
-					bool_t res = (name.empty() != true) && (binding != -1) && (members.empty() != true);
+					bool_t res = (name.empty() != true) && (setId != -1) && (binding != -1) && (members.empty() != true);
 					return res;
 				}
 			};

@@ -4,7 +4,7 @@ layout (location = 0) in vec2 v_uv;
 layout (location = 1) flat in float v_crrTime;
 
 //NOTE! binding = 0 is used by the UBO in vertex shader
-layout (binding = 1) uniform sampler2DArray samplerArray;
+layout (set = 0, binding = 1) uniform sampler2DArray samplerArray;
 
 layout (location = 0) out vec4 outFragColor;
 

@@ -2,7 +2,7 @@
 layout (location = 0) in vec3 a_position;
 
 //NOTE! First binding
-layout (binding = 0) uniform UBO 
+layout (set = 0, binding = 0) uniform UBO 
 {
 	mat4 PVM;
 } ubo;

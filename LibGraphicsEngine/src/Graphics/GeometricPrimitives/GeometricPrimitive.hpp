@@ -69,6 +69,9 @@ namespace GraphicsEngine
 
 			bool_t IsIndexed() const;
 
+			void SetIsModel(bool_t val);
+			bool_t IsModel();
+
 		private:
 			NO_COPY_NO_MOVE_CLASS(GeometricPrimitive)
 
@@ -78,6 +81,8 @@ namespace GraphicsEngine
 
 			VertexBuffer* mpVertexBuffer;
 			IndexBuffer* mpIndexBuffer;
+
+			bool_t mIsModel;
 		};
 	}
 }

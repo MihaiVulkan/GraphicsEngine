@@ -12,6 +12,7 @@ GeometricPrimitive::GeometricPrimitive()
 	, mPolygonMode(PolygonMode::GE_PM_COUNT)
 	, mpVertexBuffer(nullptr)
 	, mpIndexBuffer(nullptr)
+	, mIsModel(false)
 {}
 
 GeometricPrimitive::GeometricPrimitive(PrimitiveTopology topology, FaceWinding faceWinding, PolygonMode polygonMode)
@@ -20,6 +21,7 @@ GeometricPrimitive::GeometricPrimitive(PrimitiveTopology topology, FaceWinding f
 	, mPolygonMode(polygonMode)
 	, mpVertexBuffer(nullptr)
 	, mpIndexBuffer(nullptr)
+	, mIsModel(false)
 {}
 
 GeometricPrimitive::~GeometricPrimitive()
@@ -103,4 +105,14 @@ void GeometricPrimitive::SetIndexBuffer(IndexBuffer* pIndexBuffer)
 bool_t GeometricPrimitive::IsIndexed() const
 {
 	return (mpIndexBuffer != nullptr);
+}
+
+void GeometricPrimitive::SetIsModel(bool_t val)
+{
+	mIsModel = val;
+}
+
+bool_t GeometricPrimitive::IsModel()
+{
+	return mIsModel;
 }

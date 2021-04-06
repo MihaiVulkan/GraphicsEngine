@@ -29,6 +29,7 @@ namespace GraphicsEngine
 		class RenderFrameBuffer;
 		class Shader;
 		class Material;
+		class Model;
 
 		// Pipeline States
 		class DynamicState;
@@ -43,6 +44,7 @@ namespace GraphicsEngine
 		class GADRRenderFrameBuffer;
 		class GADRShader;
 		class GADRMaterial;
+		class GADRModel;
 		
 		class RenderPass;
 
@@ -73,6 +75,7 @@ namespace GraphicsEngine
 			typedef std::unordered_map<RenderFrameBuffer*, GADRRenderFrameBuffer*, HashUtils::PointerHash<RenderFrameBuffer>> RenderFrameBufferMap;
 			typedef std::unordered_map<Shader*, GADRShader*, HashUtils::PointerHash<Shader>> ShaderMap;
 			typedef std::unordered_map<Material*, GADRMaterial*, HashUtils::PointerHash<Material>> MaterialMap;
+			typedef std::unordered_map<Model*, GADRModel*, HashUtils::PointerHash<Model>> ModelMap;
 
 			Renderer();
 			explicit Renderer(Platform::Window* pWindow, Renderer::RendererType type = Renderer::RendererType::GE_RT_FORWARD);
@@ -158,6 +161,11 @@ namespace GraphicsEngine
 
 			GADRMaterial* Get(Material* pMaterial);
 
+			GADRModel* Bind(Model* pModel);
+			void UnBind(Model* pModel);
+
+			GADRModel* Get(Model* pModel);
+
 			////////////////////
 
 			bool_t mIsPrepared;
@@ -175,6 +183,7 @@ namespace GraphicsEngine
 			RenderFrameBufferMap mRenderFrameBufferMap;
 			ShaderMap mShaderMap;
 			MaterialMap mMaterialMap;
+			ModelMap mModelMap;
 
 			RenderQueue* mpRenderQueue;
 			RenderPass* mpRenderPass;

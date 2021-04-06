@@ -34,8 +34,8 @@ void GeometryNode::Destroy()
 {
 	for (auto& primitive : mPrimitives)
 	{
-		if (primitive)
-			GE_FREE(primitive);
+	//	if (primitive)
+	//		GE_FREE(primitive);
 	}
 	mPrimitives.clear();
 

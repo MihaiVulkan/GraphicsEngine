@@ -1,5 +1,10 @@
+
+/*
+	Implementation inspired from the Official Khronos Group KTX software repro:
+	https://github.com/KhronosGroup/KTX-Software
+*/
+
 #include "Graphics/Loaders/KTX2Loader.hpp"
-//#include "Foundation/TypeDefines.hpp"
 #include "Foundation/MemoryManagement/MemoryOperations.hpp"
 #include "Foundation/Logger.hpp"
 #include "glm/common.hpp" //glm::max(), glm::ceil()
@@ -11,11 +16,6 @@
 using namespace GraphicsEngine;
 using namespace GraphicsEngine::Graphics;
 
-/*
-	Implementation inspired from the Official Khronos Group KTX software repro:
-	https://github.com/KhronosGroup/KTX-Software
-*/
-
 #define KTX2_IDENTIFIER { 0xAB, 0x4B, 0x54, 0x58, 0x20, 0x32, 0x30, 0xBB, 0x0D, 0x0A, 0x1A, 0x0A }
 #define KTX2_IDENTIFIER_SIZE 12 //bytes
 #define KTX2_HEADER_SIZE 80 //bytes
@@ -26,7 +26,6 @@ using namespace GraphicsEngine::Graphics;
 
 struct KTX2Loader::Impl
 {
-
 	typedef struct KTX2_IndexEntry32
 	{
 		uint32_t byteOffset; /*!< Offset of item from start of file. */
@@ -87,6 +86,8 @@ struct KTX2Loader::Impl
 
 	Impl();
 	virtual ~Impl();
+
+	NO_COPY_NO_MOVE_CLASS(Impl);
 
 	bool_t LoadFromFile(const std::string& filePath);
 	bool_t ParseData(std::FILE* pFile);
@@ -354,6 +355,8 @@ KTX2Loader::KTX2Loader()
 KTX2Loader::KTX2Loader(const std::string& filePath)
 	: KTX2Loader()
 {
+	assert(mpImpl != nullptr);
+
 	mpImpl->LoadFromFile(filePath);
 }
 
@@ -364,6 +367,8 @@ KTX2Loader::~KTX2Loader()
 
 KTX2Loader::KTX2_Texture* KTX2Loader::GetMetaData()
 {
+	assert(mpImpl != nullptr);
+
 	return mpImpl->mpTexture;
 }
 

@@ -9,6 +9,7 @@
 #include "Graphics/Rendering/Resources/RenderFrameBuffer.hpp"
 #include "Graphics/Rendering/Resources/Shader.hpp"
 #include "Graphics/Rendering/Resources/Material.hpp"
+#include "Graphics/Rendering/Resources/Model.hpp"
 #include "Graphics/SceneGraph/GeometryNode.hpp"
 
 // Resources
@@ -22,6 +23,7 @@
 #include "Graphics/Rendering/Backends/Vulkan/Resources/VulkanRenderFrameBuffer.hpp"
 #include "Graphics/Rendering/Backends/Vulkan/Resources/VulkanShader.hpp"
 #include "Graphics/Rendering/Backends/Vulkan/Resources/VulkanMaterial.hpp"
+#include "Graphics/Rendering/Backends/Vulkan/Resources/VulkanModel.hpp"
 #endif // VULKAN_RENDERER
 
 #include "Foundation/Platform/Platform.hpp"
@@ -134,6 +136,12 @@ void Renderer::CleanUpResources()
 		GE_FREE(it->second);
 	}
 	mMaterialMap.clear();
+
+	for (auto it = mModelMap.begin(); it != mModelMap.end(); ++it)
+	{
+		GE_FREE(it->second);
+	}
+	mModelMap.clear();
 }
 
 void Renderer::CleanUpGAIR()
@@ -559,6 +567,49 @@ GADRMaterial* Renderer::Get(Material* pMaterial)
 
 	return nullptr;
 }
+
+GADRModel* Renderer::Bind(Model* pModel)
+{
+	assert(pModel != nullptr);
+
+	auto* pGADR = Get(pModel);
+
+	if (pGADR)
+		pGADR->OnBind();
+
+	return pGADR;
+}
+
+void Renderer::UnBind(Model* pModel)
+{
+	assert(pModel != nullptr);
+
+	auto* pGADR = Get(pModel);
+
+	if (pGADR)
+		pGADR->OnUnBind();
+}
+
+GADRModel* Renderer::Get(Model* pModel)
+{
+	assert(pModel != nullptr);
+
+	auto iter = mModelMap.find(pModel);
+	if (iter != mModelMap.end())
+	{
+		return iter->second;
+	}
+	else
+	{
+		auto ref = mModelMap[pModel] = GE_ALLOC(GADRModel)(this, pModel);
+		assert(ref != nullptr);
+
+		return ref;
+	}
+
+	return nullptr;
+}
+
 
 uint32_t Renderer::GetWindowWidth() const
 {

@@ -10,10 +10,11 @@
 #include "Graphics/Rendering/Resources/VertexFormat.hpp"
 #include "Graphics/Rendering/Resources/VertexBuffer.hpp"
 #include "Graphics/Rendering/Resources/IndexBuffer.hpp"
+#include "Graphics/Rendering/Resources/UniformBuffer.hpp"
 #include "Graphics/Rendering/Resources/Shader.hpp"
 #include "Graphics/Rendering/Resources/Texture.hpp"
 #include "Graphics/Rendering/Resources/Material.hpp"
-#include "Graphics/Rendering/Resources/UniformBuffer.hpp"
+#include "Graphics/Rendering/Resources/Model.hpp"
 
 #include "Graphics/ShaderTools/GLSL/GLSLShaderTypes.hpp"
 
@@ -21,6 +22,9 @@
 #include "Graphics/Rendering/PipelineStates/DepthStencilState.hpp"
 #include "Graphics/Rendering/PipelineStates/ColorBlendState.hpp"
 #include "Graphics/Rendering/PipelineStates/DynamicState.hpp"
+
+#include "Graphics/Loaders/KTX2Loader.hpp"
+#include "Graphics/Loaders/glTF2Loader.hpp"
 
 #include "Graphics/GeometricPrimitives/GeometricPrimitive.hpp"
 

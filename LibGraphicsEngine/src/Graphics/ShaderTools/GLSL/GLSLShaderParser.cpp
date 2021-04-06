@@ -22,6 +22,7 @@ constexpr const char_t* INPUT_NAME = "in";
 constexpr const char_t* OUTPUT_NAME = "out";
 constexpr const char_t* UNIFORM_NAME = "uniform";
 constexpr const char_t* LOCATION_NAME = "location";
+constexpr const char_t* SET_NAME = "set";
 constexpr const char_t* BINDING_NAME = "binding";
 constexpr const char_t* VERSION_NAME = "#version";
 
@@ -306,21 +307,36 @@ bool_t GLSLShaderParser::ParseLayoutInfo(const std::string& crrLayoutInfo)
 
 	///////////////////////////
 
-	std::string qualifierName, qualifierValue, varDefinition, varType, varName;
+	std::string qualifierName_1, qualifierValue_1, qualifierName_2, qualifierValue_2, varDefinition, varType, varName;
 
 	size_t crrTokenIter = 0, nextTokenIter = 0;
 
 	nextTokenIter = layoutInfo.find_first_of(DELIMITER_TOKEN_NAME, crrTokenIter);
-	qualifierName = layoutInfo.substr(crrTokenIter, nextTokenIter - crrTokenIter);
+	qualifierName_1 = layoutInfo.substr(crrTokenIter, nextTokenIter - crrTokenIter);
 	crrTokenIter = nextTokenIter + 1;
-	if (qualifierName.empty())
+	if (qualifierName_1.empty())
 		return false;
 
 	nextTokenIter = layoutInfo.find_first_of(DELIMITER_TOKEN_NAME, crrTokenIter);
-	qualifierValue = layoutInfo.substr(crrTokenIter, nextTokenIter - crrTokenIter);
+	qualifierValue_1 = layoutInfo.substr(crrTokenIter, nextTokenIter - crrTokenIter);
 	crrTokenIter = nextTokenIter + 1;
-	if (qualifierValue.empty())
+	if (qualifierValue_1.empty())
 		return false;
+
+	if (qualifierName_1 == SET_NAME) //then binding should be qualifier2
+	{
+		nextTokenIter = layoutInfo.find_first_of(DELIMITER_TOKEN_NAME, crrTokenIter);
+		qualifierName_2 = layoutInfo.substr(crrTokenIter, nextTokenIter - crrTokenIter);
+		crrTokenIter = nextTokenIter + 1;
+		if (qualifierName_2.empty())
+			return false;
+
+		nextTokenIter = layoutInfo.find_first_of(DELIMITER_TOKEN_NAME, crrTokenIter);
+		qualifierValue_2 = layoutInfo.substr(crrTokenIter, nextTokenIter - crrTokenIter);
+		crrTokenIter = nextTokenIter + 1;
+		if (qualifierValue_2.empty())
+			return false;
+	}
 
 	nextTokenIter = layoutInfo.find_first_of(DELIMITER_TOKEN_NAME, crrTokenIter);
 	varDefinition = layoutInfo.substr(crrTokenIter, nextTokenIter - crrTokenIter);
@@ -335,7 +351,8 @@ bool_t GLSLShaderParser::ParseLayoutInfo(const std::string& crrLayoutInfo)
 		return false;
 
 	// Uniform Buffer
-	if (qualifierName == BINDING_NAME && varDefinition == UNIFORM_NAME && varType == UBO_NAME)
+	if (varType == UBO_NAME && 
+		qualifierName_1 == SET_NAME && qualifierName_2 == BINDING_NAME && varDefinition == UNIFORM_NAME)
 	{
 		nextTokenIter = layoutInfo.find_first_of(DELIMITER_UBO_START_NAME, crrTokenIter);
 		crrTokenIter = nextTokenIter + 1;
@@ -354,7 +371,8 @@ bool_t GLSLShaderParser::ParseLayoutInfo(const std::string& crrLayoutInfo)
 
 		//////////////////
 		mUniformBlock.name = varName;
-		mUniformBlock.binding = std::stoi(qualifierValue);
+		mUniformBlock.setId = StrToInt(qualifierValue_1);
+		mUniformBlock.binding = StrToInt(qualifierValue_2);
 
 		if (ParseUboData(uboData) == false)
 			return false;
@@ -368,10 +386,10 @@ bool_t GLSLShaderParser::ParseLayoutInfo(const std::string& crrLayoutInfo)
 			return false;
 	}
 	////////////////////////////
-	int32_t intQualifierVal = StrToInt(qualifierValue);;
+	int32_t intQualifierVal = StrToInt(qualifierValue_1);
 
 	// Inputs
-	if (varDefinition == INPUT_NAME && qualifierName == LOCATION_NAME)
+	if (varDefinition == INPUT_NAME && qualifierName_1 == LOCATION_NAME)
 	{
 		Input input{};
 		input.type = varType;
@@ -381,7 +399,7 @@ bool_t GLSLShaderParser::ParseLayoutInfo(const std::string& crrLayoutInfo)
 	}
 
 	// Outputs
-	if (varDefinition == OUTPUT_NAME && qualifierName == LOCATION_NAME)
+	if (varDefinition == OUTPUT_NAME && qualifierName_1 == LOCATION_NAME)
 	{
 		Output output{};
 		output.type = varType;
@@ -391,11 +409,12 @@ bool_t GLSLShaderParser::ParseLayoutInfo(const std::string& crrLayoutInfo)
 	}
 
 	// Uniforms
-	if (varDefinition == UNIFORM_NAME && qualifierName == BINDING_NAME && varType != UBO_NAME)
+	if (varType != UBO_NAME && qualifierName_1 == SET_NAME && varDefinition == UNIFORM_NAME && qualifierName_2 == BINDING_NAME)
 	{
 		Uniform uniform{};;
 		uniform.type = varType;
-		uniform.binding = intQualifierVal;
+		uniform.setId = intQualifierVal;
+		uniform.binding = StrToInt(qualifierValue_2);
 		uniform.location = uniform.binding; //TODO - clarify this
 
 		mUniformMap[varName] = uniform;
