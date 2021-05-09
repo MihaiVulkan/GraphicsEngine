@@ -49,86 +49,99 @@ Variant::Variant(Variant::VariantType type)
 Variant::Variant(bool_t val)
 	: Variant()
 {
+	mType = Variant::VariantType::GE_VT_BOOL;
 	mBool = val;
 }
 
 Variant::Variant(int32_t val)
 	: Variant()
 {
+	mType = Variant::VariantType::GE_VT_INT32;
 	mInt32 = val;
 }
 
 Variant::Variant(int64_t val)
 	: Variant()
 {
+	mType = Variant::VariantType::GE_VT_INT64;
 	mInt64 = val;
 }
 
 Variant::Variant(uint32_t val)
 	: Variant()
 {
+	mType = Variant::VariantType::GE_VT_UINT32;
 	mUInt32 = val;
 }
 
 Variant::Variant(uint64_t val)
 	: Variant()
 {
+	mType = Variant::VariantType::GE_VT_UINT64;
 	mUInt64 = val;
 }
 
 Variant::Variant(float32_t val)
 	: Variant()
 {
+	mType = Variant::VariantType::GE_VT_FLOAT32;
 	mFloat32 = val;
 }
 
 Variant::Variant(float64_t val)
 	: Variant()
 {
+	mType = Variant::VariantType::GE_VT_FLOAT64;
 	mFloat64 = val;
 }
 
 Variant::Variant(const std::string& val)
 	: Variant()
 {
+	mType = Variant::VariantType::GE_VT_STRING;
 	mString = val;
 }
 
 Variant::Variant(const glm::vec2& val)
 	: Variant()
 {
+	mType = Variant::VariantType::GE_VT_VEC2;
 	mVec2 = val;
 }
 
 Variant::Variant(const glm::vec3& val)
+	: Variant()
 {
+	mType = Variant::VariantType::GE_VT_VEC3;
 	mVec3 = val;
 }
 
 Variant::Variant(const glm::vec4& val)
 	: Variant()
 {
+	mType = Variant::VariantType::GE_VT_VEC4;
 	mVec4 = val;
 }
 
 Variant::Variant(const glm::mat2& val)
 	: Variant()
 {
+	mType = Variant::VariantType::GE_VT_MAT2;
 	mMat2 = val;
 }
 
 Variant::Variant(const glm::mat3& val)
 	: Variant()
 {
+	mType = Variant::VariantType::GE_VT_MAT3;
 	mMat3 = val;
 }
 
 Variant::Variant(const glm::mat4& val)
 	: Variant()
 { 
+	mType = Variant::VariantType::GE_VT_MAT4;
 	mMat4 = val;
-
-	static const std::size_t mat4Hash = HashUtils::GetTypeHash<glm::mat4>();
 }
 
 Variant::~Variant()
@@ -219,6 +232,9 @@ void Variant::Swap(Variant& var)
 void Variant::Reset()
 {
 	mType = Variant::VariantType::GE_VT_COUNT;
+
+	// reset union value of members to zero
+	::memset(&mMat4, 0, sizeof(mMat4));
 }
 
 void Variant::Copy(const Variant& var)

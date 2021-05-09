@@ -49,6 +49,7 @@ namespace GraphicsEngine
 		class RenderPass;
 
 		class GeometryNode;
+		class LightNode;
 
 		/* Rederer is the interface used to access all that is related to rendering
 			base renderer class
@@ -93,7 +94,9 @@ namespace GraphicsEngine
 			virtual void UpdateDynamicStates(const DynamicState& dynamicState, uint32_t currentBufferIdx) {};
 
 			virtual void DrawObject(RenderQueue::Renderable* pRenderable, uint32_t currentBufferIdx) {};
-			virtual void DrawGeometry(GeometryNode* pGeometryNode, uint32_t currentBufferIdx) {};
+
+			virtual void BindLight(LightNode* pLightNode, GeometryNode* pGeoNode) {};
+
 
 			uint32_t GetWindowWidth() const;
 			uint32_t GetWindowHeight() const;

@@ -9,6 +9,7 @@
 #include "Graphics/Rendering/PipelineStates/ColorBlendState.hpp"
 #include "Graphics/Rendering/PipelineStates/DynamicState.hpp"
 #include <unordered_map>
+#include <vector>
 
 namespace GraphicsEngine
 {
@@ -24,7 +25,7 @@ namespace GraphicsEngine
 
 		public:
 			typedef std::unordered_map<Shader::ShaderStage, Shader*> ShaderMap;
-			typedef std::unordered_map<Shader::ShaderStage, Texture*> TextureMap;
+			typedef std::unordered_map<Shader::ShaderStage, std::vector<Texture*>> TextureMap;
 			typedef std::unordered_map<Shader::ShaderStage, UniformBuffer*> UniformBufferMap;
 
 			VisualComponent();

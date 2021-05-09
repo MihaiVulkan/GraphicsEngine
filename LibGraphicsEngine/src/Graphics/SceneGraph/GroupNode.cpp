@@ -69,11 +69,14 @@ void GroupNode::DettachNode(Node* pNode)
 
 void GroupNode::DettachAllNodes()
 {
-	for (auto& pNode : mChildren)
+	for (auto* pNode : mChildren)
 	{
-		pNode->SetParent(nullptr);
+		if (pNode)
+		{
+			pNode->SetParent(nullptr);
 
-		GE_FREE(pNode); //TODO - memory management
+			GE_FREE(pNode);
+		}
 	}
 
 	mChildren.clear();

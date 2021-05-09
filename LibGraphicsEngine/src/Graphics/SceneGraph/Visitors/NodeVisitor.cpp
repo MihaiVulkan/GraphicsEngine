@@ -2,6 +2,7 @@
 #include "Graphics/SceneGraph/Node.hpp"
 #include "Graphics/SceneGraph/GroupNode.hpp"
 #include "Graphics/SceneGraph/GeometryNode.hpp"
+#include "Graphics/SceneGraph/LightNode.hpp"
 #include "Graphics/SceneGraph/CameraNode.hpp"
 #include <cassert>
 
@@ -40,7 +41,15 @@ void NodeVisitor::Visit(GroupNode* pNode)
 				pNode->Accept(*this);
 		});
 }
+
 void NodeVisitor::Visit(GeometryNode* pNode)
+{
+	assert(pNode != nullptr);
+
+	pNode->Accept(*this);
+}
+
+void NodeVisitor::Visit(LightNode* pNode)
 {
 	assert(pNode != nullptr);
 

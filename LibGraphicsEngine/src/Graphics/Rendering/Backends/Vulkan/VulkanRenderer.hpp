@@ -71,6 +71,8 @@ namespace GraphicsEngine
 
 			virtual void DrawObject(RenderQueue::Renderable* pRenderable, uint32_t currentBufferIdx) override;
 
+			virtual void BindLight(LightNode* pLightNode, GeometryNode* pGeoNode) override;
+
 			void DrawDirect(uint32_t indexCount, uint32_t firstIndex, uint32_t instanceCount, uint32_t currentBufferIdx, bool_t isIndexedDrawing = false);
 			void DrawIndirect(uint32_t indexCount, uint32_t firstIndex, uint32_t instanceCount, uint32_t currentBufferIdx, bool_t isIndexedDrawing = false);
 
@@ -191,7 +193,8 @@ namespace GraphicsEngine
 			typedef std::unordered_map<uint32_t, std::vector<DescriptorSetBindingData>> DescriptorSetBindingMap;
 			std::unordered_map<VisualComponent*, DescriptorSetBindingMap, HashUtils::PointerHash<VisualComponent>> mDescriptorSetBindingMapCollection;
 
-			void setupPipeline(GeometricPrimitive* pGeoPrimitive, VisualComponent* pVisComp);
+			void setupPipeline(GeometryNode* pGeoNode);
+
 			void AddWriteDescriptorSet(VisualComponent* pVisComp, VkShaderStageFlagBits shaderStage, uint32_t setId, uint32_t binding, VkDescriptorType descriptorType,
 				const VkDescriptorImageInfo* pDescriptorImageInfo, const VkDescriptorBufferInfo* pDescriptorBufferInfo);
 

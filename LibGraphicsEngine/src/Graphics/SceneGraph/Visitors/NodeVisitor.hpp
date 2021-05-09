@@ -10,6 +10,7 @@ namespace GraphicsEngine
 		class Node;
 		class GroupNode;
 		class GeometryNode;
+		class LightNode;
 		class CameraNode;
 
 		class NodeVisitor : public Object
@@ -24,6 +25,7 @@ namespace GraphicsEngine
 			virtual void Visit(Node* pNode);
 			virtual void Visit(GroupNode* pNode);
 			virtual void Visit(GeometryNode* pNode);
+			virtual void Visit(LightNode* pNode);
 			virtual void Visit(CameraNode* pNode);
 
 		private:

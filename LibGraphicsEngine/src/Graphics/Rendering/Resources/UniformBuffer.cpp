@@ -48,25 +48,23 @@ void UniformBuffer::AddUniform(GLSLShaderTypes::UniformType type)
 	{
 	case GLSLShaderTypes::UniformType::GE_UT_MODEL_MATRIX3:
 	case GLSLShaderTypes::UniformType::GE_UT_NORMAL_MATRIX3:
-	{
-		ref.data = Variant(Variant::VariantType::GE_VT_MAT3);
-		ref.size = sizeof(glm::mat3);
-	}
+		ref = Variant(Variant::VariantType::GE_VT_MAT3);
 		break;
 	case GLSLShaderTypes::UniformType::GE_UT_MODEL_MATRIX4:
 	case GLSLShaderTypes::UniformType::GE_UT_VIEW_MATRIX4:
 	case GLSLShaderTypes::UniformType::GE_UT_PROJECTION_MATRIX4:
 	case GLSLShaderTypes::UniformType::GE_UT_PVM_MATRIX4:
-	{
-		ref.data = Variant(Variant::VariantType::GE_VT_MAT4);
-		ref.size = sizeof(glm::mat4);
-	}
+		ref = Variant(Variant::VariantType::GE_VT_MAT4);
+		break;
+	case GLSLShaderTypes::UniformType::GE_UT_CAMERA_POS:
+		ref = Variant(Variant::VariantType::GE_VT_VEC3);
 		break;
 	case GLSLShaderTypes::UniformType::GE_UT_CRR_TIME:
-	{
-		ref.data = Variant(Variant::VariantType::GE_VT_FLOAT32);
-		ref.size = sizeof(float32_t);
-	}
+		ref = Variant(Variant::VariantType::GE_VT_FLOAT32);
+		break;
+	case GLSLShaderTypes::UniformType::GE_UT_LIGHT_DIR:
+	case GLSLShaderTypes::UniformType::GE_UT_LIGHT_COLOR:
+		ref = Variant(Variant::VariantType::GE_VT_VEC3);
 		break;
 	case GLSLShaderTypes::UniformType::GE_UT_COUNT:
 	default:
@@ -74,7 +72,7 @@ void UniformBuffer::AddUniform(GLSLShaderTypes::UniformType type)
 		return;
 	}
 
-	mSize += ref.size;
+	mSize += ref.Size();
 }
 
 Variant UniformBuffer::GetUniform(GLSLShaderTypes::UniformType type) const
@@ -84,7 +82,7 @@ Variant UniformBuffer::GetUniform(GLSLShaderTypes::UniformType type) const
 	auto iter = mUniformMap.find(type);
 	if (iter != mUniformMap.end())
 	{
-		return iter->second.data;
+		return iter->second;
 	}
 
 	LOG_ERROR("Uniform type not found!");
@@ -118,6 +116,7 @@ void* UniformBuffer::GetData()
 		assert(mSize > 0);
 
 		mpData = GE_ALLOC_ARRAY(uint8_t, mSize);
+		assert(mpData != nullptr);
 	}
 
 	// repopulate mpData only if needed
@@ -127,17 +126,17 @@ void* UniformBuffer::GetData()
 		for (auto iter = mUniformMap.begin(); iter != mUniformMap.end(); ++iter)
 		{
 			auto& type = iter->first;
-			auto& uniform = iter->second;
+			auto& variant = iter->second;
 
 			switch (type)
 			{
 			case GLSLShaderTypes::UniformType::GE_UT_MODEL_MATRIX3:
 			case GLSLShaderTypes::UniformType::GE_UT_NORMAL_MATRIX3:
 			{
-				auto& ref = uniform.data.Value<glm::mat3>();
-				::memcpy(mpData + offset, &ref, uniform.size);
+				auto& ref = variant.Value<glm::mat3>();
+				::memcpy(mpData + offset, &ref, variant.Size());
 
-				offset += uniform.size;
+				offset += variant.Size();
 			}
 			break;
 			case GLSLShaderTypes::UniformType::GE_UT_MODEL_MATRIX4:
@@ -145,18 +144,28 @@ void* UniformBuffer::GetData()
 			case GLSLShaderTypes::UniformType::GE_UT_PROJECTION_MATRIX4:
 			case GLSLShaderTypes::UniformType::GE_UT_PVM_MATRIX4:
 			{
-				auto& ref = uniform.data.Value<glm::mat4>();
-				::memcpy(mpData + offset, &ref, uniform.size);
+				auto& ref = variant.Value<glm::mat4>();
+				::memcpy(mpData + offset, &ref, variant.Size());
 
-				offset += uniform.size;
+				offset += variant.Size();
+			}
+			break;
+			case GLSLShaderTypes::UniformType::GE_UT_LIGHT_DIR:
+			case GLSLShaderTypes::UniformType::GE_UT_LIGHT_COLOR:
+			case GLSLShaderTypes::UniformType::GE_UT_CAMERA_POS:
+			{
+				auto& ref = variant.Value<glm::vec3>();
+				::memcpy(mpData + offset, &ref, variant.Size());
+
+				offset += variant.Size();
 			}
 			break;
 			case GLSLShaderTypes::UniformType::GE_UT_CRR_TIME:
 			{
-				auto& ref = uniform.data.Value<float32_t>();
-				::memcpy(mpData + offset, &ref, uniform.size);
+				auto& ref = variant.Value<float32_t>();
+				::memcpy(mpData + offset, &ref, variant.Size());
 
-				offset += uniform.size;
+				offset += variant.Size();
 			}
 			break;
 			case GLSLShaderTypes::UniformType::GE_UT_COUNT:

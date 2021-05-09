@@ -13,7 +13,6 @@ namespace GraphicsEngine
 		class GeometricPrimitive;
 
 		/* GeometryNoded is a visual/renderable node.
-		   Other visual nodes are: LightNode, TextNode.
 		   All these visual nodes have the VisualComponent. */
 		class GeometryNode : public Node
 		{
@@ -24,13 +23,11 @@ namespace GraphicsEngine
 			explicit GeometryNode(const std::string& name);
 			virtual ~GeometryNode();
 
-			void AttachGeometry(GeometricPrimitive* pPrimitive);
-			void DettachGeometry(GeometricPrimitive* pPrimitive);
-			void DettachAllGeometry();
+			GeometricPrimitive* GetGeometry() const;
+			void SetGeometry(GeometricPrimitive* pPrimitive);
 
-			void ForEachPrimitive(std::function< void(GeometricPrimitive*) > callback);
-
-			const std::vector<GeometricPrimitive*>& GetGeometricPrimitives() const;
+			bool_t IsLit() const;
+			void SetIsLit(bool_t value);
 
 			///////// Visitor Pattern ///////
 			virtual void Accept(NodeVisitor& visitor) override;
@@ -39,7 +36,9 @@ namespace GraphicsEngine
 			void Create();
 			void Destroy();
 
-			std::vector<GeometricPrimitive*> mPrimitives;
+			GeometricPrimitive* mpGeometry;
+
+			bool_t mIsLit;
 		};
 	}
 }

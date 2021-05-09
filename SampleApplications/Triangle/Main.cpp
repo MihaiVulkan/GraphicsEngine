@@ -38,7 +38,7 @@ int main()
 	auto fragmentShader = GE_ALLOC(Shader)(std::string() + GE_ASSET_PATH + "shaders/triangle.frag");
 
 	auto geoNode = GE_ALLOC(GeometryNode);
-	geoNode->AttachGeometry(geo);
+	geoNode->SetGeometry(geo);
 	geoNode->GetComponent<VisualComponent>()->AddShader(vertexShader);
 	geoNode->GetComponent<VisualComponent>()->AddShader(fragmentShader);
 	

@@ -27,6 +27,7 @@
 #include "Graphics/Loaders/glTF2Loader.hpp"
 
 #include "Graphics/GeometricPrimitives/GeometricPrimitive.hpp"
+#include "Graphics/Lights/DirectionalLight.hpp"
 
 #include "Graphics/Components/NodeComponent.hpp"
 #include "Graphics/Components/VisualComponent.hpp"
@@ -35,6 +36,7 @@
 #include "Graphics/SceneGraph/Node.hpp"
 #include "Graphics/SceneGraph/GroupNode.hpp"
 #include "Graphics/SceneGraph/GeometryNode.hpp"
+#include "Graphics/SceneGraph/LightNode.hpp"
 #include "Graphics/SceneGraph/CameraNode.hpp"
 
 #include "Graphics/Cameras/Camera.hpp"

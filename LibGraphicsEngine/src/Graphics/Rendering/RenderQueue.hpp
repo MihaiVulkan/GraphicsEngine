@@ -3,7 +3,7 @@
 
 #include "Foundation/Object.hpp"
 #include "glm/mat4x4.hpp"
-#include <list>
+#include <vector>
 #include <unordered_map>
 #include <functional>
 
@@ -14,6 +14,7 @@ namespace GraphicsEngine
 		class Camera;
 		class Node;
 		class GeometryNode;
+		class LightNode;
 		class Material;
 
 		class RenderQueue : public Object
@@ -46,15 +47,13 @@ namespace GraphicsEngine
 			RenderQueue();
 			virtual ~RenderQueue();
 
-			void Push(Node* pNode);
-
 			void Push(GeometryNode* pGeoNode);
-			//TODO - push other nodes
+			void Push(LightNode* pLightNode);
 
 			RenderQueue::RenderableList* GetRenderables(const RenderQueue::RenderableType& type);
 
 			void ForEach(RenderQueue::RenderableList* pRenderableList, std::function< void(RenderQueue::Renderable*) > callback);
-			//void ForEach(std::function< void(Light*, int) > callback);
+			void ForEach(std::function< void(LightNode*) > callback);
 
 
 
@@ -67,6 +66,8 @@ namespace GraphicsEngine
 			Camera* mpCamera;
 
 			std::unordered_map<RenderableType, RenderableList, std::hash<RenderableType>> mRenderables;
+			std::vector<LightNode*> mLights;
+
 		};
 	}
 }

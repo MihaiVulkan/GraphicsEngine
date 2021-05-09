@@ -1,6 +1,7 @@
 #include "Graphics/Rendering/RenderQueue.hpp"
 #include "Graphics/Cameras/Camera.hpp"
 #include "Graphics/SceneGraph/GeometryNode.hpp"
+#include "Graphics/SceneGraph/LightNode.hpp"
 #include "Graphics/Rendering/Resources/Material.hpp"
 #include "Graphics/Components/MaterialComponent.hpp"
 #include <cassert>
@@ -52,7 +53,12 @@ void RenderQueue::Push(GeometryNode* pGeoNode)
 	mRenderables[RenderQueue::RenderableType::GE_RT_OPAQUE].push_back(renderable);
 }
 
-//TODO push light object
+void RenderQueue::Push(LightNode* pLightNode)
+{
+	assert(pLightNode != nullptr);
+
+	mLights.push_back(pLightNode);
+}
 
 RenderQueue::RenderableList* RenderQueue::GetRenderables(const RenderQueue::RenderableType& type)
 {
@@ -73,6 +79,13 @@ void RenderQueue::ForEach(RenderQueue::RenderableList* pRenderableList, std::fun
 	}
 }
 
+void RenderQueue::ForEach(std::function< void(LightNode*) > callback)
+{
+	for (auto* pLightNode : mLights)
+	{
+		callback(pLightNode);
+	}
+}
 
 Camera* RenderQueue::GetCamera() const
 {

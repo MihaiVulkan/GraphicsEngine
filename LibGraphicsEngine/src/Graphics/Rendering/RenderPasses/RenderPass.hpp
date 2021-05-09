@@ -11,6 +11,7 @@ namespace GraphicsEngine
 		class RenderQueue;
 		class Camera;
 
+		/* Base class for Render passes */
 		class RenderPass : public Object
 		{
 			GE_RTTI(GraphicsEngine::Graphics::RenderPass)
@@ -25,6 +26,7 @@ namespace GraphicsEngine
 			};
 
 			RenderPass();
+			explicit RenderPass(RenderPass::PassType type);
 			virtual ~RenderPass();
 
 			virtual void Render(Renderer* pRenderer, RenderQueue* pRenderQueue, uint32_t currentBufferIdx) {}

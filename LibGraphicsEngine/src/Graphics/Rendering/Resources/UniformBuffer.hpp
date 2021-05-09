@@ -17,19 +17,32 @@ namespace GraphicsEngine
 			GE_RTTI(GraphicsEngine::Graphics::UniformBuffer)
 
 		public:
-			struct Uniform
-			{
-				Variant data;
-				std::size_t size;
-			};
 
 			// NOTE! This UBO uniform order must respect the shader UBO uniform order
-			typedef std::unordered_map<GLSLShaderTypes::UniformType, Uniform> UniformMap;
+			typedef std::unordered_map<GLSLShaderTypes::UniformType, Variant> UniformMap;
 
 			UniformBuffer();
 			virtual ~UniformBuffer();
 
 			void AddUniform(GLSLShaderTypes::UniformType type);
+
+			template <typename T>
+			void AddUniform(GLSLShaderTypes::UniformType type, const T& val)
+			{
+				assert(type < GLSLShaderTypes::UniformType::GE_UT_COUNT);
+
+				AddUniform(type);
+
+				auto iter = mUniformMap.find(type);
+
+				if (iter != mUniformMap.end())
+				{
+					auto& ref = iter->second;
+					bool_t ret = ref.SetValue(val);
+
+					mIsUniformMapUpdated = ret;
+				}
+			}
 
 			Variant GetUniform(GLSLShaderTypes::UniformType type) const;
 
@@ -43,16 +56,10 @@ namespace GraphicsEngine
 				if (iter != mUniformMap.end())
 				{
 					auto& ref = iter->second;
-					bool_t ret = ref.data.SetValue(val);
-					ref.size = sizeof(T);
+					bool_t ret = ref.SetValue(val);
 
 					mIsUniformMapUpdated = ret;
 				}
-				/*else
-				{
-					LOG_ERROR("Uniform type not found!");
-					mIsUniformMapUpdated = false;
-				}*/
 			}
 
 			bool_t HasUniform(GLSLShaderTypes::UniformType type) const;

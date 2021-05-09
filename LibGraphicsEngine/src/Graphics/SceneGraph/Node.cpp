@@ -2,6 +2,7 @@
 #include "Graphics/SceneGraph/GroupNode.hpp"
 #include "Graphics/Components/NodeComponent.hpp"
 #include "Foundation/MemoryManagement/MemoryOperations.hpp"
+#include "glm/matrix.hpp"
 #include <cassert>
 
 using namespace GraphicsEngine;
@@ -32,7 +33,8 @@ Node::~Node()
 
 void Node::Create()
 {
-
+	//default is identity matrix
+	SetModelMatrix(glm::mat4(1.0));
 }
 
 void Node::Destroy()
@@ -225,6 +227,26 @@ const glm::mat4& Node::GetModelMatrix() const
 void Node::SetModelMatrix(const glm::mat4& transform)
 {
 	mModelMatrix = transform;
+
+	// every time we set the model matrix we also compute the normal matrix as it depends on the model one!
+	ComputeNormalMatrix();
+}
+
+const glm::mat3& Node::GetNormalMatrix() const
+{
+	return mNormalMatrix;
+}
+
+void Node::ComputeNormalMatrix()
+{
+	if (mModelMatrix == glm::mat4(1.0f)) // if Identity matrix, no expensive computation needed
+	{
+		mNormalMatrix = glm::mat3(mModelMatrix);
+	}
+	else //otherwise
+	{
+		mNormalMatrix = glm::transpose(glm::inverse(glm::mat3(mModelMatrix)));
+	}
 }
 
 void Node::Traverse(NodeVisitor& visitor)

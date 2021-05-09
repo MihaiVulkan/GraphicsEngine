@@ -7,9 +7,8 @@ using namespace GraphicsEngine;
 using namespace GraphicsEngine::Graphics;
 
 DefaultRenderPass::DefaultRenderPass()
-{
-	mPassType = RenderPass::PassType::GE_PT_STANDARD;
-}
+	: RenderPass(RenderPass::PassType::GE_PT_STANDARD)
+{}
 
 DefaultRenderPass::~DefaultRenderPass()
 {}

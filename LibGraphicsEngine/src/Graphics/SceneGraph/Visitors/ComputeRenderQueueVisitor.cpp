@@ -48,6 +48,14 @@ void ComputeRenderQueueVisitor::Visit(GeometryNode* pNode)
 	mpRenderQueue->Push(pNode);
 }
 
+void ComputeRenderQueueVisitor::Visit(LightNode* pNode)
+{
+	assert(pNode != nullptr);
+	assert(mpRenderQueue != nullptr);
+
+	mpRenderQueue->Push(pNode);
+}
+
 void ComputeRenderQueueVisitor::Visit(CameraNode* pNode)
 {
 	assert(pNode != nullptr);

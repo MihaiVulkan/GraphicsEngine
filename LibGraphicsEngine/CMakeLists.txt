@@ -57,6 +57,8 @@ file(GLOB_RECURSE SOURCE_LIST
 	${PROJECT_SOURCE_DIR}/src/Graphics/ShaderTools/GLSL/*.cpp
 	${PROJECT_SOURCE_DIR}/src/Graphics/Loaders/*.hpp
 	${PROJECT_SOURCE_DIR}/src/Graphics/Loaders/*.cpp
+	${PROJECT_SOURCE_DIR}/src/Graphics/Lights/*.hpp
+	${PROJECT_SOURCE_DIR}/src/Graphics/Lights/*.cpp
 	${PROJECT_SOURCE_DIR}/src/Graphics/*.hpp
 	${PROJECT_SOURCE_DIR}/src/Graphics/*.cpp
 	${PROJECT_SOURCE_DIR}/src/Input/*.hpp

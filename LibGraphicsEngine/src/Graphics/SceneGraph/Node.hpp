@@ -3,6 +3,7 @@
 
 #include "Foundation/Object.hpp"
 #include "Graphics/SceneGraph/Visitors/NodeVisitor.hpp"
+#include "glm/mat3x3.hpp"
 #include "glm/mat4x4.hpp"
 #include <string>
 #include <list>
@@ -70,6 +71,8 @@ namespace GraphicsEngine
 
 			const glm::mat4& GetModelMatrix() const;
 			void SetModelMatrix(const glm::mat4& transform);
+			const glm::mat3& GetNormalMatrix() const;
+			void ComputeNormalMatrix();
 
 		
 			///////// Visitor Pattern ///////
@@ -88,7 +91,8 @@ namespace GraphicsEngine
 			std::unordered_map<std::string, NodeComponent*, std::hash<std::string>> mComponentMap;
 
 			//TODO - to improve when we add our own Math lib
-			glm::mat4 mModelMatrix; //local -> world transform
+			glm::mat4 mModelMatrix; //local -> world transform of the position per vertex
+			glm::mat3 mNormalMatrix; //local -> world transform of the normal per vertex
 		};
 	}
 }

@@ -23,6 +23,7 @@ namespace GraphicsEngine
 			virtual void Visit(Node* pNode) override;
 			virtual void Visit(GroupNode* pNode) override;
 			virtual void Visit(GeometryNode* pNode) override;
+			virtual void Visit(LightNode* pNode) override;
 			virtual void Visit(CameraNode* pNode) override;
 
 		private:

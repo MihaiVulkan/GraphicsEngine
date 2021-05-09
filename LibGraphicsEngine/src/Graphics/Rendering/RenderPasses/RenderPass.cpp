@@ -8,6 +8,10 @@ RenderPass::RenderPass()
 	: mPassType(PassType::GE_PT_COUNT)
 {}
 
+RenderPass::RenderPass(RenderPass::PassType type)
+	: mPassType(type)
+{}
+
 RenderPass::~RenderPass()
 {
 	mPassType = PassType::GE_PT_COUNT;

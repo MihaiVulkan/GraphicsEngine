@@ -7,6 +7,7 @@ namespace GraphicsEngine
 {
 	namespace Graphics
 	{
+		/* Default Render pass - no lighting */
 		class DefaultRenderPass : public RenderPass
 		{
 			GE_RTTI(GraphicsEngine::Graphics::DefaultRenderPass)

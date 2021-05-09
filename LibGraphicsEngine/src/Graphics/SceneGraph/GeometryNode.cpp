@@ -1,5 +1,7 @@
 #include "Graphics/SceneGraph/GeometryNode.hpp"
+#include "Graphics/GeometricPrimitives/GeometricPrimitive.hpp"
 #include "Graphics/Components/VisualComponent.hpp"
+#include "Graphics/Rendering/Resources/UniformBuffer.hpp"
 #include "Foundation/MemoryManagement/MemoryOperations.hpp"
 #include <algorithm> // std::remove()
 #include <cassert>
@@ -9,12 +11,16 @@ using namespace GraphicsEngine::Graphics;
 
 GeometryNode::GeometryNode()
 	: Node()
+	, mpGeometry(nullptr)
+	, mIsLit(false)
 {
 	Create();
 }
 
 GeometryNode::GeometryNode(const std::string& name)
 	: Node(name)
+	, mpGeometry(nullptr)
+	, mIsLit(false)
 {
 	Create();
 }
@@ -32,52 +38,52 @@ void GeometryNode::Create()
 
 void GeometryNode::Destroy()
 {
-	for (auto& primitive : mPrimitives)
+	//TODO - improve cleanup
+	if (mpGeometry)
 	{
-	//	if (primitive)
-	//		GE_FREE(primitive);
+		if (mpGeometry->IsModel())
+		{
+			//The renderer cleanups up as the model is covered by it
+			mpGeometry = nullptr;
+		}
+		else
+		{
+			GE_FREE(mpGeometry);
+		}
 	}
-	mPrimitives.clear();
 
 	// TODO - object lifetime management
 	DettachComponentWithName("VisualComponent");
 }
 
-void GeometryNode::AttachGeometry(GeometricPrimitive* pPrimitive)
+GeometricPrimitive* GeometryNode::GetGeometry() const
 {
-	assert(pPrimitive != nullptr);
-
-	mPrimitives.push_back(pPrimitive);
+	return mpGeometry;
 }
 
-void GeometryNode::DettachGeometry(GeometricPrimitive* pPrimitive)
+void GeometryNode::SetGeometry(GeometricPrimitive* pGeometry)
 {
-	assert(pPrimitive != nullptr);
-
-	// efficiant remove
-	mPrimitives.erase(std::remove(mPrimitives.begin(), mPrimitives.end(), pPrimitive), mPrimitives.end());
+	mpGeometry = pGeometry;
 }
 
-void GeometryNode::DettachAllGeometry()
+bool_t GeometryNode::IsLit() const
 {
-	mPrimitives.clear();
+	return mIsLit;
 }
 
-void GeometryNode::ForEachPrimitive(std::function< void(GeometricPrimitive*) > callback)
+void GeometryNode::SetIsLit(bool_t value)
 {
-	for (auto& primitive : mPrimitives)
+	mIsLit = value;
+
+	// if lit we add another uniform buffer for lights data
+	// Uniform Buffer - fragment shader
+	if (mIsLit)
 	{
-		if (primitive)
-		{
-			if (callback)
-				callback(primitive);
-		}
-	}
-}
+		auto* pUB = GE_ALLOC(UniformBuffer);
+		assert(pUB != nullptr);
 
-const std::vector<GeometricPrimitive*>& GeometryNode::GetGeometricPrimitives() const
-{
-	return mPrimitives;
+		GetComponent<VisualComponent>()->AddUniformBuffer(Shader::ShaderStage::GE_SS_FRAGMENT, pUB);
+	}
 }
 
 void GeometryNode::Accept(NodeVisitor& visitor)

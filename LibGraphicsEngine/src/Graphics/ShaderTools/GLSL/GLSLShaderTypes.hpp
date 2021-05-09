@@ -34,8 +34,14 @@ namespace GraphicsEngine
 				GE_UT_VIEW_MATRIX4,
 				GE_UT_PROJECTION_MATRIX4,
 				GE_UT_PVM_MATRIX4,
+				GE_UT_CAMERA_POS,  //viewPos
 				GE_UT_CRR_TIME, // timer crr time
 				GE_UT_SAMPLER_2D,
+
+				//light
+				GE_UT_LIGHT_DIR,
+				GE_UT_LIGHT_COLOR,
+
 				// others
 				GE_UT_COUNT
 			};

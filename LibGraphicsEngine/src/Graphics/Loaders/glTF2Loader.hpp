@@ -28,30 +28,58 @@ namespace GraphicsEngine
 				PreTransformVertices = 0x00000001
 			};
 
+			/*
+			Attribute order convention:
+			POSITION
+			NORMAL
+			TANGENT
+			COLOR
+			UV
+			...
+			*/
+
 			struct VertexAttributes
 			{
 				VertexAttributes()
-					: pos(0), normal(0), uv(0), color(0), tangent(0)
+					: pos(0), normal(0), tangent(0), color(0), uv(0)
 				{}
 
 				uint32_t size()
 				{
-					return (pos + normal + uv + color + tangent);
+					return (pos + normal + tangent + color + uv);
+				}
+
+				uint32_t posOffset()
+				{
+					return 0;
+				}
+
+				uint32_t normalOffset()
+				{
+					return pos;
+				}
+
+				uint32_t tangentOffset()
+				{
+					return pos + normal;
+				}
+
+				uint32_t colorOffset()
+				{
+					return pos + normal + tangent;
+				}
+
+
+				uint32_t uvOffset()
+				{
+					return pos + normal + tangent + color;
 				}
 
 				uint32_t pos;
 				uint32_t normal;
-				uint32_t uv;
-				uint32_t color;
 				uint32_t tangent;
-			};
-
-			struct PrimitiveData
-			{
-				uint32_t firstIndex;
-				uint32_t indexCount;
-				uint32_t firstVertex;
-				uint32_t vertexCount;
+				uint32_t color;
+				uint32_t uv;
 			};
 
 			glTF2Loader();

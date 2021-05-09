@@ -121,7 +121,7 @@ int main()
 	auto textureRoom = GE_ALLOC(TextureCubeMap)(std::string() + GE_ASSET_PATH + "textures/cubemap_yokohama_rgba.ktx2");
 
 	auto roomNode = GE_ALLOC(GeometryNode);
-	roomNode->AttachGeometry(room);
+	roomNode->SetGeometry(room);
 	roomNode->GetComponent<VisualComponent>()->AddShader(vsRoom);
 	roomNode->GetComponent<VisualComponent>()->AddShader(fsRoom);
 	roomNode->GetComponent<VisualComponent>()->AddTexture(textureRoom, Shader::ShaderStage::GE_SS_FRAGMENT);
@@ -227,7 +227,7 @@ int main()
 
 	//TODO - enable anisotropic filtering - via physical device enabled features
 	auto cubeNode = GE_ALLOC(GeometryNode);
-	cubeNode->AttachGeometry(cube);
+	cubeNode->SetGeometry(cube);
 	cubeNode->GetComponent<VisualComponent>()->AddShader(vsCube);
 	cubeNode->GetComponent<VisualComponent>()->AddShader(fsCube);
 	cubeNode->GetComponent<VisualComponent>()->AddTexture(textureCube, Shader::ShaderStage::GE_SS_FRAGMENT);
@@ -256,7 +256,7 @@ int main()
 
 	//TODO - enable anisotropic filtering - via physical device enabled features
 	auto cubeTextureArrayNode = GE_ALLOC(GeometryNode);
-	cubeTextureArrayNode->AttachGeometry(cubeTextureArray);
+	cubeTextureArrayNode->SetGeometry(cubeTextureArray);
 	cubeTextureArrayNode->GetComponent<VisualComponent>()->AddShader(vsCubeTextureArray);
 	cubeTextureArrayNode->GetComponent<VisualComponent>()->AddShader(fsCubeTextureArray);
 	cubeTextureArrayNode->GetComponent<VisualComponent>()->AddTexture(textureArrayCube, Shader::ShaderStage::GE_SS_FRAGMENT);

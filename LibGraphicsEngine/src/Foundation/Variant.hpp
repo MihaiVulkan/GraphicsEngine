@@ -192,6 +192,47 @@ namespace GraphicsEngine
 			return true;
 		}
 
+		const uint32_t Size() const
+		{
+			switch (mType)
+			{
+			case VariantType::GE_VT_BOOL:
+				return sizeof(mBool);
+			case VariantType::GE_VT_INT32:
+				return sizeof(mInt32);
+			case VariantType::GE_VT_INT64:
+				return sizeof(mInt64);
+			case VariantType::GE_VT_UINT32:
+				return sizeof(mUInt32);
+			case VariantType::GE_VT_UINT64:
+				return sizeof(mUInt64);
+			case VariantType::GE_VT_FLOAT32:
+				return sizeof(mFloat32);
+			case VariantType::GE_VT_FLOAT64:
+				return sizeof(mFloat64);
+			case VariantType::GE_VT_STRING:
+				return sizeof(mString);
+			case VariantType::GE_VT_VEC2:
+				return sizeof(mVec2);
+			case VariantType::GE_VT_VEC3:
+				return sizeof(mVec3);
+			case VariantType::GE_VT_VEC4:
+				return sizeof(mVec4);
+			case VariantType::GE_VT_MAT2:
+				return sizeof(mMat2);
+			case VariantType::GE_VT_MAT3:
+				return sizeof(mMat3);
+			case VariantType::GE_VT_MAT4:
+				return sizeof(mMat4);
+			case VariantType::GE_VT_COUNT:
+			default:
+				LOG_ERROR("Unsupported type!");
+				break;
+			}
+
+			//NOTE! Shouldn't get here!
+			return sizeof(mBool);
+		}
 
 	private:
 		VariantType mType;

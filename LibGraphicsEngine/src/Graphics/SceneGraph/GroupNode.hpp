@@ -8,8 +8,6 @@ namespace GraphicsEngine
 {
 	namespace Graphics
 	{
-		class RenderQueue;
-
 		class GroupNode : public Node
 		{
 			GE_RTTI(GraphicsEngine::Graphics::GroupNode)

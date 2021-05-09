@@ -11,8 +11,6 @@ namespace GraphicsEngine
 {
 	namespace Graphics
 	{
-		//class glTF2Loader;
-
 		// Model - used to store model data to pass to a specific Graphics API
 		class Model: public Resource, public GeometricPrimitive
 		{

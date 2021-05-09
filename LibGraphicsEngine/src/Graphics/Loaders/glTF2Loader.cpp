@@ -40,6 +40,10 @@ struct glTF2Loader::Impl
 		uint32_t mipLevels;
 		uint32_t layerCount;
 
+		Texture()
+			: width(0), height(0), mipLevels(0), layerCount(0)
+		{}
+
 		void FromglTfImage(tinygltf::Image& gltfimage, const std::string& filePath);
 	};
 
@@ -48,21 +52,27 @@ struct glTF2Loader::Impl
 	*/
 	struct Material
 	{
-		enum AlphaMode { ALPHAMODE_OPAQUE, ALPHAMODE_MASK, ALPHAMODE_BLEND };
-		AlphaMode alphaMode = ALPHAMODE_OPAQUE;
-		float alphaCutoff = 1.0f;
-		float metallicFactor = 1.0f;
-		float roughnessFactor = 1.0f;
-		glm::vec4 baseColorFactor = glm::vec4(1.0f);
+		enum AlphaMode { ALPHAMODE_OPAQUE = 0, ALPHAMODE_MASK, ALPHAMODE_BLEND };
+		AlphaMode alphaMode;
+		float32_t alphaCutoff;
+		float32_t metallicFactor;
+		float32_t roughnessFactor;
+		glm::vec4 baseColorFactor;
 
-		glTF2Loader::Impl::Texture* baseColorTexture = nullptr;
-		glTF2Loader::Impl::Texture* metallicRoughnessTexture = nullptr;
-		glTF2Loader::Impl::Texture* normalTexture = nullptr;
-		glTF2Loader::Impl::Texture* occlusionTexture = nullptr;
-		glTF2Loader::Impl::Texture* emissiveTexture = nullptr;
+		glTF2Loader::Impl::Texture* pBaseColorTexture;
+		glTF2Loader::Impl::Texture* pMetallicRoughnessTexture;
+		glTF2Loader::Impl::Texture* pNormalTexture;
+		glTF2Loader::Impl::Texture* pOcclusionTexture;
+		glTF2Loader::Impl::Texture* pEmissiveTexture;
 
-		glTF2Loader::Impl::Texture* specularGlossinessTexture;
-		glTF2Loader::Impl::Texture* diffuseTexture;
+		glTF2Loader::Impl::Texture* pSpecularGlossinessTexture;
+		glTF2Loader::Impl::Texture* pDiffuseTexture;
+
+		Material()
+			: alphaMode(AlphaMode::ALPHAMODE_OPAQUE), alphaCutoff(1.0f), metallicFactor(1.0f), roughnessFactor(1.0f), baseColorFactor(1.0f)
+			, pBaseColorTexture(nullptr), pMetallicRoughnessTexture(nullptr), pNormalTexture(nullptr), pOcclusionTexture(nullptr), pEmissiveTexture(nullptr)
+			, pSpecularGlossinessTexture(nullptr), pDiffuseTexture(nullptr)
+		{}
 	};
 
 	struct Dimensions
@@ -71,7 +81,12 @@ struct glTF2Loader::Impl
 		glm::vec3 max = glm::vec3(-FLT_MAX);
 		glm::vec3 size;
 		glm::vec3 center;
-		float radius;
+		float32_t radius;
+
+		Dimensions()
+			: min(+ FLT_MAX), max(- FLT_MAX), size(0), center(0), radius(0.0f)
+		{}
+
 	} dimensions;
 
 	/*
@@ -104,7 +119,10 @@ struct glTF2Loader::Impl
 		std::vector<glTF2Loader::Impl::Primitive*> primitives;
 		std::string name;
 
-		Mesh();
+		Mesh()
+			: name()
+		{}
+
 		~Mesh();
 	};
 
@@ -113,21 +131,25 @@ struct glTF2Loader::Impl
 	*/
 	struct Node
 	{
-		glTF2Loader::Impl::Node* parent;
+		glTF2Loader::Impl::Node* pParent;
 		uint32_t index;
 		std::vector<glTF2Loader::Impl::Node*> children;
-		glm::mat4 matrix{ 1.0f };
+		glm::mat4 matrix;
 		std::string name;
-		glTF2Loader::Impl::Mesh* mesh;
+		glTF2Loader::Impl::Mesh* pMesh;
 
-		glm::vec3 translation{ 0.0f };
-		glm::vec3 scale{ 1.0f };
-		glm::quat rotation{};
+		glm::vec3 translation;
+		glm::vec3 scale;
+		glm::quat rotation;
+
+		Node()
+			: pParent(nullptr), index(0), matrix(1.0f), pMesh(nullptr), translation(0.0f), scale(1.0f), rotation()
+		{}
+
+		~Node();
 
 		glm::mat4 localMatrix();
 		glm::mat4 getMatrix();
-		void update();
-		~Node();
 	};
 
 	Impl();
@@ -137,14 +159,14 @@ struct glTF2Loader::Impl
 
 	bool_t LoadImages(tinygltf::Model& gltfModel);
 	bool_t LoadMaterials(tinygltf::Model& gltfModel);
-	bool_t LoadNode(glTF2Loader::Impl::Node* parent, const tinygltf::Node& node, uint32_t nodeIndex, const tinygltf::Model& model);
+	bool_t LoadNode(glTF2Loader::Impl::Node* pParent, const tinygltf::Node& node, uint32_t nodeIndex, const tinygltf::Model& model);
 
 	void ApplyFlagsOnNode(glTF2Loader::Impl::Node* pNode, glTF2Loader::FileLoadingFlags loadingFlags);
 
 	glTF2Loader::Impl::Texture* GetTexture(uint32_t index);
 
 	void Draw(std::function<void(uint32_t indexCount, uint32_t firstVertex)> onDrawCB);
-	void DrawNode(glTF2Loader::Impl::Node* node, std::function<void(uint32_t indexCount, uint32_t firstVertex)> onDrawCB);
+	void DrawNode(glTF2Loader::Impl::Node* pNode, std::function<void(uint32_t indexCount, uint32_t firstVertex)> onDrawCB);
 
 	std::vector<glTF2Loader::Impl::Node*> mNodes;
 
@@ -166,7 +188,7 @@ glTF2Loader::Impl::~Impl()
 static bool_t LoadImageDataFunc(tinygltf::Image* pImage, const int32_t imageIndex, std::string* pError, std::string* pWarning, int32_t req_width, int32_t req_height, const unsigned char* pBytes, int32_t size, void* pUserData)
 {
 	// KTX files will be handled by our own code
-	if (pImage->uri.find_last_of(".") != std::string::npos)
+	if (pImage && (pImage->uri.find_last_of(".") != std::string::npos))
 	{
 		if (pImage->uri.substr(pImage->uri.find_last_of(".") + 1) == "ktx2")
 		{
@@ -215,7 +237,7 @@ bool_t glTF2Loader::Impl::LoadFromFile(const std::string& filePath, glTF2Loader:
 	const tinygltf::Scene& scene = gltfModel.scenes[gltfModel.defaultScene > -1 ? gltfModel.defaultScene : 0];
 	for (size_t i = 0; i < scene.nodes.size(); i++)
 	{
-		const tinygltf::Node node = gltfModel.nodes[scene.nodes[i]];
+		const tinygltf::Node& node = gltfModel.nodes[scene.nodes[i]];
 
 		//TODO for now we skip Light and Camera nodes
 		if ((node.name == "Camera") || ((node.name == "Light")))
@@ -232,9 +254,9 @@ bool_t glTF2Loader::Impl::LoadFromFile(const std::string& filePath, glTF2Loader:
 	// Pre-Calculations for requested features
 	if (loadingFlags & FileLoadingFlags::PreTransformVertices)
 	{
-		for (Node* node : mNodes)
+		for (auto* pNode : mNodes)
 		{
-			ApplyFlagsOnNode(node, loadingFlags);
+			ApplyFlagsOnNode(pNode, loadingFlags);
 		}
 	}
 
@@ -254,32 +276,32 @@ bool_t glTF2Loader::Impl::LoadMaterials(tinygltf::Model& gltfModel)
 	{
 		glTF2Loader::Impl::Material material;
 		if (mat.values.find("baseColorTexture") != mat.values.end()) {
-			material.baseColorTexture = GetTexture(gltfModel.textures[mat.values["baseColorTexture"].TextureIndex()].source);
+			material.pBaseColorTexture = GetTexture(gltfModel.textures[mat.values["baseColorTexture"].TextureIndex()].source);
 		}
 		// Metallic roughness workflow
 		if (mat.values.find("metallicRoughnessTexture") != mat.values.end()) {
-			material.metallicRoughnessTexture = GetTexture(gltfModel.textures[mat.values["metallicRoughnessTexture"].TextureIndex()].source);
+			material.pMetallicRoughnessTexture = GetTexture(gltfModel.textures[mat.values["metallicRoughnessTexture"].TextureIndex()].source);
 		}
 		if (mat.values.find("roughnessFactor") != mat.values.end()) {
-			material.roughnessFactor = static_cast<float>(mat.values["roughnessFactor"].Factor());
+			material.roughnessFactor = static_cast<float32_t>(mat.values["roughnessFactor"].Factor());
 		}
 		if (mat.values.find("metallicFactor") != mat.values.end()) {
-			material.metallicFactor = static_cast<float>(mat.values["metallicFactor"].Factor());
+			material.metallicFactor = static_cast<float32_t>(mat.values["metallicFactor"].Factor());
 		}
 		if (mat.values.find("baseColorFactor") != mat.values.end()) {
 			material.baseColorFactor = glm::make_vec4(mat.values["baseColorFactor"].ColorFactor().data());
 		}
 		if (mat.additionalValues.find("normalTexture") != mat.additionalValues.end()) {
-			material.normalTexture = GetTexture(gltfModel.textures[mat.additionalValues["normalTexture"].TextureIndex()].source);
+			material.pNormalTexture = GetTexture(gltfModel.textures[mat.additionalValues["normalTexture"].TextureIndex()].source);
 		}
 		else {
 		//	material.normalTexture = &emptyTexture; //TODO
 		}
 		if (mat.additionalValues.find("emissiveTexture") != mat.additionalValues.end()) {
-			material.emissiveTexture = GetTexture(gltfModel.textures[mat.additionalValues["emissiveTexture"].TextureIndex()].source);
+			material.pEmissiveTexture = GetTexture(gltfModel.textures[mat.additionalValues["emissiveTexture"].TextureIndex()].source);
 		}
 		if (mat.additionalValues.find("occlusionTexture") != mat.additionalValues.end()) {
-			material.occlusionTexture = GetTexture(gltfModel.textures[mat.additionalValues["occlusionTexture"].TextureIndex()].source);
+			material.pOcclusionTexture = GetTexture(gltfModel.textures[mat.additionalValues["occlusionTexture"].TextureIndex()].source);
 		}
 		if (mat.additionalValues.find("alphaMode") != mat.additionalValues.end()) {
 			tinygltf::Parameter param = mat.additionalValues["alphaMode"];
@@ -291,7 +313,7 @@ bool_t glTF2Loader::Impl::LoadMaterials(tinygltf::Model& gltfModel)
 			}
 		}
 		if (mat.additionalValues.find("alphaCutoff") != mat.additionalValues.end()) {
-			material.alphaCutoff = static_cast<float>(mat.additionalValues["alphaCutoff"].Factor());
+			material.alphaCutoff = static_cast<float32_t>(mat.additionalValues["alphaCutoff"].Factor());
 		}
 
 		mMaterials.push_back(material);
@@ -302,34 +324,34 @@ bool_t glTF2Loader::Impl::LoadMaterials(tinygltf::Model& gltfModel)
 	return true;
 }
 
-bool_t glTF2Loader::Impl::LoadNode(glTF2Loader::Impl::Node* parent, const tinygltf::Node& node, uint32_t nodeIndex, const tinygltf::Model& model)
+bool_t glTF2Loader::Impl::LoadNode(glTF2Loader::Impl::Node* pParent, const tinygltf::Node& node, uint32_t nodeIndex, const tinygltf::Model& model)
 {
-	glTF2Loader::Impl::Node* newNode = GE_ALLOC(glTF2Loader::Impl::Node);
-	newNode->index = nodeIndex;
-	newNode->parent = parent;
-	newNode->name = node.name;
+	glTF2Loader::Impl::Node* pNewNode = GE_ALLOC(glTF2Loader::Impl::Node);
+	pNewNode->index = nodeIndex;
+	pNewNode->pParent = pParent;
+	pNewNode->name = node.name;
 
 	// Generate local node matrix
 	if (node.translation.size() == 3) {
 		glm::vec3 translation = glm::make_vec3(node.translation.data());
-		newNode->translation = translation;
+		pNewNode->translation = translation;
 	}
 	if (node.rotation.size() == 4) {
 		glm::quat q = glm::make_quat(node.rotation.data());
-		newNode->rotation = glm::mat4(q);
+		pNewNode->rotation = glm::mat4(q);
 	}
 	if (node.scale.size() == 3) {
 		glm::vec3 scale = glm::make_vec3(node.scale.data());
-		newNode->scale = scale;
+		pNewNode->scale = scale;
 	}
 	if (node.matrix.size() == 16) {
-		newNode->matrix = glm::make_mat4x4(node.matrix.data());
-	};
+		pNewNode->matrix = glm::make_mat4x4(node.matrix.data());
+	}
 
 	// Node with children
 	if (node.children.size() > 0) {
 		for (auto i = 0; i < node.children.size(); i++) {
-			LoadNode(newNode, model.nodes[node.children[i]], node.children[i], model);
+			LoadNode(pNewNode, model.nodes[node.children[i]], node.children[i], model);
 		}
 	}
 
@@ -337,8 +359,8 @@ bool_t glTF2Loader::Impl::LoadNode(glTF2Loader::Impl::Node* parent, const tinygl
 	if (node.mesh > -1)
 	{
 		const tinygltf::Mesh& mesh = model.meshes[node.mesh];
-		glTF2Loader::Impl::Mesh* newMesh = GE_ALLOC(glTF2Loader::Impl::Mesh);
-		newMesh->name = mesh.name;
+		glTF2Loader::Impl::Mesh* pNewMesh = GE_ALLOC(glTF2Loader::Impl::Mesh);
+		pNewMesh->name = mesh.name;
 		for (size_t j = 0; j < mesh.primitives.size(); j++)
 		{
 			const tinygltf::Primitive& primitive = mesh.primitives[j];
@@ -356,11 +378,11 @@ bool_t glTF2Loader::Impl::LoadNode(glTF2Loader::Impl::Node* parent, const tinygl
 
 			// Vertices
 			{
-				const float* bufferPos = nullptr;
-				const float* bufferNormals = nullptr;
-				const float* bufferTexCoords = nullptr;
-				const float* bufferColors = nullptr;
-				const float* bufferTangents = nullptr;
+				const float32_t* bufferPos = nullptr;
+				const float32_t* bufferNormals = nullptr;
+				const float32_t* bufferTexCoords = nullptr;
+				const float32_t* bufferColors = nullptr;
+				const float32_t* bufferTangents = nullptr;
 				uint32_t numColorComponents;
 
 				// Position attribute is required
@@ -368,22 +390,24 @@ bool_t glTF2Loader::Impl::LoadNode(glTF2Loader::Impl::Node* parent, const tinygl
 
 				const tinygltf::Accessor& posAccessor = model.accessors[primitive.attributes.find("POSITION")->second];
 				const tinygltf::BufferView& posView = model.bufferViews[posAccessor.bufferView];
-				bufferPos = reinterpret_cast<const float*>(&(model.buffers[posView.buffer].data[posAccessor.byteOffset + posView.byteOffset]));
+				bufferPos = reinterpret_cast<const float32_t*>(&(model.buffers[posView.buffer].data[posAccessor.byteOffset + posView.byteOffset]));
 				posMin = glm::vec3(posAccessor.minValues[0], posAccessor.minValues[1], posAccessor.minValues[2]);
 				posMax = glm::vec3(posAccessor.maxValues[0], posAccessor.maxValues[1], posAccessor.maxValues[2]);
 				mVertexAttributes.pos = 3;
 
-				if (primitive.attributes.find("NORMAL") != primitive.attributes.end()) {
+				if (primitive.attributes.find("NORMAL") != primitive.attributes.end())
+				{
 					const tinygltf::Accessor& normAccessor = model.accessors[primitive.attributes.find("NORMAL")->second];
 					const tinygltf::BufferView& normView = model.bufferViews[normAccessor.bufferView];
-					bufferNormals = reinterpret_cast<const float*>(&(model.buffers[normView.buffer].data[normAccessor.byteOffset + normView.byteOffset]));
+					bufferNormals = reinterpret_cast<const float32_t*>(&(model.buffers[normView.buffer].data[normAccessor.byteOffset + normView.byteOffset]));
 					mVertexAttributes.normal = 3;
 				}
 
-				if (primitive.attributes.find("TEXCOORD_0") != primitive.attributes.end()) {
+				if (primitive.attributes.find("TEXCOORD_0") != primitive.attributes.end()) 
+				{
 					const tinygltf::Accessor& uvAccessor = model.accessors[primitive.attributes.find("TEXCOORD_0")->second];
 					const tinygltf::BufferView& uvView = model.bufferViews[uvAccessor.bufferView];
-					bufferTexCoords = reinterpret_cast<const float*>(&(model.buffers[uvView.buffer].data[uvAccessor.byteOffset + uvView.byteOffset]));
+					bufferTexCoords = reinterpret_cast<const float32_t*>(&(model.buffers[uvView.buffer].data[uvAccessor.byteOffset + uvView.byteOffset]));
 					mVertexAttributes.uv = 2;
 				}
 
@@ -393,7 +417,7 @@ bool_t glTF2Loader::Impl::LoadNode(glTF2Loader::Impl::Node* parent, const tinygl
 					const tinygltf::BufferView& colorView = model.bufferViews[colorAccessor.bufferView];
 					// Color buffer is either of type vec3 or vec4
 					numColorComponents = colorAccessor.type == TINYGLTF_PARAMETER_TYPE_FLOAT_VEC3 ? 3 : 4;
-					bufferColors = reinterpret_cast<const float*>(&(model.buffers[colorView.buffer].data[colorAccessor.byteOffset + colorView.byteOffset]));
+					bufferColors = reinterpret_cast<const float32_t*>(&(model.buffers[colorView.buffer].data[colorAccessor.byteOffset + colorView.byteOffset]));
 					mVertexAttributes.color = numColorComponents;
 				}
 
@@ -401,7 +425,7 @@ bool_t glTF2Loader::Impl::LoadNode(glTF2Loader::Impl::Node* parent, const tinygl
 				{
 					const tinygltf::Accessor& tangentAccessor = model.accessors[primitive.attributes.find("TANGENT")->second];
 					const tinygltf::BufferView& tangentView = model.bufferViews[tangentAccessor.bufferView];
-					bufferTangents = reinterpret_cast<const float*>(&(model.buffers[tangentView.buffer].data[tangentAccessor.byteOffset + tangentView.byteOffset]));
+					bufferTangents = reinterpret_cast<const float32_t*>(&(model.buffers[tangentView.buffer].data[tangentAccessor.byteOffset + tangentView.byteOffset]));
 					mVertexAttributes.tangent = 4;
 				}
 
@@ -412,32 +436,50 @@ bool_t glTF2Loader::Impl::LoadNode(glTF2Loader::Impl::Node* parent, const tinygl
 				size_t newVBSize = vertexCount * mVertexAttributes.size() + offset;
 				mVertexBuffer.resize(newVBSize);
 
-				for (size_t v = 0; v < posAccessor.count; v++)
+				/*
+				Attribute order convention:
+				POSITION
+				NORMAL
+				TANGENT
+				COLOR
+				UV
+				...
+				*/
+
+				for (uint32_t v = 0; v < posAccessor.count; v++)
 				{
+					uint32_t index = 0;
 					if (bufferPos)
 					{
-						::memcpy(&mVertexBuffer[offset + v * mVertexAttributes.pos], &bufferPos[v * mVertexAttributes.pos], sizeof(float32_t)* mVertexAttributes.pos);
+						index = offset + mVertexAttributes.posOffset();
+						::memcpy(&mVertexBuffer[index], &bufferPos[v * mVertexAttributes.pos], sizeof(float32_t) * mVertexAttributes.pos);
 					}
+
 					if (bufferNormals)
 					{
-						offset += mVertexAttributes.pos;
-						::memcpy(&mVertexBuffer[offset + v * mVertexAttributes.normal], &bufferNormals[v * mVertexAttributes.normal], sizeof(float32_t) * mVertexAttributes.normal);
+						index = offset + mVertexAttributes.normalOffset();
+						::memcpy(&mVertexBuffer[index], &bufferNormals[v * mVertexAttributes.normal], sizeof(float32_t) * mVertexAttributes.normal);
 					}
-					if (bufferTexCoords)
-					{
-						offset += mVertexAttributes.pos + mVertexAttributes.normal;
-						::memcpy(&mVertexBuffer[offset + v * mVertexAttributes.uv], &bufferTexCoords[v * mVertexAttributes.uv], sizeof(float32_t) * mVertexAttributes.uv);
-					}
-					if (bufferColors)
-					{
-						offset += mVertexAttributes.pos + mVertexAttributes.normal + mVertexAttributes.uv;
-						::memcpy(&mVertexBuffer[offset + v * mVertexAttributes.color], &bufferColors[v * mVertexAttributes.color], sizeof(float32_t) * mVertexAttributes.color);
-					}
+
 					if (bufferTangents)
 					{
-						offset += mVertexAttributes.pos + mVertexAttributes.normal + mVertexAttributes.uv + mVertexAttributes.color;
-						::memcpy(&mVertexBuffer[offset + v * mVertexAttributes.tangent], &bufferTangents[v * mVertexAttributes.tangent], sizeof(float32_t) * mVertexAttributes.tangent);
+						index = offset + mVertexAttributes.tangentOffset();
+						::memcpy(&mVertexBuffer[index], &bufferTangents[v * mVertexAttributes.tangent], sizeof(float32_t) * mVertexAttributes.tangent);
 					}
+
+					if (bufferColors)
+					{
+						index = offset + mVertexAttributes.colorOffset();
+						::memcpy(&mVertexBuffer[index], &bufferColors[v * mVertexAttributes.color], sizeof(float32_t) * mVertexAttributes.color);
+					}
+
+					if (bufferTexCoords)
+					{
+						index = offset + mVertexAttributes.uvOffset();
+						::memcpy(&mVertexBuffer[index], &bufferTexCoords[v * mVertexAttributes.uv], sizeof(float32_t) * mVertexAttributes.uv);
+					}
+
+					offset += mVertexAttributes.size();
 				}
 			}
 
@@ -486,20 +528,20 @@ bool_t glTF2Loader::Impl::LoadNode(glTF2Loader::Impl::Node* parent, const tinygl
 				return false;
 			}
 			}
-			glTF2Loader::Impl::Primitive* newPrimitive = GE_ALLOC(glTF2Loader::Impl::Primitive)(indexStart, indexCount, primitive.material > -1 ? mMaterials[primitive.material] : mMaterials.back());
-			newPrimitive->firstVertex = vertexStart;
-			newPrimitive->vertexCount = vertexCount;
-			newPrimitive->setDimensions(posMin, posMax);
-			newMesh->primitives.push_back(newPrimitive);
+			glTF2Loader::Impl::Primitive* pNewPrimitive = GE_ALLOC(glTF2Loader::Impl::Primitive)(indexStart, indexCount, primitive.material > -1 ? mMaterials[primitive.material] : mMaterials.back());
+			pNewPrimitive->firstVertex = vertexStart;
+			pNewPrimitive->vertexCount = vertexCount;
+			pNewPrimitive->setDimensions(posMin, posMax);
+			pNewMesh->primitives.push_back(pNewPrimitive);
 		}
-		newNode->mesh = newMesh;
+		pNewNode->pMesh = pNewMesh;
 	}
 
-	if (parent) {
-		parent->children.push_back(newNode);
+	if (pParent) {
+		pParent->children.push_back(pNewNode);
 	}
 	else {
-		mNodes.push_back(newNode);
+		mNodes.push_back(pNewNode);
 	}
 
 	return true;
@@ -507,36 +549,39 @@ bool_t glTF2Loader::Impl::LoadNode(glTF2Loader::Impl::Node* parent, const tinygl
 
 void glTF2Loader::Impl::ApplyFlagsOnNode(glTF2Loader::Impl::Node* pNode, glTF2Loader::FileLoadingFlags loadingFlags)
 {
-	if (pNode && pNode->mesh)
+	if (pNode && (pNode->pMesh || pNode->children.size() > 0))
 	{
 		const bool preTransform = loadingFlags & FileLoadingFlags::PreTransformVertices;
 
-		const glm::mat4 localMatrix = pNode->getMatrix();
-		for (Primitive* primitive : pNode->mesh->primitives)
+		if (pNode->pMesh)
 		{
-			for (uint32_t i = 0; i < primitive->vertexCount; i++)
+			const glm::mat4 localMatrix = pNode->getMatrix();
+			for (auto* pPrimitive : pNode->pMesh->primitives)
 			{
-				//// Pre-transform vertex positions by node-hierarchy
-				if (preTransform)
+				if (pPrimitive)
 				{
-					uint32_t posIndex = (primitive->firstVertex + i) * mVertexAttributes.size();
-					glm::vec3 position(localMatrix * glm::vec4(glm::make_vec3(&mVertexBuffer[posIndex]), 1.0f));
-					::memcpy(&mVertexBuffer[posIndex], &position.x, sizeof(glm::vec3));
+					for (uint32_t i = 0; i < pPrimitive->vertexCount; i++)
+					{
+						//// Pre-transform vertex positions by node-hierarchy
+						if (preTransform)
+						{
+							uint32_t posIndex = (pPrimitive->firstVertex + i) * mVertexAttributes.size();
+							glm::vec3 position(localMatrix * glm::vec4(glm::make_vec3(&mVertexBuffer[posIndex]), 1.0f));
+							::memcpy(&mVertexBuffer[posIndex], &position.x, sizeof(glm::vec3));
 
-					uint32_t normIndex = posIndex + mVertexAttributes.pos;
-					glm::vec3 normal = glm::normalize(glm::mat3(localMatrix) * glm::make_vec3(&mVertexBuffer[normIndex]));
-					::memcpy(&mVertexBuffer[normIndex], &normal.x, sizeof(glm::vec3));
+							uint32_t normIndex = posIndex + mVertexAttributes.pos;
+							glm::vec3 normal = glm::normalize(glm::mat3(localMatrix) * glm::make_vec3(&mVertexBuffer[normIndex]));
+							::memcpy(&mVertexBuffer[normIndex], &normal.x, sizeof(glm::vec3));
+						}
+					}
 				}
 			}
 		}
 
 		// Node with children
-		if (pNode->children.size() > 0)
+		for (auto* pChild : pNode->children)
 		{
-			for (auto* pChild : pNode->children)
-			{
-				ApplyFlagsOnNode(pChild, loadingFlags);
-			}
+			ApplyFlagsOnNode(pChild, loadingFlags);
 		}
 	}
 }
@@ -549,9 +594,6 @@ void glTF2Loader::Impl::Primitive::setDimensions(glm::vec3 min, glm::vec3 max)
 	dimensions.center = (min + max) / 2.0f;
 	dimensions.radius = glm::distance(min, max) / 2.0f;
 }
-
-glTF2Loader::Impl::Mesh::Mesh()
-{};
 
 glTF2Loader::Impl::Mesh::~Mesh()
 {
@@ -570,20 +612,20 @@ glm::mat4 glTF2Loader::Impl::Node::localMatrix()
 glm::mat4 glTF2Loader::Impl::Node::getMatrix()
 {
 	glm::mat4 m = localMatrix();
-	glTF2Loader::Impl::Node* p = parent;
+	glTF2Loader::Impl::Node* p = pParent;
 	while (p)
 	{
 		m = p->localMatrix() * m;
-		p = p->parent;
+		p = p->pParent;
 	}
 	return m;
 }
 
 glTF2Loader::Impl::Node::~Node()
 {
-	if (mesh)
+	if (pMesh)
 	{
-		GE_FREE(mesh);
+		GE_FREE(pMesh);
 	}
 
 	for (auto& child : children)
@@ -610,18 +652,19 @@ void glTF2Loader::Impl::Draw(std::function<void(uint32_t indexCount, uint32_t fi
 	}
 }
 
-void glTF2Loader::Impl::DrawNode(glTF2Loader::Impl::Node* node, std::function<void(uint32_t indexCount, uint32_t firstIndex)> onDrawCB)
+void glTF2Loader::Impl::DrawNode(glTF2Loader::Impl::Node* pNode, std::function<void(uint32_t indexCount, uint32_t firstIndex)> onDrawCB)
 {
-	if (node)
+	if (pNode && pNode->pMesh)
 	{
-		if (node->mesh)
+		for (auto* pPrimitive : pNode->pMesh->primitives)
 		{
-			for (Primitive* primitive : node->mesh->primitives)
+			if (pPrimitive)
 			{
-				onDrawCB(primitive->indexCount, primitive->firstIndex);
+				onDrawCB(pPrimitive->indexCount, pPrimitive->firstIndex);
 			}
 		}
-		for (auto& child : node->children)
+
+		for (auto& child : pNode->children)
 		{
 			DrawNode(child, onDrawCB);
 		}

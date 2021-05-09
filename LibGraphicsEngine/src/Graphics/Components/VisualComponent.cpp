@@ -56,7 +56,7 @@ void VisualComponent::Create()
 	dynamic_s.Add(DynamicState::State::GE_DS_SCISSOR);
 	SetDynamicState(dynamic_s);
 
-	// Uniform Buffer
+	// Uniform Buffer - vertex shader
 	auto* pUB = GE_ALLOC(UniformBuffer);
 	assert(pUB != nullptr);
 	pUB->AddUniform(GLSLShaderTypes::UniformType::GE_UT_PVM_MATRIX4);
@@ -128,7 +128,7 @@ void VisualComponent::AddTexture(Texture* pTexture, Shader::ShaderStage shaderSt
 	assert(shaderStage < Shader::ShaderStage::GE_SS_COUNT);
 	assert(pTexture != nullptr);
 
-	mTextureMap[shaderStage] = pTexture;
+	mTextureMap[shaderStage].push_back(pTexture);
 }
 
 bool_t VisualComponent::HasTextures() const

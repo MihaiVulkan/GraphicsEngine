@@ -10,6 +10,8 @@
 
 #include "Graphics/SceneGraph/GeometryNode.hpp"
 #include "Graphics/GeometricPrimitives/GeometricPrimitive.hpp"
+#include "Graphics/SceneGraph/LightNode.hpp"
+#include "Graphics/Lights/DirectionalLight.hpp"
 #include "Graphics/Cameras/Camera.hpp"
 
 #include "Graphics/Components/VisualComponent.hpp"
@@ -728,10 +730,14 @@ void VulkanRenderer::DrawObject(RenderQueue::Renderable* pRenderable, uint32_t c
 	// bind textures if any
 	if (pVisComp->HasTextures())
 	{
-		auto textures = pVisComp->GetTextures();
-		for (auto& iter : textures)
+		auto& textureMap = pVisComp->GetTextures();
+		for (auto& iter : textureMap) // per shader stage
 		{
-			Bind(iter.second);
+			auto& textureArray = iter.second;
+			for (auto* pTexture : textureArray) // per texture
+			{
+				Bind(pTexture);
+			}
 		}
 
 	}
@@ -759,59 +765,86 @@ void VulkanRenderer::DrawObject(RenderQueue::Renderable* pRenderable, uint32_t c
 	vkCmdBindDescriptorSets(pCrrDrawCommandBuffer->GetHandle(), VkPipelineBindPoint::VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout->GetHandle(), descriptorSet->GetId(), 1, &descriptorSet->GetHandle(), 0, nullptr);
 
 	// draw geometric primitives
-	auto& geoPrimitives = pGeoNode->GetGeometricPrimitives();
-	for (auto& primitive : geoPrimitives)
-	{
-		if (primitive)
-		{
-			//bind vertex format
-			Bind(primitive->GetVertexFormat());
+	auto* pGeometry = pGeoNode->GetGeometry();
+	assert(pGeometry != nullptr);
+	//bind vertex format
+	Bind(pGeometry->GetVertexFormat());
 			
-			// bind vertex buffer
-			auto* pVertexBuffer = primitive->GetVertexBuffer();
-			assert(pVertexBuffer != nullptr);
+	// bind vertex buffer
+	auto* pVertexBuffer = pGeometry->GetVertexBuffer();
+	assert(pVertexBuffer != nullptr);
 
-			Bind(pVertexBuffer, currentBufferIdx);
+	Bind(pVertexBuffer, currentBufferIdx);
 
-			// bind index buffer
-			auto* pIndexBuffer = primitive->GetIndexBuffer();
+	// bind index buffer
+	auto* pIndexBuffer = pGeometry->GetIndexBuffer();
+	if (pGeometry->IsIndexed())
+	{
+		Bind(pIndexBuffer, currentBufferIdx);
+	}
 
-			if (primitive->IsIndexed())
-			{
-				Bind(pIndexBuffer, currentBufferIdx);
-			}
+	uint32_t count = 0;
+	if (pGeometry->IsIndexed())
+	{
+		if (pIndexBuffer)
+			count = pIndexBuffer->GetIndexCount();
+	}
+	else
+	{
+		count = pVertexBuffer->GetVertexCount();
+	}
 
-			uint32_t count = 0;
-			if (primitive->IsIndexed())
-			{
-				if (pIndexBuffer)
-					count = pIndexBuffer->GetIndexCount();
-			}
-			else
-			{
-				count = pVertexBuffer->GetVertexCount();
-			}
+	//TODO - improve instance count logic
+	uint32_t instanceCount = (pVertexBuffer->GetVertexInputRate() == VertexBuffer::VertexInputRate::GE_VIR_VERTEX ? 1 : 0);
 
-			//TODO - improve instance count logic
-			uint32_t instanceCount = (pVertexBuffer->GetVertexInputRate() == VertexBuffer::VertexInputRate::GE_VIR_VERTEX ? 1 : 0);
+	// in case of model loading
+	if (pGeometry->IsModel())
+	{
+		Model* pModel = dynamic_cast<Model*>(pGeometry);
+		if (pModel)
+		{
+			auto* gadrModel = Get(pModel);
+			assert(gadrModel != nullptr);
 
-			// in case of model loading
-			if (primitive->IsModel())
-			{
-				Model* pModel = dynamic_cast<Model*>(primitive);
-				if (pModel)
-				{
-					auto* gadrModel = Get(pModel);
-					assert(gadrModel != nullptr);
-
-					gadrModel->Draw(currentBufferIdx);
-				}
-			}
-			else
-			{
-				DrawDirect(count, 0, instanceCount, currentBufferIdx, primitive->IsIndexed());
-			}
+			gadrModel->Draw(currentBufferIdx);
 		}
+	}
+	else
+	{
+		DrawDirect(count, 0, instanceCount, currentBufferIdx, pGeometry->IsIndexed());
+	}
+}
+
+void VulkanRenderer::BindLight(LightNode* pLightNode, GeometryNode* pGeoNode)
+{
+	assert(pLightNode != nullptr);
+	assert(pGeoNode != nullptr);
+
+	auto* pVisComp = pGeoNode->GetComponent<VisualComponent>();
+	assert(pVisComp != nullptr);
+
+	auto* pUBO = pVisComp->GetUniformBuffer(Shader::ShaderStage::GE_SS_FRAGMENT);
+	assert(pUBO != nullptr);
+
+	auto* pLight = pLightNode->GetLight();
+	assert(pLight != nullptr);
+
+	switch (pLight->GetLightType())
+	{
+		case Light::LightType::GE_LT_DIRECTIONAL:
+		{
+			// TODO - this should work on pointer copy, let's see
+			pUBO->AddUniform(GLSLShaderTypes::UniformType::GE_UT_LIGHT_DIR, pLight->GetDirection());
+			pUBO->AddUniform(GLSLShaderTypes::UniformType::GE_UT_LIGHT_COLOR, pLight->GetColor());
+		}
+			break;
+		case Light::LightType::GE_LT_POINT:
+		case Light::LightType::GE_LT_SPOT:
+			//TODO
+			break;
+		case Light::LightType::GE_PT_COUNT:
+		default:
+			LOG_ERROR("Invalid light type!");
 	}
 }
 
@@ -838,15 +871,15 @@ void VulkanRenderer::ComputeGraphicsResources(RenderQueue* pRenderQueue, RenderP
 			auto pGeoNode = pRenderable->pGeometryNode;
 			assert(pGeoNode != nullptr);
 
-			auto pVisComp = pGeoNode->GetComponent<VisualComponent>();
-			assert(pVisComp != nullptr);
+			if (pGeoNode->IsLit())
+			{
+				pRenderQueue->ForEach([&, this](LightNode* pLightNode)
+					{
+						BindLight(pLightNode, pGeoNode);
+					});
+			}
 
-			//TODO - shouldn't be done per primitive
-			pGeoNode->ForEachPrimitive(
-				[this, &pVisComp](GeometricPrimitive* pGeoPrimitive)
-				{
-					setupPipeline(pGeoPrimitive, pVisComp);
-				});
+			setupPipeline(pGeoNode);
 		}
 	);
 
@@ -854,10 +887,16 @@ void VulkanRenderer::ComputeGraphicsResources(RenderQueue* pRenderQueue, RenderP
 	mDescriptorSetBindingMapCollection.clear();
 }
 
-void VulkanRenderer::setupPipeline(GeometricPrimitive* pGeoPrimitive, VisualComponent* pVisComp)
+void VulkanRenderer::setupPipeline(GeometryNode* pGeoNode)
 {
-	assert(pGeoPrimitive != nullptr);
+	assert(pGeoNode != nullptr);
+
+	auto* pVisComp = pGeoNode->GetComponent<VisualComponent>();
 	assert(pVisComp != nullptr);
+
+	auto* pGeometry = pGeoNode->GetGeometry();
+	assert(pGeometry != nullptr);
+
 	assert(mpRenderPass != nullptr);
 	assert(mpDevice != nullptr);
 
@@ -878,24 +917,24 @@ void VulkanRenderer::setupPipeline(GeometricPrimitive* pGeoPrimitive, VisualComp
 	size_t i = 0;
 	for (auto iter = shaders.begin(); iter != shaders.end(); ++ iter)
 	{
-		auto shader = iter->second;
-		if (shader)
+		auto* pShader = iter->second;
+		if (pShader)
 		{
-			auto parser = shader->GetGLSLParser();
-			assert(parser != nullptr);
+			auto* pParser = pShader->GetGLSLParser();
+			assert(pParser != nullptr);
 
 			// COMPUTE DESCRIPTOR SET INFO
 
-			VkShaderStageFlagBits shaderStage = VulkanUtils::ShaderStageToVulkanShaderStage(shader->GetShaderStage());
+			VkShaderStageFlagBits shaderStage = VulkanUtils::ShaderStageToVulkanShaderStage(pShader->GetShaderStage());
 
-			// uniform buffer info
-			if (parser->GetUniformBlock().IsValid())
+			// uniform buffer is present
+			if (pParser->GetUniformBlock().IsValid())
 			{
 				// uniform data
 				GADRUniformBuffer* pGadrUniformBuffer = nullptr;
 				if (pVisComp->HasUniformBuffers()) //get available one
 				{
-					pGadrUniformBuffer = Get(pVisComp->GetUniformBuffer(shader->GetShaderStage()));
+					pGadrUniformBuffer = Get(pVisComp->GetUniformBuffer(pShader->GetShaderStage()));
 				}
 				else
 				{
@@ -908,26 +947,30 @@ void VulkanRenderer::setupPipeline(GeometricPrimitive* pGeoPrimitive, VisualComp
 				// descriptor metadata
 				VkDescriptorType descriptorType = VkDescriptorType::VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 
-				AddWriteDescriptorSet(pVisComp, shaderStage, parser->GetUniformBlock().setId, parser->GetUniformBlock().binding,
+				AddWriteDescriptorSet(pVisComp, shaderStage, pParser->GetUniformBlock().setId, pParser->GetUniformBlock().binding,
 					descriptorType, nullptr, &(pGadrUniformBuffer->GetVKBuffer()->GetDescriptorInfo()));
 			}
-			else if (parser->GetUniforms().empty() == false) // texture sampler
+
+			// texture sampler(s) are present
+			if (pParser->GetUniforms().empty() == false)
 			{
 				//TODO - for now we know its only samplers
 				VkDescriptorType descriptorType = VkDescriptorType::VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 
-				auto& uniforms = parser->GetUniforms();
+				auto& uniforms = pParser->GetUniforms();
 
 				if (pVisComp->HasTextures())
 				{
-					auto& textures = pVisComp->GetTextures();
-					assert(textures.size() == uniforms.size()); //TODO - improve this
+					auto& textureMap = pVisComp->GetTextures();
+					auto& textureArray = textureMap.at(pShader->GetShaderStage());
 
-					auto tex_iter = textures.begin();
+					assert(textureArray.size() == uniforms.size()); //TODO - improve this
+
+					auto tex_iter = textureArray.begin();
 					auto unif_iter = uniforms.begin();
-					for (; tex_iter != textures.end(); ++tex_iter, ++unif_iter)
+					for (; tex_iter != textureArray.end(); ++tex_iter, ++unif_iter)
 					{
-						auto* gadrTexture = Get(tex_iter->second);
+						auto* gadrTexture = Get(*tex_iter);
 						assert(gadrTexture != nullptr);
 
 						AddWriteDescriptorSet(pVisComp, shaderStage, unif_iter->second.setId, unif_iter->second.binding,
@@ -937,7 +980,7 @@ void VulkanRenderer::setupPipeline(GeometricPrimitive* pGeoPrimitive, VisualComp
 			}
 
 			// pipeline shader state setup
-			auto GADRShader = Get(shader);
+			auto GADRShader = Get(pShader);
 			assert(GADRShader != nullptr);
 
 			auto refVkShader = GADRShader->GetVkShaderModule();
@@ -954,9 +997,9 @@ void VulkanRenderer::setupPipeline(GeometricPrimitive* pGeoPrimitive, VisualComp
 
 
 	// in case we have a model to load
-	if (pGeoPrimitive->IsModel())
+	if (pGeometry->IsModel())
 	{
-		Model* pModel = dynamic_cast<Model*>(pGeoPrimitive);
+		Model* pModel = dynamic_cast<Model*>(pGeometry);
 		if (pModel)
 		{
 			Get(pModel);
@@ -1067,7 +1110,7 @@ void VulkanRenderer::setupPipeline(GeometricPrimitive* pGeoPrimitive, VisualComp
 	////////////
 
 	// setup vertex format
-	GADRVertexFormat* gadrVertexFormat = Get(pGeoPrimitive->GetVertexFormat());
+	GADRVertexFormat* gadrVertexFormat = Get(pGeometry->GetVertexFormat());
 	assert(gadrVertexFormat != nullptr);
 
 	Shader* pVertexShader = pVisComp->GetShader(Shader::ShaderStage::GE_SS_VERTEX);
@@ -1101,16 +1144,16 @@ void VulkanRenderer::setupPipeline(GeometricPrimitive* pGeoPrimitive, VisualComp
 	}
 
 	// setup vertex input
-	GADRVertexBuffer* gadrVertexBuffer = Get(pGeoPrimitive->GetVertexBuffer());
+	GADRVertexBuffer* gadrVertexBuffer = Get(pGeometry->GetVertexBuffer());
 	assert(gadrVertexBuffer != nullptr);
 
 	const auto& inputBinding = gadrVertexBuffer->GetVkInputBinding();
 
-	VkPrimitiveTopology vulkanTopology = VulkanUtils::PrimitiveTopologyToVulkanTopolgy(pGeoPrimitive->GetTopology());
+	VkPrimitiveTopology vulkanTopology = VulkanUtils::PrimitiveTopologyToVulkanTopolgy(pGeometry->GetTopology());
 
 	// TODO - improve resource creation - get it first time to create the Vulkan Index Buffer
-	if (pGeoPrimitive->IsIndexed())
-		Get(pGeoPrimitive->GetIndexBuffer());
+	if (pGeometry->IsIndexed())
+		Get(pGeometry->GetIndexBuffer());
 
 	/////////////////////////////////
 	VkPipelineVertexInputStateCreateInfo pipelineVertexInputStateCreateInfo =
@@ -1118,7 +1161,7 @@ void VulkanRenderer::setupPipeline(GeometricPrimitive* pGeoPrimitive, VisualComp
 
 	// Input assembly state describes how primitives are assembled
 	// This pipeline will assemble vertex data as a triangle lists (though we only use one triangle)
-	auto restartPrimitve = (pGeoPrimitive->IsIndexed() ? pGeoPrimitive->GetIndexBuffer()->GetIsRestartPrimitive() : false);
+	auto restartPrimitve = (pGeometry->IsIndexed() ? pGeometry->GetIndexBuffer()->GetIsRestartPrimitive() : false);
 
 	VkPipelineInputAssemblyStateCreateInfo pipelineInputAssemblyStateCreateInfo =
 		VulkanInitializers::PipelineInputAssemblyStateCreateInfo(vulkanTopology, restartPrimitve);
@@ -1155,8 +1198,8 @@ void VulkanRenderer::setupPipeline(GeometricPrimitive* pGeoPrimitive, VisualComp
 	}
 
 	// Rasterization state
-	VkPolygonMode vulkanPolygonMode = VulkanUtils::PrimitivePolygonModeToVulkanPolygonMode(pGeoPrimitive->GetPolygonMode());
-	VkFrontFace vulkanFaceWinding = VulkanUtils::PrimitiveFaceWindingToVulkanFaceWinding(pGeoPrimitive->GetFaceWinding());
+	VkPolygonMode vulkanPolygonMode = VulkanUtils::PrimitivePolygonModeToVulkanPolygonMode(pGeometry->GetPolygonMode());
+	VkFrontFace vulkanFaceWinding = VulkanUtils::PrimitiveFaceWindingToVulkanFaceWinding(pGeometry->GetFaceWinding());
 	VkCullModeFlagBits vulkanCullMode = VulkanUtils::FaceCullModeToVulkanFaceCullMode(pVisComp->GetCullFaceState().GetCullMode());
 
 
@@ -1330,13 +1373,27 @@ void VulkanRenderer::UpdateUniformBuffers(RenderQueue::Renderable* pRenderable, 
 
 		if (uniformBuffer)
 		{
-			//if (uniformBuffer->HasUniform(GLSLShaderTypes::UniformType::GE_UT_PVM_MATRIX4))
+			if (uniformBuffer->HasUniform(GLSLShaderTypes::UniformType::GE_UT_PVM_MATRIX4))
 			{
-				//TODO - improve trnsformation
 				uniformBuffer->SetUniform(GLSLShaderTypes::UniformType::GE_UT_PVM_MATRIX4, pCamera->GetProjectionViewMatrix() * pGeoNode->GetModelMatrix());
 			}
 
-			//if (uniformBuffer->HasUniform(GLSLShaderTypes::UniformType::GE_UT_CRR_TIME))
+			if (uniformBuffer->HasUniform(GLSLShaderTypes::UniformType::GE_UT_MODEL_MATRIX4))
+			{
+				uniformBuffer->SetUniform(GLSLShaderTypes::UniformType::GE_UT_MODEL_MATRIX4, pGeoNode->GetModelMatrix());
+			}
+
+			if (uniformBuffer->HasUniform(GLSLShaderTypes::UniformType::GE_UT_NORMAL_MATRIX3))
+			{
+				uniformBuffer->SetUniform(GLSLShaderTypes::UniformType::GE_UT_NORMAL_MATRIX3, pGeoNode->GetNormalMatrix());
+			}
+
+			if (uniformBuffer->HasUniform(GLSLShaderTypes::UniformType::GE_UT_CAMERA_POS))
+			{
+				uniformBuffer->SetUniform(GLSLShaderTypes::UniformType::GE_UT_CAMERA_POS, pCamera->GetPosition());
+			}
+
+			if (uniformBuffer->HasUniform(GLSLShaderTypes::UniformType::GE_UT_CRR_TIME))
 			{
 				uniformBuffer->SetUniform(GLSLShaderTypes::UniformType::GE_UT_CRR_TIME, crrTime);
 			}
