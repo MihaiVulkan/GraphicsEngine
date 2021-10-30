@@ -39,7 +39,7 @@ Renderer::Renderer()
 	, mWindowWidth(0)
 	, mWindowHeight(0)
 	, mpRenderQueue(nullptr)
-	, mpRenderPass(nullptr)
+	, mpCamera(nullptr)
 {}
 
 Renderer::Renderer(Platform::Window* pWindow, Renderer::RendererType type)
@@ -48,7 +48,7 @@ Renderer::Renderer(Platform::Window* pWindow, Renderer::RendererType type)
 	, mWindowWidth(0)
 	, mWindowHeight(0)
 	, mpRenderQueue(nullptr)
-	, mpRenderPass(nullptr)
+	, mpCamera(nullptr)
 {
 	Init(pWindow);
 }
@@ -72,7 +72,7 @@ void Renderer::Terminate()
 	mWindowHeight = 0;
 
 	mpRenderQueue = nullptr;
-	mpRenderPass = nullptr;
+	mpCamera = nullptr;
 
 	CleanUpResources();
 }
@@ -119,11 +119,11 @@ void Renderer::CleanUpResources()
 	}
 	mRenderTargetMap.clear();
 
-	for (auto it = mRenderFrameBufferMap.begin(); it != mRenderFrameBufferMap.end(); ++it)
+	/*for (auto it = mRenderFrameBufferMap.begin(); it != mRenderFrameBufferMap.end(); ++it)
 	{
 		GE_FREE(it->second);
 	}
-	mRenderFrameBufferMap.clear();
+	mRenderFrameBufferMap.clear();*/
 
 	for (auto it = mShaderMap.begin(); it != mShaderMap.end(); ++it)
 	{
@@ -400,7 +400,7 @@ GADRTexture* Renderer::Get(Texture* pTexture)
 	return nullptr;
 }
 
-GADRRenderTarget* Renderer::Bind(RenderTarget* pRenderTarget)
+GADRTexture* Renderer::Bind(RenderTarget* pRenderTarget)
 {
 	assert(pRenderTarget != nullptr);
 
@@ -422,7 +422,7 @@ void Renderer::UnBind(RenderTarget* pRenderTarget)
 		pGADR->OnUnBind();
 }
 
-GADRRenderTarget* Renderer::Get(RenderTarget* pRenderTarget)
+GADRTexture* Renderer::Get(RenderTarget* pRenderTarget)
 {
 	assert(pRenderTarget != nullptr);
 
@@ -433,7 +433,7 @@ GADRRenderTarget* Renderer::Get(RenderTarget* pRenderTarget)
 	}
 	else
 	{
-		auto ref = mRenderTargetMap[pRenderTarget] = GE_ALLOC(GADRRenderTarget)(this, pRenderTarget);
+		auto ref = mRenderTargetMap[pRenderTarget] = GE_ALLOC(GADRTexture)(this, pRenderTarget->GetTexture());
 		assert(ref != nullptr);
 
 		return ref;
@@ -442,47 +442,47 @@ GADRRenderTarget* Renderer::Get(RenderTarget* pRenderTarget)
 	return nullptr;
 }
 
-GADRRenderFrameBuffer* Renderer::Bind(RenderFrameBuffer* pRenderFrameBuffer)
-{
-	assert(pRenderFrameBuffer != nullptr);
-
-	auto* pGADR = Get(pRenderFrameBuffer);
-
-	if (pGADR)
-		pGADR->OnBind();
-
-	return pGADR;
-}
-
-void Renderer::UnBind(RenderFrameBuffer* pRenderFrameBuffer)
-{
-	assert(pRenderFrameBuffer != nullptr);
-
-	auto* pGADR = Get(pRenderFrameBuffer);
-
-	if (pGADR)
-		pGADR->OnUnBind();
-}
-
-GADRRenderFrameBuffer* Renderer::Get(RenderFrameBuffer* pRenderFrameBuffer)
-{
-	assert(pRenderFrameBuffer != nullptr);
-
-	auto iter = mRenderFrameBufferMap.find(pRenderFrameBuffer);
-	if (iter != mRenderFrameBufferMap.end())
-	{
-		return iter->second;
-	}
-	else
-	{
-		auto ref = mRenderFrameBufferMap[pRenderFrameBuffer] = GE_ALLOC(GADRRenderFrameBuffer)(this, pRenderFrameBuffer);
-		assert(ref != nullptr);
-
-		return ref;
-	}
-
-	return nullptr;
-}
+//GADRRenderFrameBuffer* Renderer::Bind(RenderFrameBuffer* pRenderFrameBuffer)
+//{
+//	assert(pRenderFrameBuffer != nullptr);
+//
+//	auto* pGADR = Get(pRenderFrameBuffer);
+//
+//	if (pGADR)
+//		pGADR->OnBind();
+//
+//	return pGADR;
+//}
+//
+//void Renderer::UnBind(RenderFrameBuffer* pRenderFrameBuffer)
+//{
+//	assert(pRenderFrameBuffer != nullptr);
+//
+//	auto* pGADR = Get(pRenderFrameBuffer);
+//
+//	if (pGADR)
+//		pGADR->OnUnBind();
+//}
+//
+//GADRRenderFrameBuffer* Renderer::Get(RenderFrameBuffer* pRenderFrameBuffer)
+//{
+//	assert(pRenderFrameBuffer != nullptr);
+//
+//	auto iter = mRenderFrameBufferMap.find(pRenderFrameBuffer);
+//	if (iter != mRenderFrameBufferMap.end())
+//	{
+//		return iter->second;
+//	}
+//	else
+//	{
+//		auto ref = mRenderFrameBufferMap[pRenderFrameBuffer] = GE_ALLOC(GADRRenderFrameBuffer)(this, pRenderFrameBuffer);
+//		assert(ref != nullptr);
+//
+//		return ref;
+//	}
+//
+//	return nullptr;
+//}
 
 GADRShader* Renderer::Bind(Shader* pShader)
 {

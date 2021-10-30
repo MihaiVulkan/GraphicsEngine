@@ -60,26 +60,25 @@ void RenderQueue::Push(LightNode* pLightNode)
 	mLights.push_back(pLightNode);
 }
 
-RenderQueue::RenderableList* RenderQueue::GetRenderables(const RenderQueue::RenderableType& type)
+const RenderQueue::RenderableCollection& RenderQueue::GetRenderables(const RenderQueue::RenderableType& type) const
 {
 	assert((RenderableType::GE_RT_BACKGROUND <= type) && (type < RenderableType::GE_RT_COUNT));
 	assert(mRenderables.size() > 0);
 
-	return &mRenderables.at(type);
+	return mRenderables.at(type);
 }
 
-void RenderQueue::ForEach(RenderQueue::RenderableList* pRenderableList, std::function< void(RenderQueue::Renderable*) > callback)
+void RenderQueue::ForEach(const RenderQueue::RenderableCollection& renderables, std::function< void(const RenderQueue::Renderable*) > callback)
 {
-	assert(pRenderableList != nullptr);
-	assert(pRenderableList->empty() != true);
+	assert(renderables.empty() == false);
 
-	for (auto& renderable : *pRenderableList)
+	for (const auto& renderable : renderables)
 	{
 		callback(&renderable);
 	}
 }
 
-void RenderQueue::ForEach(std::function< void(LightNode*) > callback)
+void RenderQueue::ForEach(std::function< void(const LightNode*) > callback)
 {
 	for (auto* pLightNode : mLights)
 	{

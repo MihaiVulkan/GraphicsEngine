@@ -55,7 +55,7 @@ namespace GraphicsEngine
 					STR(ERROR_INCOMPATIBLE_DISPLAY_KHR);
 					STR(ERROR_VALIDATION_FAILED_EXT);
 					STR(ERROR_INVALID_SHADER_NV);
-					STR(ERROR_INCOMPATIBLE_VERSION_KHR);
+				//	STR(ERROR_INCOMPATIBLE_VERSION_KHR); //TODO - remove, commented out after vulkan sdk update!
 					STR(ERROR_INVALID_DRM_FORMAT_MODIFIER_PLANE_LAYOUT_EXT);
 					STR(ERROR_NOT_PERMITTED_EXT);
 					STR(ERROR_FULL_SCREEN_EXCLUSIVE_MODE_LOST_EXT);
@@ -97,7 +97,7 @@ namespace GraphicsEngine
 			{
 				// List Device Properties
 				LOG_INFO("Vulkan Physical Device Group Properties: \n##############################################################\n");
-				for (size_t i = 0;i < physicalDeviceGroupPropertiesVector.size(); ++ i)
+				for (size_t i = 0; i < physicalDeviceGroupPropertiesVector.size(); ++i)
 				{
 					LOG_INFO("deviceGroupProperties[%llu].subsetAllocation: %u", i, physicalDeviceGroupPropertiesVector[i].subsetAllocation);
 					LOG_INFO("deviceGroupProperties[%llu].physicalDeviceCount: %u", i, physicalDeviceGroupPropertiesVector[i].physicalDeviceCount);
@@ -328,6 +328,19 @@ namespace GraphicsEngine
 				LOG_INFO("##############################################################\n");
 			}
 #endif // defined(VK_VERSION_1_1) && defined(VK_VERSION_1_2)
+
+			void ListPhysicalDeviceImageFormatProperties(VkFormat imageFormat, const VkImageFormatProperties& imageFormatProperties)
+			{
+				// List Image Format Properties
+				LOG_INFO("Vulkan Physical Device Image Format Properties: \n##############################################################\n");
+				LOG_INFO("VkFormat: %u", imageFormat);
+				LOG_INFO("maxExtent: %u x %u x %u", imageFormatProperties.maxExtent.width, imageFormatProperties.maxExtent.height, imageFormatProperties.maxExtent.depth);
+				LOG_INFO("maxMipLevels: %u", imageFormatProperties.maxMipLevels);
+				LOG_INFO("maxArrayLayers: %u", imageFormatProperties.maxArrayLayers);
+				LOG_INFO("sampleCounts: %u", imageFormatProperties.sampleCounts);
+				LOG_INFO("maxResourceSize: %llu", imageFormatProperties.maxResourceSize);
+				LOG_INFO("##############################################################\n");
+			}
 		}
 	}
 }

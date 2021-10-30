@@ -2,7 +2,7 @@
 layout (location = 0) in vec3 a_position;
 layout (location = 1) in vec3 a_color;
 
-layout (set = 0, binding = 0) uniform UBO 
+layout (std140, set = 0, binding = 0) uniform UBO 
 {
 	mat4 PVM;
 } ubo;

@@ -23,7 +23,7 @@ int main()
 	// geometry setup
 
 	// GL - CCW winding
-	auto model = GE_ALLOC(Model)(std::string() + GE_ASSET_PATH + "models/vulkanscenemodels.gltf" , glTF2Loader::PreTransformVertices);
+	auto model = GE_ALLOC(Model)(std::string() + GE_ASSET_PATH + "models/vulkanscenemodels.gltf" , glTF2Loader::FileLoadingFlags::PreTransformVertices);
 
 	//TODO - improve asset paths
 	auto vsCube = GE_ALLOC(Shader)(std::string() + GE_ASSET_PATH + "shaders/model.vert");

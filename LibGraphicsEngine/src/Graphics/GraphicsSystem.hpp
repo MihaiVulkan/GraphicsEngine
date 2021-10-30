@@ -15,7 +15,7 @@ namespace GraphicsEngine
 	{
 		class Renderer;
 		class RenderQueue;
-		class RenderPass;
+		class ScenePass;
 		class Node;
 		class Camera;
 	}
@@ -42,7 +42,10 @@ namespace GraphicsEngine
 		void SetScene(Graphics::Node* pScene);
 
 		Graphics::Camera* GetMainCamera();
+		void SetMainCamera(Graphics::Camera* pCamera);
 
+		Graphics::ScenePass* GetMainScenePass();
+		void SetMainScenePass(Graphics::ScenePass* pScenePass);
 
 	private:
 		NO_COPY_NO_MOVE_CLASS(GraphicsSystem)
@@ -68,9 +71,7 @@ namespace GraphicsEngine
 		// Main Camera - TODO - for now we have only one camera
 		Graphics::Camera* mpMainCamera;
 
-		// Default Render Pass - TODO
-		Graphics::RenderPass* mpRenderPass;
-
+		Graphics::ScenePass* mpScenePass;
 	};
 }
 

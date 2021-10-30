@@ -50,6 +50,12 @@ void VulkanImage::Create(const VkImageCreateInfo& imageCreateInfo, VkMemoryPrope
 	mImageData.samples = imageCreateInfo.samples;
 	mImageData.tiling = imageCreateInfo.tiling;
 
+	// check image format and list its properties
+	VkImageFormatProperties imageFormatProps;
+	VK_CHECK_RESULT(vkGetPhysicalDeviceImageFormatProperties(mpDevice->GetPhysicalDeviceHandle(), imageCreateInfo.format, imageCreateInfo.imageType,
+		imageCreateInfo.tiling, imageCreateInfo.usage, imageCreateInfo.flags, &imageFormatProps));
+	VulkanHelpers::ListPhysicalDeviceImageFormatProperties(imageCreateInfo.format, imageFormatProps);
+
 	VK_CHECK_RESULT(vkCreateImage(mpDevice->GetDeviceHandle(), &imageCreateInfo, nullptr, &mHandle));
 
 	VkMemoryRequirements memReqs;

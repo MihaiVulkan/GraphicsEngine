@@ -42,7 +42,7 @@ namespace GraphicsEngine
 				GE_RT_COUNT
 			};
 
-			typedef std::list<Renderable> RenderableList;
+			typedef std::vector<Renderable> RenderableCollection;
 
 			RenderQueue();
 			virtual ~RenderQueue();
@@ -50,10 +50,10 @@ namespace GraphicsEngine
 			void Push(GeometryNode* pGeoNode);
 			void Push(LightNode* pLightNode);
 
-			RenderQueue::RenderableList* GetRenderables(const RenderQueue::RenderableType& type);
+			const RenderQueue::RenderableCollection& GetRenderables(const RenderQueue::RenderableType& type) const;
 
-			void ForEach(RenderQueue::RenderableList* pRenderableList, std::function< void(RenderQueue::Renderable*) > callback);
-			void ForEach(std::function< void(LightNode*) > callback);
+			void ForEach(const RenderQueue::RenderableCollection& renderables, std::function< void(const RenderQueue::Renderable*) > callback);
+			void ForEach(std::function< void(const LightNode*) > callback);
 
 
 
@@ -65,7 +65,7 @@ namespace GraphicsEngine
 
 			Camera* mpCamera;
 
-			std::unordered_map<RenderableType, RenderableList, std::hash<RenderableType>> mRenderables;
+			std::unordered_map<RenderableType, RenderableCollection, std::hash<RenderableType>> mRenderables;
 			std::vector<LightNode*> mLights;
 
 		};

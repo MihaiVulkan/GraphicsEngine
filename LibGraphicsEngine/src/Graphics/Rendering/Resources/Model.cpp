@@ -11,10 +11,21 @@ using namespace GraphicsEngine::Graphics;
 
 Model::Model()
 	: GeometricPrimitive()
+	, mpLoader(nullptr)
 {}
 
-Model::Model(const std::string& filePath, glTF2Loader::FileLoadingFlags loadingFlags)
-	: GeometricPrimitive()
+Model::Model(const std::string& filePath, uint32_t loadingFlags)
+	: Model()
+{
+	Create(filePath, loadingFlags);
+}
+
+Model::~Model()
+{
+	Destroy();
+}
+
+void Model::Create(const std::string& filePath, uint32_t loadingFlags)
 {
 	mpLoader = GE_ALLOC(glTF2Loader)(filePath, loadingFlags);
 	assert(mpLoader != nullptr);
@@ -49,7 +60,7 @@ Model::Model(const std::string& filePath, glTF2Loader::FileLoadingFlags loadingF
 	SetIsModel(true); //TODO - for now used for rendering submeshes
 }
 
-Model::~Model()
+void Model::Destroy()
 {
 	GE_FREE(mpLoader);
 }

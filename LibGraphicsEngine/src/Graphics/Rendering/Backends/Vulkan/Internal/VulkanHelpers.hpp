@@ -58,6 +58,8 @@ namespace GraphicsEngine
 #if defined(VK_VERSION_1_1) && defined(VK_VERSION_1_2) //for Vulkan 1.2 and Vulkan 1.1 which ahs the KHR driver extensiosn
 			void ListPhysicalDeviceDriverProperties(const VkPhysicalDeviceDriverProperties& physicalDeviceDriverProperties);
 #endif // // defined(VK_VERSION_1_1) && defined(VK_VERSION_1_2)
+
+			void ListPhysicalDeviceImageFormatProperties(VkFormat imageFormat, const VkImageFormatProperties& imageFormatProperties);
 		}
 	}
 }

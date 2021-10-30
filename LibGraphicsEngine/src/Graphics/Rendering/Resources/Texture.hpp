@@ -15,6 +15,13 @@ namespace GraphicsEngine
 			GE_RTTI(GraphicsEngine::Graphics::Texture)
 
 		public:
+
+			enum class UsageType : uint8_t
+			{
+				GE_UT_RENDER = 0,
+				GE_UT_RENDER_TARGET
+			};
+
 			enum class TextureType : uint8_t
 			{
 				GE_TT_1D = 0,
@@ -148,10 +155,14 @@ namespace GraphicsEngine
 
 			bool_t LoadFromFile(const std::string& texturePath);
 
+			Texture::UsageType GetUsageType() const;
+
 			const Texture::MetaData& GetMetaData() const;
 
 			bool_t HasMipMaps() const;
 
+			bool_t IsColorFormat();
+			bool_t IsDepthFormat();
 
 		protected:
 			// abstract class
@@ -159,6 +170,8 @@ namespace GraphicsEngine
 			Texture();
 			explicit Texture(Texture::TextureType type, Texture::TextureFormat format, Texture::WrapMode wrapMode, Texture::FilterMode filterMode, Texture::MipMapMode mipMapMode,
 				uint32_t width, uint32_t height, uint32_t depth, uint32_t mipLevels, uint32_t layerCount);
+
+			UsageType mUsageType;
 
 			Texture::MetaData mTextureMetaData;
 		};

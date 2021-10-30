@@ -261,7 +261,7 @@ int main()
 	cubeTextureArrayNode->GetComponent<VisualComponent>()->AddShader(fsCubeTextureArray);
 	cubeTextureArrayNode->GetComponent<VisualComponent>()->AddTexture(textureArrayCube, Shader::ShaderStage::GE_SS_FRAGMENT);
 
-	cubeTextureArrayNode->GetComponent<VisualComponent>()->GetUniformBuffer(Shader::ShaderStage::GE_SS_VERTEX)->AddUniform(GLSLShaderTypes::UniformType::GE_UT_CRR_TIME);
+	cubeTextureArrayNode->GetComponent<VisualComponent>()->GetUniformBuffer(ScenePass::PassType::GE_PT_STANDARD, Shader::ShaderStage::GE_SS_VERTEX)->AddUniform(GLSLShaderTypes::UniformType::GE_UT_CRR_TIME);
 
 	cubeTextureArrayNode->SetModelMatrix(glm::translate(glm::mat4(1.0f), glm::vec3(10.0f, 0.0f, 0.0f)));
 

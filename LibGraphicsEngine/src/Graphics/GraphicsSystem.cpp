@@ -4,7 +4,7 @@
 #include "Graphics/Rendering/Backends/Vulkan/VulkanRenderer.hpp"
 #endif // VULKAN_RENDERER
 #include "Graphics/Rendering/RenderQueue.hpp"
-#include "Graphics/Rendering/RenderPasses/DefaultRenderPass.hpp"
+#include "Graphics/Rendering/ScenePasses/StandardScenePass.hpp"
 #include "Graphics/SceneGraph/Node.hpp"
 #include "Graphics/SceneGraph/Visitors/ComputeRenderQueueVisitor.hpp"
 #include "Graphics/Cameras/FPSCamera.hpp"
@@ -20,7 +20,7 @@ GraphicsSystem::GraphicsSystem()
 , mpRenderQueue(nullptr)
 , mpScene(nullptr)
 , mpMainCamera(nullptr)
-, mpRenderPass(nullptr)
+, mpScenePass(nullptr)
 {}
 
 GraphicsSystem::GraphicsSystem(Platform::Window* pWindow)
@@ -61,9 +61,9 @@ void GraphicsSystem::Init(Platform::Window* pWindow)
 	mpRenderQueue = GE_ALLOC(RenderQueue);
 	assert(mpRenderQueue != nullptr);
 
-	// Default Render Pass - by default TODO
-	mpRenderPass = GE_ALLOC(DefaultRenderPass);
-	assert(mpRenderPass != nullptr);
+	// TODO - Default Render Pass
+	mpScenePass = GE_ALLOC(StandardScenePass);
+	assert(mpScenePass != nullptr);
 
 	// SceneGraph
 	// constructed by the app, traversed by the engine - TODO
@@ -72,30 +72,13 @@ void GraphicsSystem::Init(Platform::Window* pWindow)
 
 void GraphicsSystem::Terminate()
 {
-	if (mpMainCamera)
-	{
-		GE_FREE(mpMainCamera);
-	}
+	GE_FREE(mpMainCamera);
+	GE_FREE(mpScene);
 
-	if (mpScene)
-	{
-		GE_FREE(mpScene);
-	}
+	GE_FREE(mpScenePass);
 
-	if (mpRenderPass)
-	{
-		GE_FREE(mpRenderPass);
-	}
-
-	if (mpRenderQueue)
-	{
-		GE_FREE(mpRenderQueue);
-	}
-
-	if (mpRenderer)
-	{
-		GE_FREE(mpRenderer);
-	}
+	GE_FREE(mpRenderQueue);
+	GE_FREE(mpRenderer);
 
 	if (mpWindow)
 	{
@@ -156,11 +139,11 @@ void GraphicsSystem::ComputeGraphicsResources()
 	assert(mpRenderQueue != nullptr);
 	assert(mpWindow != nullptr);
 
-	mpRenderer->ComputeGraphicsResources(mpRenderQueue, mpRenderPass);
+	mpRenderer->ComputeGraphicsResources(mpRenderQueue, mpScenePass);
 
 #if defined(VULKAN_RENDERER)
 	// NOTE! With Vulkan we record all rendering upfront!
-	mpRenderer->RenderFrame(mpRenderQueue, mpRenderPass);
+	mpRenderer->RenderFrame(mpRenderQueue);
 #endif // VULKAN_RENDERER
 
 	//TODO - proper handling of uneeded GAIR resources
@@ -203,4 +186,23 @@ void GraphicsSystem::SetScene(Node* pScene)
 Graphics::Camera* GraphicsSystem::GetMainCamera()
 {
 	return mpMainCamera;
+}
+
+void GraphicsSystem::SetMainCamera(Graphics::Camera* pCamera)
+{
+	GE_FREE(mpMainCamera);
+
+	mpMainCamera = pCamera;
+}
+
+Graphics::ScenePass* GraphicsSystem::GetMainScenePass()
+{
+	return mpScenePass;
+}
+
+void GraphicsSystem::SetMainScenePass(Graphics::ScenePass* pScenePass)
+{
+	GE_FREE(mpScenePass);
+
+	mpScenePass = pScenePass;
 }

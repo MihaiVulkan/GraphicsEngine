@@ -25,6 +25,11 @@ namespace GraphicsEngine
 			explicit GADRTexture(Renderer* pRenderer, Texture* pTexture);
 			virtual ~GADRTexture();
 
+			Texture* GetTexture();
+			VulkanImage* GetImage();
+			VulkanImageView* GetImageView();
+			VulkanSampler* GetSampler();
+
 			const VkDescriptorImageInfo& GetDescriptorInfo() const;
 
 			//TODO add generate mipmaps functionality, see vkloader.c (ktx lib source code)

@@ -39,6 +39,10 @@ namespace GraphicsEngine
 			command (see Image Memory Barriers), or as part of a subpass dependency within a render pass (see VkSubpassDependency). The image 
 			layout is per-image subresource, and separate image subresources of the same image can be in different layouts at the same time with 
 			one exception - depth and stencil aspects of a given image subresource must always be in the same layout.
+
+			Textures and framebuffers in Vulkan are represented by VkImage objects with a certain pixel format, however the layout of the
+			pixels in memory can change based on what you're trying to do with an image.
+
 		*/
 		class VulkanImage : public VulkanObject
 		{

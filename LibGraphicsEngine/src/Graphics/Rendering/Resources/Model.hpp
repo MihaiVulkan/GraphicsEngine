@@ -18,7 +18,7 @@ namespace GraphicsEngine
 
 		public:
 			Model();
-			explicit Model(const std::string& filePath, glTF2Loader::FileLoadingFlags loadingFlags = glTF2Loader::FileLoadingFlags::None);
+			explicit Model(const std::string& filePath, uint32_t loadingFlags = glTF2Loader::FileLoadingFlags::None);
 			virtual ~Model();
 
 			void Draw(std::function<void(uint32_t indexCount, uint32_t firstIndex)> onDrawCB);
@@ -26,7 +26,7 @@ namespace GraphicsEngine
 		private:
 			NO_COPY_NO_MOVE_CLASS(Model)
 
-			void Create();
+			void Create(const std::string& filePath, uint32_t loadingFlags);
 			void Destroy();
 
 			glTF2Loader* mpLoader;

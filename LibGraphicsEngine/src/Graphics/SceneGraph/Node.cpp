@@ -13,6 +13,7 @@ Node::Node()
 	, mpParent(nullptr)
 	, mIsEnabled(false)
 	, mModelMatrix(glm::mat4(1.0f)) //identity matrix
+	, mNormalMatrix(glm::mat3(1.0f))
 {
 	Create();
 }
@@ -22,6 +23,7 @@ Node::Node(const std::string& name)
 	, mpParent(nullptr)
 	, mIsEnabled(false)
 	, mModelMatrix(glm::mat4(1.0f)) //identity matrix
+	, mNormalMatrix(glm::mat3(1.0f))
 {
 	Create();
 }
@@ -33,8 +35,7 @@ Node::~Node()
 
 void Node::Create()
 {
-	//default is identity matrix
-	SetModelMatrix(glm::mat4(1.0));
+
 }
 
 void Node::Destroy()
@@ -219,6 +220,20 @@ void Node::SetIsEnabled(bool_t isEnabled)
 	mIsEnabled = isEnabled;
 }
 
+void Node::SetAllowedPasses(const std::unordered_set<ScenePass::PassType>& allowedPasses)
+{
+	assert(allowedPasses.empty() == false);
+
+	mAllowedPasses = allowedPasses;
+
+	OnSetAllowedPasses();
+}
+
+bool_t Node::IsPassAllowed(ScenePass::PassType pass) const
+{
+	return mAllowedPasses.find(pass) != mAllowedPasses.end();
+}
+
 const glm::mat4& Node::GetModelMatrix() const
 {
 	return mModelMatrix;
@@ -226,26 +241,24 @@ const glm::mat4& Node::GetModelMatrix() const
 
 void Node::SetModelMatrix(const glm::mat4& transform)
 {
+	// NOTE! Model matrix will bring the positions/vertices in World Space
 	mModelMatrix = transform;
 
 	// every time we set the model matrix we also compute the normal matrix as it depends on the model one!
+	// NOTE! Normal matrix will bring the normals in World Space
 	ComputeNormalMatrix();
 }
 
-const glm::mat3& Node::GetNormalMatrix() const
+const glm::mat4& Node::GetNormalMatrix() const
 {
 	return mNormalMatrix;
 }
 
 void Node::ComputeNormalMatrix()
 {
-	if (mModelMatrix == glm::mat4(1.0f)) // if Identity matrix, no expensive computation needed
+	if (mModelMatrix != glm::mat4(1.0f)) // if Identity matrix, no expensive computation needed
 	{
-		mNormalMatrix = glm::mat3(mModelMatrix);
-	}
-	else //otherwise
-	{
-		mNormalMatrix = glm::transpose(glm::inverse(glm::mat3(mModelMatrix)));
+		mNormalMatrix = glm::transpose(glm::inverse(mModelMatrix));
 	}
 }
 

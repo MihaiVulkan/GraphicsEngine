@@ -33,7 +33,11 @@ GeometryNode::~GeometryNode()
 void GeometryNode::Create()
 {
 	// TODO - object lifetime management
+	// TODO - maybe add a visual component per scene pass?
 	AttachComponent(GE_ALLOC(VisualComponent)("VisualComponent"));
+
+	// standard pass is allowed by default
+	SetAllowedPasses({ ScenePass::PassType::GE_PT_STANDARD });
 }
 
 void GeometryNode::Destroy()
@@ -79,13 +83,31 @@ void GeometryNode::SetIsLit(bool_t value)
 	// Uniform Buffer - fragment shader
 	if (mIsLit)
 	{
-		auto* pUB = GE_ALLOC(UniformBuffer);
-		assert(pUB != nullptr);
+		for (const auto& passType : mAllowedPasses)
+		{
+			auto* pUB = GE_ALLOC(UniformBuffer);
+			assert(pUB != nullptr);
 
-		GetComponent<VisualComponent>()->AddUniformBuffer(Shader::ShaderStage::GE_SS_FRAGMENT, pUB);
+			GetComponent<VisualComponent>()->AddUniformBuffer(passType, Shader::ShaderStage::GE_SS_FRAGMENT, pUB);
+		}
 	}
 }
 
+void GeometryNode::OnSetAllowedPasses()
+{
+	// On allowed passes update we set the UB for vertex shaders
+	// fragment shaders are optional!
+	for (const auto& passType : mAllowedPasses)
+	{
+		auto* pUB = GE_ALLOC(UniformBuffer);
+		assert(pUB != nullptr);
+
+		// PVM uniform is  by default
+		pUB->AddUniform(GLSLShaderTypes::UniformType::GE_UT_PVM_MATRIX4);
+
+		GetComponent<VisualComponent>()->AddUniformBuffer(passType, Shader::ShaderStage::GE_SS_VERTEX, pUB);
+	}
+}
 void GeometryNode::Accept(NodeVisitor& visitor)
 {
 	visitor.Visit(this);

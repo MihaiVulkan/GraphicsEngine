@@ -1,4 +1,5 @@
 #include "Graphics/Rendering/Backends/Vulkan/Internal/VulkanInitializers.hpp"
+#include "Foundation/MemoryManagement/MemoryOperations.hpp"
 #include <cstring>
 
 namespace GraphicsEngine
@@ -52,7 +53,7 @@ namespace GraphicsEngine
 				debugMarkerMarkerInfo.sType = VkStructureType::VK_STRUCTURE_TYPE_DEBUG_MARKER_MARKER_INFO_EXT;
 				debugMarkerMarkerInfo.pNext = nullptr;
 				debugMarkerMarkerInfo.pMarkerName = pMarkerName;
-				::memcpy(debugMarkerMarkerInfo.color, &color[0], sizeof(float32_t) * 4);
+				::memcpy(debugMarkerMarkerInfo.color, &color[0], 4 * sizeof(float32_t));
 
 				return debugMarkerMarkerInfo;
 			}
@@ -340,9 +341,9 @@ namespace GraphicsEngine
 			{
 				VkImageBlit imageBlit {};
 				imageBlit.srcSubresource = srcSubresource;
-				::memcpy(imageBlit.srcOffsets, srcOffsets, sizeof(VkOffset3D) * 2);
+				::memcpy(imageBlit.srcOffsets, srcOffsets, 2 * sizeof(VkOffset3D));
 				imageBlit.dstSubresource = dstSubresource;
-				::memcpy(imageBlit.dstOffsets, dstOffsets, sizeof(VkOffset3D) * 2);
+				::memcpy(imageBlit.dstOffsets, dstOffsets, 2 * sizeof(VkOffset3D));
 
 				return imageBlit;
 			}
@@ -956,9 +957,17 @@ namespace GraphicsEngine
 				pipelineVertexInputStateCreateInfo.pNext = nullptr;
 				pipelineVertexInputStateCreateInfo.flags = flags;
 				pipelineVertexInputStateCreateInfo.vertexBindingDescriptionCount = vertexBindingDescriptionCount;
-				pipelineVertexInputStateCreateInfo.pVertexBindingDescriptions = pVertexBindingDescriptions;
+				if (pVertexBindingDescriptions)
+				{
+					pipelineVertexInputStateCreateInfo.pVertexBindingDescriptions = GE_ALLOC_ARRAY(VkVertexInputBindingDescription, vertexBindingDescriptionCount); //TODO - solve memory leak, so this alocations are freed!
+					::memcpy((void*)pipelineVertexInputStateCreateInfo.pVertexBindingDescriptions, pVertexBindingDescriptions, vertexBindingDescriptionCount * sizeof(VkVertexInputBindingDescription));
+				}
 				pipelineVertexInputStateCreateInfo.vertexAttributeDescriptionCount = vertexAttributeDescriptionCount;
-				pipelineVertexInputStateCreateInfo.pVertexAttributeDescriptions = pVertexAttributeDescriptions;
+				if (pVertexAttributeDescriptions)
+				{
+					pipelineVertexInputStateCreateInfo.pVertexAttributeDescriptions = GE_ALLOC_ARRAY(VkVertexInputAttributeDescription, vertexAttributeDescriptionCount);
+					::memcpy((void*)pipelineVertexInputStateCreateInfo.pVertexAttributeDescriptions, pVertexAttributeDescriptions, vertexAttributeDescriptionCount * sizeof(VkVertexInputAttributeDescription));
+				}
 
 				return pipelineVertexInputStateCreateInfo;
 			}
@@ -1018,9 +1027,17 @@ namespace GraphicsEngine
 				pipelineViewportStateCreateInfo.pNext = nullptr;
 				pipelineViewportStateCreateInfo.flags = flags;
 				pipelineViewportStateCreateInfo.viewportCount = viewportCount;
-				pipelineViewportStateCreateInfo.pViewports = pViewports;
+				if (pViewports)
+				{
+					pipelineViewportStateCreateInfo.pViewports = GE_ALLOC_ARRAY(VkViewport, viewportCount); //TODO - solve memory leak, so this alocations are freed!
+					::memcpy((void*)pipelineViewportStateCreateInfo.pViewports, pViewports, viewportCount * sizeof(VkViewport));
+				}
 				pipelineViewportStateCreateInfo.scissorCount = scissorCount;
-				pipelineViewportStateCreateInfo.pScissors = pScissors;
+				if (pScissors)
+				{
+					pipelineViewportStateCreateInfo.pScissors = GE_ALLOC_ARRAY(VkRect2D, scissorCount);
+					::memcpy((void*)pipelineViewportStateCreateInfo.pScissors, pScissors, scissorCount * sizeof(VkRect2D));
+				}
 
 				return pipelineViewportStateCreateInfo;
 			}
@@ -1118,8 +1135,12 @@ namespace GraphicsEngine
 				pipelineColorBlendStateCreateInfo.logicOpEnable = logicOpEnable;
 				pipelineColorBlendStateCreateInfo.logicOp = logicOp;
 				pipelineColorBlendStateCreateInfo.attachmentCount = attachmentCount;
-				pipelineColorBlendStateCreateInfo.pAttachments = pAttachments;
-				::memcpy(pipelineColorBlendStateCreateInfo.blendConstants, blendConstants, sizeof(float32_t) * 4);
+				if (pAttachments)
+				{
+					pipelineColorBlendStateCreateInfo.pAttachments = GE_ALLOC_ARRAY(VkPipelineColorBlendAttachmentState, attachmentCount); //TODO - solve memory leak, so this alocations are freed!
+					::memcpy((void*)pipelineColorBlendStateCreateInfo.pAttachments, pAttachments, attachmentCount * sizeof(VkPipelineColorBlendAttachmentState));
+				}
+				::memcpy(pipelineColorBlendStateCreateInfo.blendConstants, blendConstants, 4 * sizeof(float32_t));
 
 				return pipelineColorBlendStateCreateInfo;
 			}
@@ -1149,8 +1170,11 @@ namespace GraphicsEngine
 				pipelineDynamicStateCreateInfo.pNext = nullptr;
 				pipelineDynamicStateCreateInfo.flags = flags;
 				pipelineDynamicStateCreateInfo.dynamicStateCount = dynamicStateCount;
-				pipelineDynamicStateCreateInfo.pDynamicStates = pDynamicStates;
-
+				if (pDynamicStates)
+				{
+					pipelineDynamicStateCreateInfo.pDynamicStates = GE_ALLOC_ARRAY(VkDynamicState, dynamicStateCount); //TODO - solve memory leak, so this alocations are freed!
+					::memcpy((void*)pipelineDynamicStateCreateInfo.pDynamicStates, pDynamicStates, dynamicStateCount * sizeof(VkDynamicState));
+				}
 				return pipelineDynamicStateCreateInfo;
 			}
 
@@ -1235,13 +1259,13 @@ namespace GraphicsEngine
 			//{
 			//	VkClearColorValue clearColorValue {};
 			//	if (float32)
-			//		::memcpy(clearColorValue.float32, float32, sizeof(float) * 4);
+			//		::memcpy(clearColorValue.float32, float32, 4 * sizeof(float));
 
 			//	if (int32)
-			//		::memcpy(clearColorValue.int32, int32, sizeof(int32_t) * 4);
+			//		::memcpy(clearColorValue.int32, int32, 4 * sizeof(int32_t));
 
 			//	if (uint32)
-			//		::memcpy(clearColorValue.uint32, uint32, sizeof(uint32_t) * 4);
+			//		::memcpy(clearColorValue.uint32, uint32, 4 * sizeof(uint32_t));
 
 			//	return clearColorValue;
 			//}

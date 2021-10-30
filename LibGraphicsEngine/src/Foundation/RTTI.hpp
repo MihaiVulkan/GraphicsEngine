@@ -22,7 +22,7 @@ namespace GraphicsEngine
 
 #define GE_RTTI( X ) \
     public: \
-        static constexpr const char_t* __CLASS_NAME = #X; \
+		static constexpr const char_t* __CLASS_NAME = #X; \
         virtual const char_t* GetClassName_( void ) const override { return __CLASS_NAME; }
 
 #endif // FOUNDATION_RTTI_HPP

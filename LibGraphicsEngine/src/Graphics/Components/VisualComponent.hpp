@@ -2,6 +2,7 @@
 #define GRAPHICS_COMPONENTS_VISUAL_COMPONENT_HPP
 
 #include "Graphics/Components/NodeComponent.hpp"
+#include "Graphics/Rendering/ScenePasses/ScenePass.hpp"
 #include "Graphics/Rendering/Resources/Shader.hpp"
 #include "Graphics/Rendering/Resources/Texture.hpp"
 #include "Graphics/Rendering/PipelineStates/CullFaceState.hpp"
@@ -26,7 +27,14 @@ namespace GraphicsEngine
 		public:
 			typedef std::unordered_map<Shader::ShaderStage, Shader*> ShaderMap;
 			typedef std::unordered_map<Shader::ShaderStage, std::vector<Texture*>> TextureMap;
-			typedef std::unordered_map<Shader::ShaderStage, UniformBuffer*> UniformBufferMap;
+
+			struct UniformBufferData
+			{
+				Shader::ShaderStage shaderStage;
+				UniformBuffer* pUniformBuffer;
+			};
+
+			typedef std::unordered_map<ScenePass::PassType, std::vector<UniformBufferData>> UniformBufferMap;
 
 			VisualComponent();
 			explicit VisualComponent(const std::string& name);
@@ -44,14 +52,15 @@ namespace GraphicsEngine
 			Shader* GetShader(Shader::ShaderStage stage);
 			void SetShaders(const VisualComponent::ShaderMap& shaders);
 			const VisualComponent::ShaderMap& GetShaders() const;
+			bool_t HasShaders() const;
 
 			void AddTexture(Texture* pTexture, Shader::ShaderStage shaderStage);
-			bool_t HasTextures() const;
 			const VisualComponent::TextureMap& GetTextures() const;
+			bool_t HasTextures() const;
 
-			void AddUniformBuffer(Shader::ShaderStage stage, UniformBuffer* pUniformBuffer);
-			UniformBuffer* GetUniformBuffer(Shader::ShaderStage stage) const;
-			bool_t HasUniformBuffers() const;
+			void AddUniformBuffer(ScenePass::PassType passType, Shader::ShaderStage stage, UniformBuffer* pUniformBuffer);
+			UniformBuffer* GetUniformBuffer(ScenePass::PassType passType, Shader::ShaderStage stage) const;
+			bool_t HasUniformBuffers(ScenePass::PassType passType) const;
 
 			// pipeline states
 			CullFaceState& GetCullFaceState();

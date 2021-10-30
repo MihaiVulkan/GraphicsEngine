@@ -3,11 +3,14 @@
 
 #include "Foundation/Object.hpp"
 #include "Graphics/SceneGraph/Visitors/NodeVisitor.hpp"
+#include "Graphics/Rendering/ScenePasses/ScenePass.hpp"
 #include "glm/mat3x3.hpp"
 #include "glm/mat4x4.hpp"
 #include <string>
 #include <list>
+#include <vector>
 #include <unordered_map>
+#include <unordered_set>
 #include <functional>
 
 namespace GraphicsEngine
@@ -69,15 +72,23 @@ namespace GraphicsEngine
 			bool_t GetIsEnabled() const;
 			void SetIsEnabled(bool_t isEnabled);
 
+			void SetAllowedPasses(const std::unordered_set<ScenePass::PassType>& allowedPasses);
+			bool_t IsPassAllowed(ScenePass::PassType pass) const;
+
 			const glm::mat4& GetModelMatrix() const;
 			void SetModelMatrix(const glm::mat4& transform);
-			const glm::mat3& GetNormalMatrix() const;
+			const glm::mat4& GetNormalMatrix() const;
 			void ComputeNormalMatrix();
-
 		
+			////////
+			virtual void OnSetAllowedPasses() {}
+
 			///////// Visitor Pattern ///////
 			virtual void Traverse(NodeVisitor& visitor);
 			virtual void Accept(NodeVisitor& visitor);
+				
+		protected:
+			std::unordered_set<ScenePass::PassType> mAllowedPasses;
 
 		private:
 
@@ -92,7 +103,7 @@ namespace GraphicsEngine
 
 			//TODO - to improve when we add our own Math lib
 			glm::mat4 mModelMatrix; //local -> world transform of the position per vertex
-			glm::mat3 mNormalMatrix; //local -> world transform of the normal per vertex
+			glm::mat4 mNormalMatrix; //local -> world transform of the normal per vertex
 		};
 	}
 }

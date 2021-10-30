@@ -26,14 +26,20 @@ constexpr const char_t* SET_NAME = "set";
 constexpr const char_t* BINDING_NAME = "binding";
 constexpr const char_t* VERSION_NAME = "#version";
 
+// data storage layout
+constexpr const char_t* STORAGE_SHARED_NAME = "shared"; //default storage in GLSL
+constexpr const char_t* STORAGE_PACKED_NAME = "packed";
+constexpr const char_t* STORAGE_STD140_NAME = "std140";
+
 // chars to remove
 constexpr const char_t LAYOUT_START_NAME = '(';
 constexpr const char_t LAYOUT_END_NAME = ')';
 constexpr const char_t ASSIGN_NAME = '=';
+constexpr const char_t COMMA_NAME = ',';
 constexpr const char_t TAB_NAME = '\t';
 constexpr const char_t CR_NAME = '\r';
 constexpr const char_t LF_NAME = '\n';
-constexpr const size_t UNWANTED_CHARS_COUNT = 6;
+constexpr const size_t UNWANTED_CHARS_COUNT = 7;
 
 // Primitive types
 constexpr const char_t* BOOL_NAME = "bool";
@@ -223,7 +229,7 @@ bool_t GLSLShaderParser::ParseSource(const std::string& shaderCode)
 		nextLayoutIter = tempShaderCode.find(LAYOUT_NAME, crrLayoutIter);
 		std::string tempLayoutInfo = tempShaderCode.substr(crrLayoutIter, nextLayoutIter - crrLayoutIter);
 
-		crrLayoutIter = nextLayoutIter + LAYOUT_NAME_SIZE + 1; //layout info without the layout taken itself
+		crrLayoutIter = nextLayoutIter + LAYOUT_NAME_SIZE + 1; //layout info without the layout token itself
 		if (tempLayoutInfo.empty())
 			return false;
 
@@ -298,7 +304,7 @@ bool_t GLSLShaderParser::ParseLayoutInfo(const std::string& crrLayoutInfo)
 	}
 
 	// remove unwanted chars
-	const char_t unwantedChars[] = { LAYOUT_START_NAME, LAYOUT_END_NAME, ASSIGN_NAME, TAB_NAME, CR_NAME, LF_NAME };
+	const char_t unwantedChars[] = { LAYOUT_START_NAME, LAYOUT_END_NAME, ASSIGN_NAME, COMMA_NAME, TAB_NAME, CR_NAME, LF_NAME };
 
 	for (size_t i = 0; i < UNWANTED_CHARS_COUNT; ++i)
 	{
@@ -307,7 +313,7 @@ bool_t GLSLShaderParser::ParseLayoutInfo(const std::string& crrLayoutInfo)
 
 	///////////////////////////
 
-	std::string qualifierName_1, qualifierValue_1, qualifierName_2, qualifierValue_2, varDefinition, varType, varName;
+	std::string dataStorageLayout, qualifierName_1, qualifierValue_1, qualifierName_2, qualifierValue_2, varDefinition, varType, varName;
 
 	size_t crrTokenIter = 0, nextTokenIter = 0;
 
@@ -316,6 +322,20 @@ bool_t GLSLShaderParser::ParseLayoutInfo(const std::string& crrLayoutInfo)
 	crrTokenIter = nextTokenIter + 1;
 	if (qualifierName_1.empty())
 		return false;
+
+	if ((qualifierName_1 == STORAGE_SHARED_NAME) ||
+		(qualifierName_1 == STORAGE_PACKED_NAME) ||
+		(qualifierName_1 == STORAGE_STD140_NAME))
+	{
+		dataStorageLayout = qualifierName_1;
+
+		// retrieve qualifier 1
+		nextTokenIter = layoutInfo.find_first_of(DELIMITER_TOKEN_NAME, crrTokenIter);
+		qualifierName_1 = layoutInfo.substr(crrTokenIter, nextTokenIter - crrTokenIter);
+		crrTokenIter = nextTokenIter + 1;
+		if (qualifierName_1.empty())
+			return false;
+	}
 
 	nextTokenIter = layoutInfo.find_first_of(DELIMITER_TOKEN_NAME, crrTokenIter);
 	qualifierValue_1 = layoutInfo.substr(crrTokenIter, nextTokenIter - crrTokenIter);

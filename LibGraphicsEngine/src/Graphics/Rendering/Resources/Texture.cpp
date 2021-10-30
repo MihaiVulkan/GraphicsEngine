@@ -28,6 +28,9 @@ Texture::Texture(Texture::TextureType type, Texture::TextureFormat format, Textu
 	mTextureMetaData.depth = depth;
 	mTextureMetaData.mipLevels = mipLevels;
 	mTextureMetaData.layerCount = layerCount;
+
+	//TOOD - usually if we create a texture we use it for offscreen rendering as a render target
+	mUsageType = UsageType::GE_UT_RENDER_TARGET;
 }
 
 Texture::~Texture()
@@ -130,7 +133,15 @@ bool_t Texture::LoadFromFile(const std::string& texturePath)
 		mTextureMetaData.mipMapMode = MipMapMode::GE_MM_LINEAR;
 	}
 
+	// TODO - usually if we load a texture we use it to render an object textured with it
+	mUsageType = UsageType::GE_UT_RENDER;
+
 	return true;
+}
+
+Texture::UsageType Texture::GetUsageType() const
+{
+	return mUsageType;
 }
 
 const Texture::MetaData& Texture::GetMetaData() const
@@ -141,6 +152,18 @@ const Texture::MetaData& Texture::GetMetaData() const
 bool_t Texture::HasMipMaps() const
 {
 	return mTextureMetaData.mipLevels > 1;
+}
+
+bool_t Texture::IsColorFormat()
+{
+	bool_t ret = (mTextureMetaData.format >= TextureFormat::GE_TF_R8_UNORM && mTextureMetaData.format <= TextureFormat::GE_TF_R32G32B32A32_SFLOAT);
+	return ret;
+}
+
+bool_t Texture::IsDepthFormat()
+{
+	bool_t ret = (mTextureMetaData.format >= TextureFormat::GE_TF_D16 && mTextureMetaData.format <= TextureFormat::GE_TF_D32_S8);
+	return ret;
 }
 
 ///////////////////
@@ -196,8 +219,9 @@ Texture2D::Texture2D(const std::string& texturePath)
 
 Texture2D::Texture2D(Texture::TextureType type, Texture::TextureFormat format, Texture::WrapMode wrapMode, Texture::FilterMode filterMode,
 	Texture::MipMapMode mipMapMode, uint32_t width, uint32_t height, uint32_t mipLevels)
+	: Texture(type, format, wrapMode, filterMode, mipMapMode, width, height, 1, mipLevels, 1)
 {
-	//TODO
+	mTextureMetaData.faceCount = 1;
 }
 
 Texture2D::~Texture2D()

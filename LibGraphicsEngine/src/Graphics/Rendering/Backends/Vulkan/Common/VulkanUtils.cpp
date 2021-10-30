@@ -251,6 +251,9 @@ namespace GraphicsEngine
 				case Texture::TextureFormat::GE_TF_R8G8B8A8_UNORM:
 					vulkanFormat = VkFormat::VK_FORMAT_R8G8B8A8_UNORM;
 					break;
+				case Texture::TextureFormat::GE_TF_D32_S8:
+					vulkanFormat = VkFormat::VK_FORMAT_D32_SFLOAT_S8_UINT;
+					break;
 					// TODO - other formats
 				case Texture::TextureFormat::GE_TF_COUNT:
 				default:
@@ -272,6 +275,9 @@ namespace GraphicsEngine
 					break;
 				case VkFormat::VK_FORMAT_R8G8B8A8_UNORM:
 					textureFormat = Texture::TextureFormat::GE_TF_R8G8B8A8_UNORM;
+					break;
+				case VkFormat::VK_FORMAT_D32_SFLOAT_S8_UINT:
+					textureFormat = Texture::TextureFormat::GE_TF_D32_S8;
 					break;
 					// TODO - other formats
 				case VkFormat::VK_FORMAT_MAX_ENUM:

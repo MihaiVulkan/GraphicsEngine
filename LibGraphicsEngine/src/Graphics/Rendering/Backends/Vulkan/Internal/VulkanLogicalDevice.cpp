@@ -121,6 +121,9 @@ void VulkanLogicalDevice::Create()
 	// large point support
 	enabledDeviceFeatures.largePoints = VK_TRUE;
 
+	// clip plane
+	enabledDeviceFeatures.shaderClipDistance = VK_TRUE;
+
 	mpDevice->SetPhysicalDeviceEnabledFeatures(enabledDeviceFeatures);
 
 	//NOTE! If physical device groups are avaialble and there are at least 2 physical devices to create a logical device from

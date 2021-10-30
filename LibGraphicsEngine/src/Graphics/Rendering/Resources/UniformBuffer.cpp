@@ -49,30 +49,34 @@ void UniformBuffer::AddUniform(GLSLShaderTypes::UniformType type)
 	case GLSLShaderTypes::UniformType::GE_UT_MODEL_MATRIX3:
 	case GLSLShaderTypes::UniformType::GE_UT_NORMAL_MATRIX3:
 		ref = Variant(Variant::VariantType::GE_VT_MAT3);
+		// mat4 = mat3 + 7 floats
+		mSize += ref.Size() + 7 * sizeof(float32_t); // padding to be seen as mat4 (glsl std140 storage)
 		break;
-	case GLSLShaderTypes::UniformType::GE_UT_MODEL_MATRIX4:
-	case GLSLShaderTypes::UniformType::GE_UT_VIEW_MATRIX4:
-	case GLSLShaderTypes::UniformType::GE_UT_PROJECTION_MATRIX4:
 	case GLSLShaderTypes::UniformType::GE_UT_PVM_MATRIX4:
+	case GLSLShaderTypes::UniformType::GE_UT_PV_CUBEMAP_MATRIX4:
+	case GLSLShaderTypes::UniformType::GE_UT_PROJECTION_MATRIX4:
+	case GLSLShaderTypes::UniformType::GE_UT_VIEW_MATRIX4:
+	case GLSLShaderTypes::UniformType::GE_UT_MODEL_MATRIX4:
+	case GLSLShaderTypes::UniformType::GE_UT_NORMAL_MATRIX4:
 		ref = Variant(Variant::VariantType::GE_VT_MAT4);
-		break;
-	case GLSLShaderTypes::UniformType::GE_UT_CAMERA_POS:
-		ref = Variant(Variant::VariantType::GE_VT_VEC3);
-		break;
-	case GLSLShaderTypes::UniformType::GE_UT_CRR_TIME:
-		ref = Variant(Variant::VariantType::GE_VT_FLOAT32);
+		mSize += ref.Size(); // padding is 0 (glsl std140 storage)
 		break;
 	case GLSLShaderTypes::UniformType::GE_UT_LIGHT_DIR:
 	case GLSLShaderTypes::UniformType::GE_UT_LIGHT_COLOR:
+	case GLSLShaderTypes::UniformType::GE_UT_CAMERA_POS:
 		ref = Variant(Variant::VariantType::GE_VT_VEC3);
+		// vec4 = ve3 + 1 float
+		mSize += ref.Size() + sizeof(float32_t); // padding to be seen as vec4 (glsl std140 storage)
+		break;
+	case GLSLShaderTypes::UniformType::GE_UT_CRR_TIME:
+		ref = Variant(Variant::VariantType::GE_VT_FLOAT32);
+		mSize += ref.Size(); // padding as it is seen as N (glsl std140 storage)
 		break;
 	case GLSLShaderTypes::UniformType::GE_UT_COUNT:
 	default:
 		LOG_ERROR("Invalid uniform type!");
 		return;
 	}
-
-	mSize += ref.Size();
 }
 
 Variant UniformBuffer::GetUniform(GLSLShaderTypes::UniformType type) const
@@ -136,18 +140,21 @@ void* UniformBuffer::GetData()
 				auto& ref = variant.Value<glm::mat3>();
 				::memcpy(mpData + offset, &ref, variant.Size());
 
-				offset += variant.Size();
+				// mat4 = mat3 + 7 floats
+				offset += variant.Size() + 7 * sizeof(float32_t); // padding as it is seen as mat4 (glsl std140 storage)
 			}
 			break;
-			case GLSLShaderTypes::UniformType::GE_UT_MODEL_MATRIX4:
-			case GLSLShaderTypes::UniformType::GE_UT_VIEW_MATRIX4:
-			case GLSLShaderTypes::UniformType::GE_UT_PROJECTION_MATRIX4:
 			case GLSLShaderTypes::UniformType::GE_UT_PVM_MATRIX4:
+			case GLSLShaderTypes::UniformType::GE_UT_PV_CUBEMAP_MATRIX4:
+			case GLSLShaderTypes::UniformType::GE_UT_PROJECTION_MATRIX4:
+			case GLSLShaderTypes::UniformType::GE_UT_VIEW_MATRIX4:
+			case GLSLShaderTypes::UniformType::GE_UT_MODEL_MATRIX4:
+			case GLSLShaderTypes::UniformType::GE_UT_NORMAL_MATRIX4:
 			{
 				auto& ref = variant.Value<glm::mat4>();
 				::memcpy(mpData + offset, &ref, variant.Size());
 
-				offset += variant.Size();
+				offset += variant.Size(); // padding is 0 (glsl std140 storage)
 			}
 			break;
 			case GLSLShaderTypes::UniformType::GE_UT_LIGHT_DIR:
@@ -157,7 +164,8 @@ void* UniformBuffer::GetData()
 				auto& ref = variant.Value<glm::vec3>();
 				::memcpy(mpData + offset, &ref, variant.Size());
 
-				offset += variant.Size();
+				// vec4 = vec3 + 1 float
+				offset += variant.Size() + sizeof(float32_t); // padding as it is seen as vec4 (glsl std140 storage)
 			}
 			break;
 			case GLSLShaderTypes::UniformType::GE_UT_CRR_TIME:
@@ -165,7 +173,7 @@ void* UniformBuffer::GetData()
 				auto& ref = variant.Value<float32_t>();
 				::memcpy(mpData + offset, &ref, variant.Size());
 
-				offset += variant.Size();
+				offset += variant.Size();  // padding as it is seen as N (glsl std140 storage)
 			}
 			break;
 			case GLSLShaderTypes::UniformType::GE_UT_COUNT:

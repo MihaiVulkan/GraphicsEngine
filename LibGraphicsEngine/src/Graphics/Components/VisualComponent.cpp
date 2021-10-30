@@ -55,13 +55,6 @@ void VisualComponent::Create()
 	dynamic_s.Add(DynamicState::State::GE_DS_VIEWPORT);
 	dynamic_s.Add(DynamicState::State::GE_DS_SCISSOR);
 	SetDynamicState(dynamic_s);
-
-	// Uniform Buffer - vertex shader
-	auto* pUB = GE_ALLOC(UniformBuffer);
-	assert(pUB != nullptr);
-	pUB->AddUniform(GLSLShaderTypes::UniformType::GE_UT_PVM_MATRIX4);
-
-	AddUniformBuffer(Shader::ShaderStage::GE_SS_VERTEX, pUB);
 }
 
 void VisualComponent::Destroy()
@@ -71,7 +64,12 @@ void VisualComponent::Destroy()
 
 	for (auto it = mUniformBufferMap.begin(); it != mUniformBufferMap.end(); ++it)
 	{
-		GE_FREE(it->second);
+		auto& ubaVector = it->second;
+		for (auto& uba : ubaVector)
+		{
+			GE_FREE(uba.pUniformBuffer);
+		}
+		ubaVector.clear();
 	}
 	mUniformBufferMap.clear();
 }
@@ -115,12 +113,19 @@ Shader* VisualComponent::GetShader(Shader::ShaderStage stage)
 
 void VisualComponent::SetShaders(const VisualComponent::ShaderMap& shaders)
 {
+	assert(shaders.empty() == false);
+
 	mShaderMap = shaders;
 }
 
 const VisualComponent::ShaderMap& VisualComponent::GetShaders() const
 {
 	return mShaderMap;
+}
+
+bool_t VisualComponent::HasShaders() const
+{
+	return (mShaderMap.empty() == false);
 }
 
 void VisualComponent::AddTexture(Texture* pTexture, Shader::ShaderStage shaderStage)
@@ -141,28 +146,60 @@ const VisualComponent::TextureMap& VisualComponent::GetTextures() const
 	return mTextureMap;
 }
 
-void VisualComponent::AddUniformBuffer(Shader::ShaderStage stage, UniformBuffer* pUniformBuffer)
+void VisualComponent::AddUniformBuffer(ScenePass::PassType passType, Shader::ShaderStage stage, UniformBuffer* pUniformBuffer)
 {
+	assert(passType < ScenePass::PassType::GE_PT_COUNT);
 	assert(stage < Shader::ShaderStage::GE_SS_COUNT);
 
 	// nOTE! If stage alreau exists it shall be overwritten!
-	mUniformBufferMap[stage] = pUniformBuffer;
+	UniformBufferData uba;
+	uba.shaderStage = stage;
+	uba.pUniformBuffer = pUniformBuffer;
+
+	auto& ubaVector = mUniformBufferMap[passType];
+	bool_t isFound = false;
+	for (auto& bufData : ubaVector)
+	{
+		if (bufData.shaderStage == stage)
+		{
+			isFound = true;
+			break;
+		}
+	}
+	if (!isFound)
+	{
+		ubaVector.push_back(uba);
+	}
 }
 
-UniformBuffer* VisualComponent::GetUniformBuffer(Shader::ShaderStage stage) const
+UniformBuffer* VisualComponent::GetUniformBuffer(ScenePass::PassType passType, Shader::ShaderStage stage) const
 {
-	auto iter = mUniformBufferMap.find(stage);
+	auto iter = mUniformBufferMap.find(passType);
 	if (iter != mUniformBufferMap.end())
 	{
-		return iter->second;
+		const auto& bufDataVector = iter->second;
+
+		for (auto& bufData : bufDataVector)
+		{
+			if (bufData.shaderStage == stage)
+			{
+				return bufData.pUniformBuffer;
+			}
+		}
 	}
 
 	return nullptr;
 }
 
-bool_t VisualComponent::HasUniformBuffers() const
+bool_t VisualComponent::HasUniformBuffers(ScenePass::PassType passType) const
 {
-	return (mUniformBufferMap.empty() != true);
+	auto iter = mUniformBufferMap.find(passType);
+	if (iter != mUniformBufferMap.end())
+	{
+		return (iter->second.empty() == false);
+	}
+
+	return false;
 }
 
 CullFaceState& VisualComponent::GetCullFaceState()

@@ -20,13 +20,14 @@ namespace GraphicsEngine
 	namespace Graphics
 	{
 		// Graphics API Independent Resources
+		class ScenePass;
+		//class RenderFrameBuffer;
+		class RenderTarget;
 		class VertexFormat;
 		class VertexBuffer;
 		class IndexBuffer;
 		class UniformBuffer;
 		class Texture;
-		class RenderTarget;
-		class RenderFrameBuffer;
 		class Shader;
 		class Material;
 		class Model;
@@ -41,12 +42,11 @@ namespace GraphicsEngine
 		class GADRUniformBuffer;
 		class GADRTexture;
 		class GADRRenderTarget;
-		class GADRRenderFrameBuffer;
+		//class GADRRenderFrameBuffer;
 		class GADRShader;
 		class GADRMaterial;
 		class GADRModel;
 		
-		class RenderPass;
 
 		class GeometryNode;
 		class LightNode;
@@ -67,13 +67,13 @@ namespace GraphicsEngine
 			};
 
 			// Resource Types
+			//typedef std::unordered_map<RenderFrameBuffer*, GADRRenderFrameBuffer*, HashUtils::PointerHash<RenderFrameBuffer>> RenderFrameBufferMap;
+			typedef std::unordered_map<RenderTarget*, GADRTexture*, HashUtils::PointerHash<RenderTarget>> RenderTargetMap;
 			typedef std::unordered_map<VertexFormat*, GADRVertexFormat*, HashUtils::PointerHash<VertexFormat>> VertexFormatMap;
 			typedef std::unordered_map<VertexBuffer*, GADRVertexBuffer*, HashUtils::PointerHash<VertexBuffer>> VertexBufferMap;
 			typedef std::unordered_map<IndexBuffer*, GADRIndexBuffer*, HashUtils::PointerHash<IndexBuffer>> IndexBufferMap;
 			typedef std::unordered_map<UniformBuffer*, GADRUniformBuffer*, HashUtils::PointerHash<UniformBuffer>> UniformBufferMap;
 			typedef std::unordered_map<Texture*, GADRTexture*, HashUtils::PointerHash<Texture>> TextureMap;
-			typedef std::unordered_map<RenderTarget*, GADRRenderTarget*, HashUtils::PointerHash<RenderTarget>> RenderTargetMap;
-			typedef std::unordered_map<RenderFrameBuffer*, GADRRenderFrameBuffer*, HashUtils::PointerHash<RenderFrameBuffer>> RenderFrameBufferMap;
 			typedef std::unordered_map<Shader*, GADRShader*, HashUtils::PointerHash<Shader>> ShaderMap;
 			typedef std::unordered_map<Material*, GADRMaterial*, HashUtils::PointerHash<Material>> MaterialMap;
 			typedef std::unordered_map<Model*, GADRModel*, HashUtils::PointerHash<Model>> ModelMap;
@@ -82,21 +82,23 @@ namespace GraphicsEngine
 			explicit Renderer(Platform::Window* pWindow, Renderer::RendererType type = Renderer::RendererType::GE_RT_FORWARD);
 			virtual ~Renderer();
 
-			virtual void RenderFrame(RenderQueue* pRenderQueue, RenderPass* pRenderPass) {};
+			virtual void RenderFrame(RenderQueue* pRenderQueue) {};
 			virtual void UpdateFrame(Camera* pCamera, float32_t crrTime) {};
 			virtual void SubmitFrame() {};
 	
 			virtual void OnWindowResize(uint32_t width = 0, uint32_t height = 0) {};
 
-			virtual void ComputeGraphicsResources(RenderQueue* pRenderQueue, RenderPass* pRenderPass) {};
+			virtual void ComputeGraphicsResources(RenderQueue* pRenderQueue, ScenePass* pScenePass) {};
 
-			virtual void UpdateUniformBuffers(RenderQueue::Renderable* pRenderable, Camera* pCamera, float32_t crrTime) {};
-			virtual void UpdateDynamicStates(const DynamicState& dynamicState, uint32_t currentBufferIdx) {};
+			virtual void UpdateUniformBuffers(ScenePass* pScenePass, const RenderQueue::Renderable* pRenderable, Camera* pCamera, float32_t crrTime) {};
+			virtual void UpdateDynamicStates(ScenePass* pScenePass, const DynamicState& dynamicState, uint32_t currentBufferIdx) {};
 
-			virtual void DrawObject(RenderQueue::Renderable* pRenderable, uint32_t currentBufferIdx) {};
+			virtual void DrawObject(ScenePass* pScenePass, const RenderQueue::Renderable* pRenderable, uint32_t currentBufferIdx) {};
 
-			virtual void BindLight(LightNode* pLightNode, GeometryNode* pGeoNode) {};
+			virtual void BindLight(ScenePass* pScenePass, const LightNode* pLightNode, GeometryNode* pGeoNode) {};
 
+			// cleanup Graphics API Independed Resources
+			virtual void CleanUpGAIR();
 
 			uint32_t GetWindowWidth() const;
 			uint32_t GetWindowHeight() const;
@@ -105,19 +107,7 @@ namespace GraphicsEngine
 
 			bool_t IsPrepared() { return mIsPrepared; }
 
-			// cleanup Graphics API Independed Resources
-			virtual void CleanUpGAIR();
-
-		protected:
-
-			virtual void Init(Platform::Window* pWindow);
-			virtual void Terminate();
-
-			virtual void BeginFrame() {};
-			virtual void EndFrame() {};
-
-			////////////////////////////////
-
+			///////////////////////////
 
 			GADRVertexFormat* Bind(VertexFormat* pVertexFormat);
 			void UnBind(VertexFormat* pVertexFormat);
@@ -144,15 +134,15 @@ namespace GraphicsEngine
 
 			GADRTexture* Get(Texture* pTexture);
 
-			GADRRenderTarget* Bind(RenderTarget* pRenderTarget);
+			GADRTexture* Bind(RenderTarget* pRenderTarget);
 			void UnBind(RenderTarget* pRenderTarget);
 
-			GADRRenderTarget* Get(RenderTarget* pRenderTarget);
+			GADRTexture* Get(RenderTarget* pRenderTarget);
 
-			GADRRenderFrameBuffer* Bind(RenderFrameBuffer* pRenderFrameBuffer);
-			void UnBind(RenderFrameBuffer* pRenderFrameBuffer);
+			//GADRRenderFrameBuffer* Bind(RenderFrameBuffer* pRenderFrameBuffer);
+			//void UnBind(RenderFrameBuffer* pRenderFrameBuffer);
 
-			GADRRenderFrameBuffer* Get(RenderFrameBuffer* pRenderFrameBuffer);
+			//GADRRenderFrameBuffer* Get(RenderFrameBuffer* pRenderFrameBuffer);
 
 			GADRShader* Bind(Shader* pShader);
 			void UnBind(Shader* pShader);
@@ -169,7 +159,15 @@ namespace GraphicsEngine
 
 			GADRModel* Get(Model* pModel);
 
-			////////////////////
+		protected:
+
+			virtual void Init(Platform::Window* pWindow);
+			virtual void Terminate();
+
+			virtual void BeginFrame() {};
+			virtual void EndFrame() {};
+
+			///////////////////////////////
 
 			bool_t mIsPrepared;
 			uint32_t mWindowWidth;
@@ -183,13 +181,12 @@ namespace GraphicsEngine
 			UniformBufferMap mUniformBufferMap;
 			TextureMap mTextureMap;
 			RenderTargetMap mRenderTargetMap;
-			RenderFrameBufferMap mRenderFrameBufferMap;
+			//RenderFrameBufferMap mRenderFrameBufferMap;
 			ShaderMap mShaderMap;
 			MaterialMap mMaterialMap;
 			ModelMap mModelMap;
 
 			RenderQueue* mpRenderQueue;
-			RenderPass* mpRenderPass;
 			Camera* mpCamera;
 
 		private:

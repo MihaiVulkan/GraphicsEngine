@@ -31,9 +31,11 @@ namespace GraphicsEngine
 				GE_UT_NORMAL_MATRIX3,
 
 				GE_UT_MODEL_MATRIX4, //4x4
+				GE_UT_NORMAL_MATRIX4,
 				GE_UT_VIEW_MATRIX4,
 				GE_UT_PROJECTION_MATRIX4,
 				GE_UT_PVM_MATRIX4,
+				GE_UT_PV_CUBEMAP_MATRIX4, // spacial case for cubemaps, translation is removed
 				GE_UT_CAMERA_POS,  //viewPos
 				GE_UT_CRR_TIME, // timer crr time
 				GE_UT_SAMPLER_2D,

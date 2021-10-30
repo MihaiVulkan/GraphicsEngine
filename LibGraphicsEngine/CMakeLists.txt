@@ -39,12 +39,16 @@ file(GLOB_RECURSE SOURCE_LIST
 	${PROJECT_SOURCE_DIR}/src/Graphics/Rendering/Backends/Vulkan/Internal/*.cpp
 	${PROJECT_SOURCE_DIR}/src/Graphics/Rendering/Backends/Vulkan/Resources/*.hpp
 	${PROJECT_SOURCE_DIR}/src/Graphics/Rendering/Backends/Vulkan/Resources/*.cpp
+	${PROJECT_SOURCE_DIR}/src/Graphics/Rendering/Backends/Vulkan/ScenePasses/*.hpp
+	${PROJECT_SOURCE_DIR}/src/Graphics/Rendering/Backends/Vulkan/ScenePasses/*.cpp
 	${PROJECT_SOURCE_DIR}/src/Graphics/Rendering/Backends/Vulkan/*.hpp
 	${PROJECT_SOURCE_DIR}/src/Graphics/Rendering/Backends/Vulkan/*.cpp
 	${PROJECT_SOURCE_DIR}/src/Graphics/Rendering/PipelineStates/*.hpp
 	${PROJECT_SOURCE_DIR}/src/Graphics/Rendering/PipelineStates/*.cpp
 	${PROJECT_SOURCE_DIR}/src/Graphics/Rendering/RenderPasses/*.hpp
 	${PROJECT_SOURCE_DIR}/src/Graphics/Rendering/RenderPasses/*.cpp
+	${PROJECT_SOURCE_DIR}/src/Graphics/Rendering/ScenePasses/*.hpp
+	${PROJECT_SOURCE_DIR}/src/Graphics/Rendering/ScenePasses/*.cpp
 	${PROJECT_SOURCE_DIR}/src/Graphics/Rendering/Resources/*.hpp
 	${PROJECT_SOURCE_DIR}/src/Graphics/Rendering/Resources/*.cpp
 	${PROJECT_SOURCE_DIR}/src/Graphics/Rendering/*.hpp

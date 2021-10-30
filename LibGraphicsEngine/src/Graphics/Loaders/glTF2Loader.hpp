@@ -25,7 +25,8 @@ namespace GraphicsEngine
 		public:
 			enum FileLoadingFlags {
 				None = 0x00000000,
-				PreTransformVertices = 0x00000001
+				PreTransformVertices = 0x00000001,
+				PreMultiplyVertexColors = 0x00000002
 			};
 
 			/*
@@ -83,7 +84,7 @@ namespace GraphicsEngine
 			};
 
 			glTF2Loader();
-			explicit glTF2Loader(const std::string& filePath, glTF2Loader::FileLoadingFlags loadingFlags);
+			explicit glTF2Loader(const std::string& filePath, uint32_t loadingFlags = glTF2Loader::FileLoadingFlags::None);
 			virtual ~glTF2Loader();
 
 			void Draw(std::function<void(uint32_t indexCount, uint32_t firstIndex)> onDrawCB);

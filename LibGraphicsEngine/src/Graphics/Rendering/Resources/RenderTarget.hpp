@@ -18,11 +18,8 @@ namespace GraphicsEngine
 			public:
 				enum class TargetType : uint8_t
 				{
-					GE_TT_COLOR_RGB = 0,
-					GE_TT_COLOR_RGBA,
-					GE_TT_DEPTH_16,
-					GE_TT_DEPTH_24,
-					GE_TT_DEPTH_32,
+					GE_TT_COLOR,
+					GE_TT_DEPTH_STENCIL,
 					GE_TT_COUNT
 				};
 
@@ -35,7 +32,7 @@ namespace GraphicsEngine
 				};
 
 				RenderTarget();
-				explicit RenderTarget(TargetType type, TargetOutput output, uint32_t width, uint32_t height, bool_t isFloatData);
+				explicit RenderTarget(RenderTarget::TargetType type, RenderTarget::TargetOutput output, uint32_t width, uint32_t height, bool_t isFloatData = false);
 				virtual ~RenderTarget();
 
 				const RenderTarget::TargetType& GetType() const;

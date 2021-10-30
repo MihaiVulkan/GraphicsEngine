@@ -2,6 +2,7 @@
 #define GRAPHICS_RENDERING_BACKENDS_VULKAN_RESOURCES_VULKAN_MODEL_HPP
 
 #include "Graphics/Rendering/Backends/Vulkan/Resources/VulkanResource.hpp"
+#include <functional>
 
 namespace GraphicsEngine
 {
@@ -23,14 +24,12 @@ namespace GraphicsEngine
 			explicit GADRModel(Renderer* pRenderer, Model* pModel);
 			virtual ~GADRModel();
 
-			void Draw(uint32_t currentBufferIdx);
+			void Draw(std::function<void(uint32_t indexCount, uint32_t firstIndex)> onDrawCB);
 
 
 		private:
 			void Create(Renderer* pRenderer);
 			void Destroy();
-
-			VulkanRenderer* mpRenderer;
 
 			Model* mpModel;
 		};

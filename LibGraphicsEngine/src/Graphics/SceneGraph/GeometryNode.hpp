@@ -29,6 +29,8 @@ namespace GraphicsEngine
 			bool_t IsLit() const;
 			void SetIsLit(bool_t value);
 
+			virtual void OnSetAllowedPasses() override;
+
 			///////// Visitor Pattern ///////
 			virtual void Accept(NodeVisitor& visitor) override;
 

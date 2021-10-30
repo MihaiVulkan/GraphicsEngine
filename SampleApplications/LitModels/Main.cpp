@@ -21,7 +21,7 @@ int main()
 
 	// light setup - light dir in world space, inverted on Y compared to OpenGL as Vulkan has a different coordinate system
 	// in VUlkan to get -1.0 dir on OY I actually need to specify +1.0 (-1 * -1.0f)
-	auto dirLight = GE_ALLOC(DirectionalLight)(glm::vec3(0.0f, +1.0f, 0.65f), glm::vec3(0.0f));
+	auto dirLight = GE_ALLOC(DirectionalLight)(glm::vec3(0.0f, +1.0f, 0.65f), glm::vec3(1.0f));
 	auto lightNode = GE_ALLOC(LightNode);
 	lightNode->SetLight(dirLight);
 
@@ -29,7 +29,7 @@ int main()
 	// geometry setup
 
 	// GL - CCW winding
-	auto model = GE_ALLOC(Model)(std::string() + GE_ASSET_PATH + "models/armor.gltf", glTF2Loader::PreTransformVertices);
+	auto model = GE_ALLOC(Model)(std::string() + GE_ASSET_PATH + "models/armor.gltf", glTF2Loader::FileLoadingFlags::PreTransformVertices);
 
 	//TODO - improve asset paths
 	auto vsCube = GE_ALLOC(Shader)(std::string() + GE_ASSET_PATH + "shaders/litmodel.vert");
@@ -49,8 +49,8 @@ int main()
 	modelNode->GetComponent<VisualComponent>()->AddTexture(colorTexture, Shader::ShaderStage::GE_SS_FRAGMENT);
 
 	// respected vertex shader order of elements in UBO
-	modelNode->GetComponent<VisualComponent>()->GetUniformBuffer(Shader::ShaderStage::GE_SS_VERTEX)->AddUniform(GLSLShaderTypes::UniformType::GE_UT_MODEL_MATRIX4);
-	modelNode->GetComponent<VisualComponent>()->GetUniformBuffer(Shader::ShaderStage::GE_SS_VERTEX)->AddUniform(GLSLShaderTypes::UniformType::GE_UT_CAMERA_POS);
+	modelNode->GetComponent<VisualComponent>()->GetUniformBuffer(ScenePass::PassType::GE_PT_STANDARD, Shader::ShaderStage::GE_SS_VERTEX)->AddUniform(GLSLShaderTypes::UniformType::GE_UT_MODEL_MATRIX4);
+	modelNode->GetComponent<VisualComponent>()->GetUniformBuffer(ScenePass::PassType::GE_PT_STANDARD, Shader::ShaderStage::GE_SS_VERTEX)->AddUniform(GLSLShaderTypes::UniformType::GE_UT_CAMERA_POS);
 
 	modelNode->GetComponent<VisualComponent>()->GetCullFaceState().SetCullMode(CullFaceState::CullMode::GE_CM_NONE);
 

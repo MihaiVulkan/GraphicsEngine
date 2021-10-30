@@ -9,7 +9,6 @@ namespace GraphicsEngine
 	namespace Graphics
 	{
 		class VulkanDevice;
-		class VulkanRenderPassAttachment;
 		class VulkanSubPass;
 
 		/*

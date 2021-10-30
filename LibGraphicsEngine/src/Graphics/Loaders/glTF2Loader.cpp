@@ -155,13 +155,13 @@ struct glTF2Loader::Impl
 	Impl();
 	virtual ~Impl();
 
-	bool_t LoadFromFile(const std::string& filePath, glTF2Loader::FileLoadingFlags loadingFlags);
+	bool_t LoadFromFile(const std::string& filePath, uint32_t loadingFlags);
 
 	bool_t LoadImages(tinygltf::Model& gltfModel);
 	bool_t LoadMaterials(tinygltf::Model& gltfModel);
 	bool_t LoadNode(glTF2Loader::Impl::Node* pParent, const tinygltf::Node& node, uint32_t nodeIndex, const tinygltf::Model& model);
 
-	void ApplyFlagsOnNode(glTF2Loader::Impl::Node* pNode, glTF2Loader::FileLoadingFlags loadingFlags);
+	void ApplyFlagsOnNode(glTF2Loader::Impl::Node* pNode, uint32_t loadingFlags);
 
 	glTF2Loader::Impl::Texture* GetTexture(uint32_t index);
 
@@ -199,7 +199,7 @@ static bool_t LoadImageDataFunc(tinygltf::Image* pImage, const int32_t imageInde
 	return tinygltf::LoadImageData(pImage, imageIndex, pError, pWarning, req_width, req_height, pBytes, size, pUserData);
 }
 
-bool_t glTF2Loader::Impl::LoadFromFile(const std::string& filePath, glTF2Loader::FileLoadingFlags loadingFlags)
+bool_t glTF2Loader::Impl::LoadFromFile(const std::string& filePath, uint32_t loadingFlags)
 {
 	if (filePath.empty())
 	{
@@ -252,7 +252,8 @@ bool_t glTF2Loader::Impl::LoadFromFile(const std::string& filePath, glTF2Loader:
 	}
 
 	// Pre-Calculations for requested features
-	if (loadingFlags & FileLoadingFlags::PreTransformVertices)
+	if ((loadingFlags & FileLoadingFlags::PreTransformVertices) ||
+		(loadingFlags & FileLoadingFlags::PreMultiplyVertexColors))
 	{
 		for (auto* pNode : mNodes)
 		{
@@ -385,12 +386,14 @@ bool_t glTF2Loader::Impl::LoadNode(glTF2Loader::Impl::Node* pParent, const tinyg
 				const float32_t* bufferTangents = nullptr;
 				uint32_t numColorComponents;
 
+				const float32_t defaultColor[3] = { 1.0f, 1.0f, 1.0f }; // white
+
 				// Position attribute is required
 				assert(primitive.attributes.find("POSITION") != primitive.attributes.end());
 
 				const tinygltf::Accessor& posAccessor = model.accessors[primitive.attributes.find("POSITION")->second];
 				const tinygltf::BufferView& posView = model.bufferViews[posAccessor.bufferView];
-				bufferPos = reinterpret_cast<const float32_t*>(&(model.buffers[posView.buffer].data[posAccessor.byteOffset + posView.byteOffset]));
+				bufferPos = reinterpret_cast<const float32_t*>(&(model.buffers[posView.buffer].data[posAccessor.byteOffset + posView.byteOffset])); // no copy, just reference to
 				posMin = glm::vec3(posAccessor.minValues[0], posAccessor.minValues[1], posAccessor.minValues[2]);
 				posMax = glm::vec3(posAccessor.maxValues[0], posAccessor.maxValues[1], posAccessor.maxValues[2]);
 				mVertexAttributes.pos = 3;
@@ -399,7 +402,7 @@ bool_t glTF2Loader::Impl::LoadNode(glTF2Loader::Impl::Node* pParent, const tinyg
 				{
 					const tinygltf::Accessor& normAccessor = model.accessors[primitive.attributes.find("NORMAL")->second];
 					const tinygltf::BufferView& normView = model.bufferViews[normAccessor.bufferView];
-					bufferNormals = reinterpret_cast<const float32_t*>(&(model.buffers[normView.buffer].data[normAccessor.byteOffset + normView.byteOffset]));
+					bufferNormals = reinterpret_cast<const float32_t*>(&(model.buffers[normView.buffer].data[normAccessor.byteOffset + normView.byteOffset])); // no copy, just reference to
 					mVertexAttributes.normal = 3;
 				}
 
@@ -407,7 +410,7 @@ bool_t glTF2Loader::Impl::LoadNode(glTF2Loader::Impl::Node* pParent, const tinyg
 				{
 					const tinygltf::Accessor& uvAccessor = model.accessors[primitive.attributes.find("TEXCOORD_0")->second];
 					const tinygltf::BufferView& uvView = model.bufferViews[uvAccessor.bufferView];
-					bufferTexCoords = reinterpret_cast<const float32_t*>(&(model.buffers[uvView.buffer].data[uvAccessor.byteOffset + uvView.byteOffset]));
+					bufferTexCoords = reinterpret_cast<const float32_t*>(&(model.buffers[uvView.buffer].data[uvAccessor.byteOffset + uvView.byteOffset])); // no copy, just reference to
 					mVertexAttributes.uv = 2;
 				}
 
@@ -417,15 +420,19 @@ bool_t glTF2Loader::Impl::LoadNode(glTF2Loader::Impl::Node* pParent, const tinyg
 					const tinygltf::BufferView& colorView = model.bufferViews[colorAccessor.bufferView];
 					// Color buffer is either of type vec3 or vec4
 					numColorComponents = colorAccessor.type == TINYGLTF_PARAMETER_TYPE_FLOAT_VEC3 ? 3 : 4;
-					bufferColors = reinterpret_cast<const float32_t*>(&(model.buffers[colorView.buffer].data[colorAccessor.byteOffset + colorView.byteOffset]));
+					bufferColors = reinterpret_cast<const float32_t*>(&(model.buffers[colorView.buffer].data[colorAccessor.byteOffset + colorView.byteOffset])); // no copy, just reference to
 					mVertexAttributes.color = numColorComponents;
+				}
+				else // defaults to vec3 white color
+				{
+					mVertexAttributes.color = sizeof(defaultColor)/sizeof(float32_t);
 				}
 
 				if (primitive.attributes.find("TANGENT") != primitive.attributes.end())
 				{
 					const tinygltf::Accessor& tangentAccessor = model.accessors[primitive.attributes.find("TANGENT")->second];
 					const tinygltf::BufferView& tangentView = model.bufferViews[tangentAccessor.bufferView];
-					bufferTangents = reinterpret_cast<const float32_t*>(&(model.buffers[tangentView.buffer].data[tangentAccessor.byteOffset + tangentView.byteOffset]));
+					bufferTangents = reinterpret_cast<const float32_t*>(&(model.buffers[tangentView.buffer].data[tangentAccessor.byteOffset + tangentView.byteOffset])); // no copy, just reference to
 					mVertexAttributes.tangent = 4;
 				}
 
@@ -446,7 +453,7 @@ bool_t glTF2Loader::Impl::LoadNode(glTF2Loader::Impl::Node* pParent, const tinyg
 				...
 				*/
 
-				for (uint32_t v = 0; v < posAccessor.count; v++)
+				for (uint32_t v = 0; v < vertexCount; v++)
 				{
 					uint32_t index = 0;
 					if (bufferPos)
@@ -472,6 +479,11 @@ bool_t glTF2Loader::Impl::LoadNode(glTF2Loader::Impl::Node* pParent, const tinyg
 						index = offset + mVertexAttributes.colorOffset();
 						::memcpy(&mVertexBuffer[index], &bufferColors[v * mVertexAttributes.color], sizeof(float32_t) * mVertexAttributes.color);
 					}
+					else // defaults to vec3 white color
+					{
+						index = offset + mVertexAttributes.colorOffset();
+						::memcpy(&mVertexBuffer[index], defaultColor, sizeof(float32_t) * mVertexAttributes.color);
+					}
 
 					if (bufferTexCoords)
 					{
@@ -496,28 +508,37 @@ bool_t glTF2Loader::Impl::LoadNode(glTF2Loader::Impl::Node* pParent, const tinyg
 			mIndexBuffer.resize(offset + indexCount);
 
 			switch (accessor.componentType) {
-			case TINYGLTF_PARAMETER_TYPE_UNSIGNED_INT: {
+			case TINYGLTF_PARAMETER_TYPE_UNSIGNED_INT:
+			{
 				uint32_t* buf = GE_ALLOC_ARRAY(uint32_t, accessor.count);
-				memcpy(buf, &buffer.data[accessor.byteOffset + bufferView.byteOffset], accessor.count * sizeof(uint32_t));
-				for (size_t index = 0; index < accessor.count; index++) {
+				::memcpy(buf, &buffer.data[accessor.byteOffset + bufferView.byteOffset], accessor.count * sizeof(uint32_t));
+
+				for (size_t index = 0; index < accessor.count; index++)
+				{
 					mIndexBuffer[offset + index] = (buf[index] + vertexStart);
 				}
 				GE_FREE_ARRAY(buf);
 				break;
 			}
-			case TINYGLTF_PARAMETER_TYPE_UNSIGNED_SHORT: {
+			case TINYGLTF_PARAMETER_TYPE_UNSIGNED_SHORT:
+			{
 				uint16_t* buf = GE_ALLOC_ARRAY(uint16_t, accessor.count);
-				memcpy(buf, &buffer.data[accessor.byteOffset + bufferView.byteOffset], accessor.count * sizeof(uint16_t));
-				for (size_t index = 0; index < accessor.count; index++) {
+				::memcpy(buf, &buffer.data[accessor.byteOffset + bufferView.byteOffset], accessor.count * sizeof(uint16_t));
+
+				for (size_t index = 0; index < accessor.count; index++)
+				{
 					mIndexBuffer[offset + index] = (buf[index] + vertexStart);
 				}
 				GE_FREE_ARRAY(buf);
 				break;
 			}
-			case TINYGLTF_PARAMETER_TYPE_UNSIGNED_BYTE: {
+			case TINYGLTF_PARAMETER_TYPE_UNSIGNED_BYTE:
+			{
 				uint8_t* buf = GE_ALLOC_ARRAY(uint8_t, accessor.count);
-				memcpy(buf, &buffer.data[accessor.byteOffset + bufferView.byteOffset], accessor.count * sizeof(uint8_t));
-				for (size_t index = 0; index < accessor.count; index++) {
+				::memcpy(buf, &buffer.data[accessor.byteOffset + bufferView.byteOffset], accessor.count * sizeof(uint8_t));
+
+				for (size_t index = 0; index < accessor.count; index++)
+				{
 					mIndexBuffer[offset + index] = (buf[index] + vertexStart);
 				}
 				GE_FREE_ARRAY(buf);
@@ -547,11 +568,12 @@ bool_t glTF2Loader::Impl::LoadNode(glTF2Loader::Impl::Node* pParent, const tinyg
 	return true;
 }
 
-void glTF2Loader::Impl::ApplyFlagsOnNode(glTF2Loader::Impl::Node* pNode, glTF2Loader::FileLoadingFlags loadingFlags)
+void glTF2Loader::Impl::ApplyFlagsOnNode(glTF2Loader::Impl::Node* pNode, uint32_t loadingFlags)
 {
 	if (pNode && (pNode->pMesh || pNode->children.size() > 0))
 	{
 		const bool preTransform = loadingFlags & FileLoadingFlags::PreTransformVertices;
+		const bool preMultiplyColor = loadingFlags & FileLoadingFlags::PreMultiplyVertexColors;
 
 		if (pNode->pMesh)
 		{
@@ -560,18 +582,48 @@ void glTF2Loader::Impl::ApplyFlagsOnNode(glTF2Loader::Impl::Node* pNode, glTF2Lo
 			{
 				if (pPrimitive)
 				{
+					assert(pPrimitive->vertexCount * mVertexAttributes.size() <= mVertexBuffer.size());
+
 					for (uint32_t i = 0; i < pPrimitive->vertexCount; i++)
 					{
+						uint32_t vertexIndex = (pPrimitive->firstVertex + i) * mVertexAttributes.size();
+
 						//// Pre-transform vertex positions by node-hierarchy
 						if (preTransform)
 						{
-							uint32_t posIndex = (pPrimitive->firstVertex + i) * mVertexAttributes.size();
-							glm::vec3 position(localMatrix * glm::vec4(glm::make_vec3(&mVertexBuffer[posIndex]), 1.0f));
-							::memcpy(&mVertexBuffer[posIndex], &position.x, sizeof(glm::vec3));
+							if (mVertexAttributes.pos > 0)
+							{
+								uint32_t posIndex = vertexIndex + mVertexAttributes.posOffset();
+								glm::vec3 position(localMatrix * glm::vec4(glm::make_vec3(&mVertexBuffer[posIndex]), 1.0f));
+								::memcpy(&mVertexBuffer[posIndex], &position.x, sizeof(glm::vec3));
+							}
 
-							uint32_t normIndex = posIndex + mVertexAttributes.pos;
-							glm::vec3 normal = glm::normalize(glm::mat3(localMatrix) * glm::make_vec3(&mVertexBuffer[normIndex]));
-							::memcpy(&mVertexBuffer[normIndex], &normal.x, sizeof(glm::vec3));
+							if (mVertexAttributes.normal > 0)
+							{
+								uint32_t normIndex = vertexIndex + mVertexAttributes.normalOffset();
+								glm::vec3 normal = glm::normalize(glm::mat3(localMatrix) * glm::make_vec3(&mVertexBuffer[normIndex]));
+								::memcpy(&mVertexBuffer[normIndex], &normal.x, sizeof(glm::vec3));
+							}
+						}
+
+						//// Pre-multiply color with the material base color
+						if (preMultiplyColor)
+						{
+							if (mVertexAttributes.color > 0)
+							{
+								uint32_t colorIndex = vertexIndex + mVertexAttributes.colorOffset();
+								if (mVertexAttributes.color == 3) //vec3
+								{
+									// when caching a vec4 in a vec3, w is ditched away
+									glm::vec3 color = pPrimitive->material.baseColorFactor * glm::vec4(glm::make_vec3(&mVertexBuffer[colorIndex]), 1.0f);
+									::memcpy(&mVertexBuffer[colorIndex], &color.x, sizeof(glm::vec3));
+								}
+								else // vec4 - default
+								{
+									glm::vec4 color = pPrimitive->material.baseColorFactor * glm::make_vec4(&mVertexBuffer[colorIndex]);
+									::memcpy(&mVertexBuffer[colorIndex], &color.x, sizeof(glm::vec4));
+								}
+							}
 						}
 					}
 				}
@@ -676,7 +728,7 @@ glTF2Loader::glTF2Loader()
 	: mpImpl(GE_ALLOC(Impl))
 {}
 
-glTF2Loader::glTF2Loader(const std::string& filePath, glTF2Loader::FileLoadingFlags loadingFlags)
+glTF2Loader::glTF2Loader(const std::string& filePath, uint32_t loadingFlags)
 	: glTF2Loader()
 {
 	assert(mpImpl != nullptr);
