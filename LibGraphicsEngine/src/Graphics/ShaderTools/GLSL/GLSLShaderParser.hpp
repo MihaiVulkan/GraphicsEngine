@@ -117,10 +117,6 @@ namespace GraphicsEngine
 			const GLSLShaderParser::UniformMap& GetUniforms() const;
 			const GLSLShaderParser::UniformBlock& GetUniformBlock() const;
 
-			/*const GLSLShaderParser::Input& GetInput(const std::string& name) const;
-			const GLSLShaderParser::Output& GetOutput(const std::string& name) const;
-			const GLSLShaderParser::Uniform& GetUniform(const std::string& name) const;*/
-
 		private:
 			NO_COPY_NO_MOVE_CLASS(GLSLShaderParser)
 

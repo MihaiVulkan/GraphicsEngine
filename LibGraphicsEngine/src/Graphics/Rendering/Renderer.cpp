@@ -1,12 +1,12 @@
 #include "Graphics/Rendering/Renderer.hpp"
 
+#include "Graphics/Rendering/VisualPasses/VisualPass.hpp"
 #include "Graphics/Rendering/Resources/VertexFormat.hpp"
 #include "Graphics/Rendering/Resources/VertexBuffer.hpp"
 #include "Graphics/Rendering/Resources/IndexBuffer.hpp"
 #include "Graphics/Rendering/Resources/UniformBuffer.hpp"
 #include "Graphics/Rendering/Resources/Texture.hpp"
 #include "Graphics/Rendering/Resources/RenderTarget.hpp"
-#include "Graphics/Rendering/Resources/RenderFrameBuffer.hpp"
 #include "Graphics/Rendering/Resources/Shader.hpp"
 #include "Graphics/Rendering/Resources/Material.hpp"
 #include "Graphics/Rendering/Resources/Model.hpp"
@@ -14,13 +14,12 @@
 
 // Resources
 #if defined(VULKAN_RENDERER)
+#include "Graphics/Rendering/Backends/Vulkan/VisualPasses/VulkanVisualPass.hpp"
 #include "Graphics/Rendering/Backends/Vulkan/Resources/VulkanVertexFormat.hpp"
 #include "Graphics/Rendering/Backends/Vulkan/Resources/VulkanVertexBuffer.hpp"
 #include "Graphics/Rendering/Backends/Vulkan/Resources/VulkanIndexBuffer.hpp"
 #include "Graphics/Rendering/Backends/Vulkan/Resources/VulkanUniformBuffer.hpp"
 #include "Graphics/Rendering/Backends/Vulkan/Resources/VulkanTexture.hpp"
-#include "Graphics/Rendering/Backends/Vulkan/Resources/VulkanRenderTarget.hpp"
-#include "Graphics/Rendering/Backends/Vulkan/Resources/VulkanRenderFrameBuffer.hpp"
 #include "Graphics/Rendering/Backends/Vulkan/Resources/VulkanShader.hpp"
 #include "Graphics/Rendering/Backends/Vulkan/Resources/VulkanMaterial.hpp"
 #include "Graphics/Rendering/Backends/Vulkan/Resources/VulkanModel.hpp"
@@ -79,6 +78,13 @@ void Renderer::Terminate()
 
 void Renderer::CleanUpResources()
 {
+	for (auto it = mVisualPassMap.begin(); it != mVisualPassMap.end(); ++it)
+	{
+		GE_FREE(it->second);
+	}
+	mVisualPassMap.clear();
+
+
 	for (auto it = mVertexFormatMap.begin(); it != mVertexFormatMap.end(); ++it)
 	{
 		GE_FREE(it->second);
@@ -188,6 +194,28 @@ void Renderer::CleanUpGAIR()
 		auto* pFirst = it->first;
 		GE_FREE(pFirst);
 	}
+
+	//TODO - other resources
+}
+
+GADVisualPass* Renderer::Get(VisualPass* pVisualPass)
+{
+	assert(pVisualPass != nullptr);
+
+	auto iter = mVisualPassMap.find(pVisualPass);
+	if (iter != mVisualPassMap.end())
+	{
+		return iter->second;
+	}
+	else
+	{
+		auto ref = mVisualPassMap[pVisualPass] = GE_ALLOC(GADVisualPass)(this, pVisualPass);
+		assert(ref != nullptr);
+
+		return ref;
+	}
+
+	return nullptr;
 }
 
 GADRVertexFormat* Renderer::Bind(VertexFormat* pVertexFormat)
@@ -609,7 +637,6 @@ GADRModel* Renderer::Get(Model* pModel)
 
 	return nullptr;
 }
-
 
 uint32_t Renderer::GetWindowWidth() const
 {

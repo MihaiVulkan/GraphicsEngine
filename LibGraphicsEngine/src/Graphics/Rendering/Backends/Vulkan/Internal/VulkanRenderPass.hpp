@@ -36,6 +36,9 @@ namespace GraphicsEngine
 
 			An application records the commands for a render pass instance one subpass at a time, by beginning a render pass instance, iterating over the
 			subpasses to record commands for that subpass, and then ending the render pass instance.
+
+			NOTE! Framebuffers and graphics pipelines are created based on a specific render pass object. They must only be used with that render pass object,
+			or one compatible with it.
 		
 		*/
 		class VulkanRenderPass : public VulkanObject

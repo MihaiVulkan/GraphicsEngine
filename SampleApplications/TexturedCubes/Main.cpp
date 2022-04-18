@@ -23,7 +23,7 @@ int main()
 
 	// Default face winding
 	// GL - CCW
-	// VUlkan - CW
+	// Vulkan - CW
 
 	///////////////////////////////////////////  SETUP Room - skybox
 	// Our room is actually a skybox. It uses a KT2 texture. KTX2 Cubemap faces are stored in the order: +X, -X, +Y, -Y, +Z, -Z.
@@ -99,34 +99,28 @@ int main()
 	};
 
 	auto vfRoom = GE_ALLOC(VertexFormat)(3, 0, 0, 0, 0); //P3
-	//VertexFormat::VF_P3_UV2;
-	auto vbRoom = GE_ALLOC(VertexBuffer)(vfRoom, Buffer::BufferUsage::GE_BU_STATIC, VertexBuffer::VertexInputRate::GE_VIR_VERTEX, vertexDataRoom.data(), vertexDataRoom.size() * sizeof(float32_t));
+	auto vbRoom = GE_ALLOC(VertexBuffer)(vfRoom, Buffer::BufferUsage::GE_BU_STATIC, vertexDataRoom.data(), vertexDataRoom.size() * sizeof(float32_t));
 	auto ibRoom = GE_ALLOC(IndexBuffer)(IndexBuffer::BufferUsage::GE_BU_STATIC, IndexBuffer::IndexType::GE_IT_UINT32, indexDataRoom.data(), indexDataRoom.size() * sizeof(uint32_t));
 
 	vertexDataRoom.clear();
 	indexDataRoom.clear();
 
-	// GL - CW winding for cubemaps
-	auto room = GE_ALLOC(GeometricPrimitive)(GeometricPrimitive::PrimitiveTopology::GE_PT_TRIANGLE_LIST,
-		GeometricPrimitive::FaceWinding::GE_FW_CLOCKWISE,
-		GeometricPrimitive::PolygonMode::GE_PM_FILL);
+	auto room = GE_ALLOC(GeometricPrimitive);
 
 	room->SetVertexBuffer(vbRoom);
 	room->SetIndexBuffer(ibRoom);
 
-	//TODO - improve asset paths
-	auto vsRoom = GE_ALLOC(Shader)(std::string() + GE_ASSET_PATH + "shaders/skybox.vert");
-	auto fsRoom = GE_ALLOC(Shader)(std::string() + GE_ASSET_PATH + "shaders/skybox.frag");
-
 	auto textureRoom = GE_ALLOC(TextureCubeMap)(std::string() + GE_ASSET_PATH + "textures/cubemap_yokohama_rgba.ktx2");
 
-	auto roomNode = GE_ALLOC(GeometryNode);
+	auto roomNode = GE_ALLOC(GeometryNode)("Textured room");
 	roomNode->SetGeometry(room);
-	roomNode->GetComponent<VisualComponent>()->AddShader(vsRoom);
-	roomNode->GetComponent<VisualComponent>()->AddShader(fsRoom);
-	roomNode->GetComponent<VisualComponent>()->AddTexture(textureRoom, Shader::ShaderStage::GE_SS_FRAGMENT);
-
 	roomNode->SetModelMatrix(glm::scale(glm::mat4(1.0f), glm::vec3(100.0f)));
+
+	auto cubemapVisualEffect = GE_ALLOC(UnlitCubemapTextureVisualEffect)(textureRoom);
+
+	// add the impacted node
+	cubemapVisualEffect->SetTargetNode(roomNode);
+	roomNode->GetComponent<VisualComponent>()->SetVisualEffect(cubemapVisualEffect);
 
 	/////////////////////////////////////////// SETUP Single Texture Cube
 	// geometry setup
@@ -206,38 +200,31 @@ int main()
 
 
 	auto vfCube = GE_ALLOC(VertexFormat)(3, 0, 0, 0, 2); //P3 UV2
-	auto vbCube = GE_ALLOC(VertexBuffer)(vfCube, Buffer::BufferUsage::GE_BU_STATIC, VertexBuffer::VertexInputRate::GE_VIR_VERTEX, vertexDataCube.data(), vertexDataCube.size() * sizeof(float32_t));
+	auto vbCube = GE_ALLOC(VertexBuffer)(vfCube, Buffer::BufferUsage::GE_BU_STATIC, vertexDataCube.data(), vertexDataCube.size() * sizeof(float32_t));
 	auto ibCube = GE_ALLOC(IndexBuffer)(Buffer::BufferUsage::GE_BU_STATIC, IndexBuffer::IndexType::GE_IT_UINT32, indexDataCube.data(), indexDataCube.size() * sizeof(uint32_t));
 
-	// GL - CCW winding
-	auto cube = GE_ALLOC(GeometricPrimitive)(GeometricPrimitive::PrimitiveTopology::GE_PT_TRIANGLE_LIST,
-		GeometricPrimitive::FaceWinding::GE_FW_COUNTER_CLOCKWISE,
-		GeometricPrimitive::PolygonMode::GE_PM_FILL);
+	auto cube = GE_ALLOC(GeometricPrimitive);
 
 	cube->SetVertexBuffer(vbCube);
 	cube->SetIndexBuffer(ibCube);
-
-	//TODO - improve asset paths
-	auto vsCube = GE_ALLOC(Shader)(std::string() + GE_ASSET_PATH + "shaders/cube.vert");
-	auto fsCube = GE_ALLOC(Shader)(std::string() + GE_ASSET_PATH + "shaders/cube.frag");
 
 	auto textureCube = GE_ALLOC(Texture2D)(std::string() + GE_ASSET_PATH + "textures/vulkan_11_rgba.ktx2");
 
 	//TODO - add check support for all enabled features (physical device)
 
 	//TODO - enable anisotropic filtering - via physical device enabled features
-	auto cubeNode = GE_ALLOC(GeometryNode);
+	auto cubeNode = GE_ALLOC(GeometryNode)("Textured cube");
 	cubeNode->SetGeometry(cube);
-	cubeNode->GetComponent<VisualComponent>()->AddShader(vsCube);
-	cubeNode->GetComponent<VisualComponent>()->AddShader(fsCube);
-	cubeNode->GetComponent<VisualComponent>()->AddTexture(textureCube, Shader::ShaderStage::GE_SS_FRAGMENT);
+
+	auto tex2DVisualEffect = GE_ALLOC(Unlit2DTextureVisualEffect)(textureCube);
+
+	// add the impacted node
+	tex2DVisualEffect->SetTargetNode(cubeNode);
+	cubeNode->GetComponent<VisualComponent>()->SetVisualEffect(tex2DVisualEffect);
 
 	/////////////////////////////////////////// SETUP Multi Texture (Array) Cube
 
-	// GL - CCW winding
-	auto cubeTextureArray = GE_ALLOC(GeometricPrimitive)(GeometricPrimitive::PrimitiveTopology::GE_PT_TRIANGLE_LIST,
-		GeometricPrimitive::FaceWinding::GE_FW_COUNTER_CLOCKWISE,
-		GeometricPrimitive::PolygonMode::GE_PM_FILL);
+	auto cubeTextureArray = GE_ALLOC(GeometricPrimitive);
 
 	cubeTextureArray->SetVertexBuffer(vbCube);
 	cubeTextureArray->SetIndexBuffer(ibCube);
@@ -245,25 +232,21 @@ int main()
 	vertexDataCube.clear();
 	indexDataCube.clear();
 
-
-	//TODO - improve asset paths
-	auto vsCubeTextureArray = GE_ALLOC(Shader)(std::string() + GE_ASSET_PATH + "shaders/cubeTextureArray.vert");
-	auto fsCubeTextureArray = GE_ALLOC(Shader)(std::string() + GE_ASSET_PATH + "shaders/cubeTextureArray.frag");
-
 	auto textureArrayCube = GE_ALLOC(Texture2DArray)(std::string() + GE_ASSET_PATH + "textures/texturearray_rgba.ktx2");
 
 	//TODO - add check support for all enabled features (physical device)
 
 	//TODO - enable anisotropic filtering - via physical device enabled features
-	auto cubeTextureArrayNode = GE_ALLOC(GeometryNode);
+	auto cubeTextureArrayNode = GE_ALLOC(GeometryNode)("Multi-Textured cube");
 	cubeTextureArrayNode->SetGeometry(cubeTextureArray);
-	cubeTextureArrayNode->GetComponent<VisualComponent>()->AddShader(vsCubeTextureArray);
-	cubeTextureArrayNode->GetComponent<VisualComponent>()->AddShader(fsCubeTextureArray);
-	cubeTextureArrayNode->GetComponent<VisualComponent>()->AddTexture(textureArrayCube, Shader::ShaderStage::GE_SS_FRAGMENT);
-
-	cubeTextureArrayNode->GetComponent<VisualComponent>()->GetUniformBuffer(ScenePass::PassType::GE_PT_STANDARD, Shader::ShaderStage::GE_SS_VERTEX)->AddUniform(GLSLShaderTypes::UniformType::GE_UT_CRR_TIME);
-
 	cubeTextureArrayNode->SetModelMatrix(glm::translate(glm::mat4(1.0f), glm::vec3(10.0f, 0.0f, 0.0f)));
+
+	// add the impacted node
+	auto tex2DArrayVisualEffect = GE_ALLOC(Unlit2DTextureArrayVisualEffect)(textureArrayCube);
+
+	// add the impacted node
+	tex2DArrayVisualEffect->SetTargetNode(cubeTextureArrayNode);
+	cubeTextureArrayNode->GetComponent<VisualComponent>()->SetVisualEffect(tex2DArrayVisualEffect);
 
 	/////////////////////////////
 

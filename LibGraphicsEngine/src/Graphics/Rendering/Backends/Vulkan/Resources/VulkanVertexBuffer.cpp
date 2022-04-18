@@ -17,14 +17,12 @@ GADRVertexBuffer::GADRVertexBuffer()
 	: mpVulkanRenderer(nullptr)
 	, mpVulkanBuffer(nullptr)
 	, mpVertexBuffer(nullptr)
-	, mInputBinding{}
 {}
 
 GADRVertexBuffer::GADRVertexBuffer(Renderer* pRenderer, VertexBuffer* pVertexBuffer)
 	: mpVulkanRenderer(nullptr)
 	, mpVulkanBuffer(nullptr)
 	, mpVertexBuffer(pVertexBuffer)
-	, mInputBinding{}
 {
 	Create(pRenderer);
 }
@@ -84,16 +82,6 @@ void GADRVertexBuffer::Create(Renderer* pRenderer)
 		pStagingVertices->CopyTo(mpVulkanBuffer, pDevice->GetGraphicsQueue());
 	}
 	GE_FREE(pStagingVertices);
-
-	/////////////////////////
-	VkVertexInputRate vulkanInputRate = VulkanUtils::VertexInputRateToVulkanVertexInputRate(mpVertexBuffer->GetVertexInputRate());
-
-	auto format = mpVertexBuffer->GetFormat();
-	assert(format != nullptr);
-
-	mInputBinding.binding = VERTEX_BUFFER_BIND_ID; //NOTE! Not reflected in shader code
-	mInputBinding.stride = format->GetVertexTotalStride();
-	mInputBinding.inputRate = vulkanInputRate;
 }
 
 void GADRVertexBuffer::Destroy()
@@ -125,21 +113,9 @@ void GADRVertexBuffer::OnUnBind(uint32_t currentBufferIdx)
 
 }
 
-const VkVertexInputBindingDescription& GADRVertexBuffer::GetVkInputBinding() const
-{
-	return mInputBinding;
-}
-
 const Buffer::BufferUsage& GADRVertexBuffer::GetBufferUsage() const
 {
 	assert(mpVertexBuffer != nullptr);
 
 	return mpVertexBuffer->GetBufferUsage();
-}
-
-const VertexBuffer::VertexInputRate& GADRVertexBuffer::GetVertexInputRate() const
-{
-	assert(mpVertexBuffer != nullptr);
-
-	return mpVertexBuffer->GetVertexInputRate();
 }

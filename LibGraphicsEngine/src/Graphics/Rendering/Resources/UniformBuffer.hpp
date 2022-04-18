@@ -5,7 +5,7 @@
 #include "Graphics/ShaderTools/GLSL/GLSLShaderTypes.hpp"
 #include "Foundation/Variant.hpp"
 #include "glm/mat4x4.hpp"
-#include <unordered_map>
+#include <map>
 
 namespace GraphicsEngine
 {
@@ -19,29 +19,25 @@ namespace GraphicsEngine
 		public:
 
 			// NOTE! This UBO uniform order must respect the shader UBO uniform order
-			typedef std::unordered_map<GLSLShaderTypes::UniformType, Variant> UniformMap;
+			typedef std::map<GLSLShaderTypes::UniformType, Variant> UniformMap;
 
 			UniformBuffer();
+			UniformBuffer(const UniformBuffer& other);
 			virtual ~UniformBuffer();
 
-			void AddUniform(GLSLShaderTypes::UniformType type);
+			Variant& AddUniform(GLSLShaderTypes::UniformType type);
 
 			template <typename T>
-			void AddUniform(GLSLShaderTypes::UniformType type, const T& val)
+			Variant& AddUniform(GLSLShaderTypes::UniformType type, const T& val)
 			{
 				assert(type < GLSLShaderTypes::UniformType::GE_UT_COUNT);
 
-				AddUniform(type);
+				auto& ref = AddUniform(type);
 
-				auto iter = mUniformMap.find(type);
+				bool_t ret = ref.SetValue(val);
+				mIsUniformMapUpdated = ret;
 
-				if (iter != mUniformMap.end())
-				{
-					auto& ref = iter->second;
-					bool_t ret = ref.SetValue(val);
-
-					mIsUniformMapUpdated = ret;
-				}
+				return ref;
 			}
 
 			Variant GetUniform(GLSLShaderTypes::UniformType type) const;
@@ -52,7 +48,6 @@ namespace GraphicsEngine
 				assert(type < GLSLShaderTypes::UniformType::GE_UT_COUNT);
 
 				auto iter = mUniformMap.find(type);
-
 				if (iter != mUniformMap.end())
 				{
 					auto& ref = iter->second;
@@ -66,6 +61,7 @@ namespace GraphicsEngine
 
 			void* GetData();
 
+			const UniformBuffer::UniformMap& GetUniforms() const;
 
 		private:
 

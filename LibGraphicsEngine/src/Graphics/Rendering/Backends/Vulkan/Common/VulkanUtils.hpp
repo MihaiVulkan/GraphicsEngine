@@ -10,7 +10,7 @@
 #include "Graphics/Rendering/Resources/Texture.hpp"
 #include "Graphics/Rendering/Resources/Shader.hpp"
 
-#include "Graphics/GeometricPrimitives/GeometricPrimitive.hpp"
+#include "Graphics/Rendering/VisualPasses/VisualPass.hpp"
 #include "Graphics/Rendering/PipelineStates/CullFaceState.hpp"
 #include "Graphics/Rendering/PipelineStates/DepthStencilState.hpp"
 #include "Graphics/Rendering/PipelineStates/ColorBlendState.hpp"
@@ -26,15 +26,15 @@ namespace GraphicsEngine
 			VkFormat VertexFormatToVulkanVertexFormat(const VertexFormat::VertexAttribute& attribute, uint8_t dimension);
 
 			// vertex input rate
-			VkVertexInputRate VertexInputRateToVulkanVertexInputRate(const VertexBuffer::VertexInputRate& vertexInputRate);
+			VkVertexInputRate VertexInputRateToVulkanVertexInputRate(const VertexFormat::VertexInputRate& vertexInputRate);
 
 			// index type
 			VkIndexType IndexTypeToVulkanIndexType(const IndexBuffer::IndexType& indexType);
 
 			// geometric primitive
-			VkPrimitiveTopology PrimitiveTopologyToVulkanTopolgy(GeometricPrimitive::PrimitiveTopology topology);
-			VkFrontFace PrimitiveFaceWindingToVulkanFaceWinding(GeometricPrimitive::FaceWinding faceWinding);
-			VkPolygonMode PrimitivePolygonModeToVulkanPolygonMode(GeometricPrimitive::PolygonMode polygonMode);
+			VkPrimitiveTopology PrimitiveTopologyToVulkanTopolgy(VisualPass::PrimitiveTopology topology);
+			VkFrontFace PrimitiveFaceWindingToVulkanFaceWinding(VisualPass::FaceWinding faceWinding);
+			VkPolygonMode PrimitivePolygonModeToVulkanPolygonMode(VisualPass::PolygonMode polygonMode);
 
 			// texture
 			VkImageType TextureTypeToVulkanImageType(const Texture::TextureType& type);

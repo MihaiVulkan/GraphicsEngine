@@ -12,10 +12,12 @@ using namespace GraphicsEngine::Graphics;
 
 GADRVertexFormat::GADRVertexFormat()
 	: mpVertexFormat(nullptr)
+	, mInputBinding()
 {}
 
 GADRVertexFormat::GADRVertexFormat(Renderer* pRenderer, VertexFormat* pVertexFormat)
 	: mpVertexFormat(pVertexFormat)
+	, mInputBinding()
 {
 	Create(pRenderer);
 }
@@ -47,6 +49,13 @@ void GADRVertexFormat::Create(Renderer* pRenderer)
 
 		mInputAttributeMap[iter->first] = attributeDesc;
 	}
+
+	//////////////////////////////////////
+	VkVertexInputRate vulkanInputRate = VulkanUtils::VertexInputRateToVulkanVertexInputRate(mpVertexFormat->GetVertexInputRate());
+
+	mInputBinding.binding = VERTEX_BUFFER_BIND_ID; //NOTE! Not reflected in shader code
+	mInputBinding.stride = mpVertexFormat->GetVertexTotalStride();
+	mInputBinding.inputRate = vulkanInputRate;
 }
 
 void GADRVertexFormat::Destroy()
@@ -62,4 +71,16 @@ void GADRVertexFormat::Destroy()
 const GADRVertexFormat::InputAttributeMap& GADRVertexFormat::GetVkInputAttributes() const
 {
 	return mInputAttributeMap;
+}
+
+const VertexFormat::VertexInputRate& GADRVertexFormat::GetVertexInputRate() const
+{
+	assert(mpVertexFormat != nullptr);
+
+	return mpVertexFormat->GetVertexInputRate();
+}
+
+const VkVertexInputBindingDescription& GADRVertexFormat::GetVkInputBinding() const
+{
+	return mInputBinding;
 }

@@ -86,6 +86,11 @@ void VulkanDescriptorSet::Update(const std::vector<VkWriteDescriptorSet>& writeS
 														static_cast<uint32_t>(copySet.size()), copySet.data());
 }
 
+void VulkanDescriptorSet::Bind(VkCommandBuffer commandBufferHandle, VkPipelineBindPoint pipelineBindPoint, VkPipelineLayout pipelineLayoutHandle)
+{
+	vkCmdBindDescriptorSets(commandBufferHandle, pipelineBindPoint, pipelineLayoutHandle, mId, 1, &mHandle, 0, nullptr);
+}
+
 const uint32_t& VulkanDescriptorSet::GetId() const
 {
 	return mId;

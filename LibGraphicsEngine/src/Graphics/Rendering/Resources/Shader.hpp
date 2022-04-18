@@ -29,6 +29,7 @@ namespace GraphicsEngine
 			};
 
 			Shader();
+			//NOTE! Upon construction the shader stage is identified automatically by the GLSLParser!
 			explicit Shader(const std::string& sourcePath);
 			virtual ~Shader();
 

@@ -26,6 +26,10 @@ namespace GraphicsEngine
 
 			const GADRVertexFormat::InputAttributeMap& GetVkInputAttributes() const;
 
+			const VertexFormat::VertexInputRate& GetVertexInputRate() const;
+
+			const VkVertexInputBindingDescription& GetVkInputBinding() const;
+
 		private:
 			void Create(Renderer* pRenderer);
 			void Destroy();
@@ -34,6 +38,8 @@ namespace GraphicsEngine
 			VertexFormat* mpVertexFormat;
 
 			InputAttributeMap mInputAttributeMap;
+
+			VkVertexInputBindingDescription mInputBinding;
 		};
 	}
 }

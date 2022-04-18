@@ -1,6 +1,9 @@
 #include "Graphics/Rendering/Backends/Vulkan/Resources/VulkanTexture.hpp"
 #include "Graphics/Rendering/Backends/Vulkan/VulkanRenderer.hpp"
 #include "Graphics/Rendering/Backends/Vulkan/Internal/VulkanDevice.hpp"
+#include "Graphics/Rendering/Backends/Vulkan/Internal/VulkanCommandPool.hpp"
+#include "Graphics/Rendering/Backends/Vulkan/Internal/VulkanCommandBuffer.hpp"
+#include "Graphics/Rendering/Backends/Vulkan/Internal/VulkanQueue.hpp"
 #include "Graphics/Rendering/Backends/Vulkan/Internal/VulkanBuffer.hpp"
 #include "Graphics/Rendering/Backends/Vulkan/Internal/VulkanImage.hpp"
 #include "Graphics/Rendering/Backends/Vulkan/Internal/VulkanImageView.hpp"
@@ -101,7 +104,7 @@ void GADRTexture::Create(Renderer* pRenderer)
 		mpTexture->GetMetaData().faceCount * mpTexture->GetMetaData().layerCount,
 		VkSampleCountFlagBits::VK_SAMPLE_COUNT_1_BIT,
 		VkImageTiling::VK_IMAGE_TILING_OPTIMAL,
-		usage, //VkImageUsageFlagBits::VK_IMAGE_USAGE_SAMPLED_BIT | VkImageUsageFlagBits::VK_IMAGE_USAGE_TRANSFER_DST_BIT,
+		usage,
 		VkSharingMode::VK_SHARING_MODE_EXCLUSIVE, 0, nullptr, 
 		VkImageLayout::VK_IMAGE_LAYOUT_UNDEFINED,
 		(mpTexture->GetMetaData().faceCount > 1 ? VkImageCreateFlagBits::VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT : 0)
@@ -115,11 +118,19 @@ void GADRTexture::Create(Renderer* pRenderer)
 	}
 	else if (mpTexture->IsDepthFormat())
 	{
-		aspectMask = VkImageAspectFlagBits::VK_IMAGE_ASPECT_DEPTH_BIT | VkImageAspectFlagBits::VK_IMAGE_ASPECT_STENCIL_BIT;
+		if (mpTexture->GetSamplingType() == Texture::SamplingType::GE_ST_SAMPLING)
+		{
+			// when sampling we actually need only the depth bit - according to Vulkan spec
+			aspectMask = VkImageAspectFlagBits::VK_IMAGE_ASPECT_DEPTH_BIT;
+		}
+		else
+		{
+			// if not sampling we use both bits: depth and stencil
+			aspectMask = VkImageAspectFlagBits::VK_IMAGE_ASPECT_DEPTH_BIT | VkImageAspectFlagBits::VK_IMAGE_ASPECT_STENCIL_BIT;
+		}
 	}
 
-	if (textureUsageType == Texture::UsageType::GE_UT_RENDER &&
-		pStagingBuffer)
+	if (textureUsageType == Texture::UsageType::GE_UT_RENDER && pStagingBuffer)
 	{
 		// Setup buffer copy regions for each mipmap level (base level + the others)
 		size_t regionCount = mpTexture->GetMetaData().mipLevels * mpTexture->GetMetaData().faceCount * mpTexture->GetMetaData().layerCount;
@@ -138,7 +149,7 @@ void GADRTexture::Create(Renderer* pRenderer)
 
 					// NOTE! Mipmaps have depth of 1 and layerCount of 1
 					VkBufferImageCopy bufferCopyRegion{};
-					bufferCopyRegion.imageSubresource.aspectMask = aspectMask;// VkImageAspectFlagBits::VK_IMAGE_ASPECT_COLOR_BIT;
+					bufferCopyRegion.imageSubresource.aspectMask = aspectMask;
 					bufferCopyRegion.imageSubresource.mipLevel = level;
 					bufferCopyRegion.imageSubresource.baseArrayLayer = mpTexture->GetMetaData().faceCount * layer + face;
 					bufferCopyRegion.imageSubresource.layerCount = 1;
@@ -166,6 +177,29 @@ void GADRTexture::Create(Renderer* pRenderer)
 		GE_FREE(pStagingBuffer);
 	}
 
+	////////////////////
+
+	if (mpTexture->IsDepthFormat() && mpTexture->GetSamplingType() == Texture::SamplingType::GE_ST_SAMPLING)
+	{
+		VulkanCommandPool copyCommandPool(pDevice, pDevice->GetGraphicsQueue()->GetFamilyIndex());
+		VulkanCommandBuffer copyCommandBuffer(pDevice, copyCommandPool.GetHandle(), VkCommandBufferLevel::VK_COMMAND_BUFFER_LEVEL_PRIMARY, true);
+
+		VkImageSubresourceRange subresourceRange{};
+		subresourceRange.aspectMask = VkImageAspectFlagBits::VK_IMAGE_ASPECT_DEPTH_BIT;
+		subresourceRange.baseMipLevel = 0;
+		subresourceRange.levelCount = 1;
+		subresourceRange.layerCount = 1;
+
+		// Image barrier for optimal image (target)
+		// Optimal image will be used as destination for the copy
+		VulkanUtils::SetImageLayout(copyCommandBuffer.GetHandle(), mpVulkanImage->GetHandle(),
+			VkImageLayout::VK_IMAGE_LAYOUT_UNDEFINED, VkImageLayout::VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL,
+			subresourceRange);
+
+		copyCommandBuffer.Flush(pDevice->GetGraphicsQueue());
+	}
+	////////////////////
+
 	// image view
 	VkImageSubresourceRange subresourceRange{};
 	subresourceRange.aspectMask = aspectMask;// VkImageAspectFlagBits::VK_IMAGE_ASPECT_COLOR_BIT;
@@ -185,8 +219,8 @@ void GADRTexture::Create(Renderer* pRenderer)
 	);
 	assert(mpVulkanImageView != nullptr);
 
-	// TODO - for now only the color image supports a sampler !!!
-	if (mpTexture->IsColorFormat())
+	// add a sampler only if we need to sample from the texture in shader
+	if (mpTexture->GetSamplingType() == Texture::SamplingType::GE_ST_SAMPLING)
 	{
 		//sampler
 		VkFilter filter = VulkanUtils::TextureFilterModeToVulkanFilterMode(mpTexture->GetMetaData().filterMode);
@@ -205,6 +239,7 @@ void GADRTexture::Create(Renderer* pRenderer)
 				);
 		assert(mpVulkanSampler != nullptr);
 	}
+
 	UpdateDecriptorInfo();
 }
 
@@ -224,16 +259,24 @@ void GADRTexture::Destroy()
 
 void GADRTexture::UpdateDecriptorInfo()
 {
-	if (mpTexture->IsColorFormat())
+	assert(mpTexture != nullptr);
+
+	if (mpTexture->GetSamplingType() == Texture::SamplingType::GE_ST_SAMPLING)
 	{
 		assert(mpVulkanSampler != nullptr);
 	}
 	assert(mpVulkanImageView != nullptr);
 
-	// TODO - no sampler yet for depth images
-	mDefaultDescriptorInfo.sampler = (mpTexture->IsColorFormat() ? mpVulkanSampler->GetHandle() : VK_NULL_HANDLE);
+	VkSampler samplerHandle = (mpTexture->GetSamplingType() == Texture::SamplingType::GE_ST_SAMPLING ? mpVulkanSampler->GetHandle() : VK_NULL_HANDLE);
+	mDefaultDescriptorInfo.sampler = samplerHandle;
 	mDefaultDescriptorInfo.imageView = mpVulkanImageView->GetHandle();
-	mDefaultDescriptorInfo.imageLayout = VkImageLayout::VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL; //TODO - by default output image layout is optimal - majority of cases
+
+	VkImageLayout imageLayout = VkImageLayout::VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL; //default
+	if (mpTexture->IsDepthFormat() && mpTexture->GetSamplingType() == Texture::SamplingType::GE_ST_SAMPLING)
+	{
+		imageLayout = VkImageLayout::VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+	}
+	mDefaultDescriptorInfo.imageLayout = imageLayout;
 }
 
 Texture* GADRTexture::GetTexture()

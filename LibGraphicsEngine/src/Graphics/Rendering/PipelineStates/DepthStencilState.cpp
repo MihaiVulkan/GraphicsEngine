@@ -48,6 +48,8 @@ const bool_t& DepthStencilState::GetIsDepthEnabled() const
 void DepthStencilState::SetIsDepthEnabled(bool_t value)
 {
 	mIsDepthEnabled = value;
+
+	mIsDepthWritable = mIsDepthEnabled;
 }
 
 const bool_t& DepthStencilState::GetIsDepthWritable() const

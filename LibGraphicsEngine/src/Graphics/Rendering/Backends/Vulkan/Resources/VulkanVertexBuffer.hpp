@@ -27,9 +27,6 @@ namespace GraphicsEngine
 			virtual void OnUnBind(uint32_t currentBufferIdx = 0) override;
 
 			const Buffer::BufferUsage& GetBufferUsage() const;
-			const VertexBuffer::VertexInputRate& GetVertexInputRate() const;
-
-			const VkVertexInputBindingDescription& GetVkInputBinding() const;
 
 		private:
 			void Create(Renderer* pRenderer);
@@ -39,9 +36,6 @@ namespace GraphicsEngine
 
 			VulkanBuffer* mpVulkanBuffer;
 			VertexBuffer* mpVertexBuffer;
-
-			VkVertexInputBindingDescription mInputBinding;
-
 		};
 	}
 }

@@ -12,11 +12,13 @@ using namespace GraphicsEngine::Graphics;
 
 Texture::Texture()
 	: mTextureMetaData{}
+	, mUsageType(UsageType::GE_UT_RENDER) // default to render usage
+	, mSamplingType(SamplingType::GE_ST_COUNT)
 {}
 
 Texture::Texture(Texture::TextureType type, Texture::TextureFormat format, Texture::WrapMode wrapMode, Texture::FilterMode filterMode, Texture::MipMapMode mipMapMode,
 				uint32_t width, uint32_t height, uint32_t depth, uint32_t mipLevels, uint32_t layerCount)
-	: mTextureMetaData{}
+	: Texture()
 {
 	mTextureMetaData.type = type;
 	mTextureMetaData.format = format;
@@ -28,9 +30,6 @@ Texture::Texture(Texture::TextureType type, Texture::TextureFormat format, Textu
 	mTextureMetaData.depth = depth;
 	mTextureMetaData.mipLevels = mipLevels;
 	mTextureMetaData.layerCount = layerCount;
-
-	//TOOD - usually if we create a texture we use it for offscreen rendering as a render target
-	mUsageType = UsageType::GE_UT_RENDER_TARGET;
 }
 
 Texture::~Texture()
@@ -133,8 +132,8 @@ bool_t Texture::LoadFromFile(const std::string& texturePath)
 		mTextureMetaData.mipMapMode = MipMapMode::GE_MM_LINEAR;
 	}
 
-	// TODO - usually if we load a texture we use it to render an object textured with it
-	mUsageType = UsageType::GE_UT_RENDER;
+	// NOTE! by loading a texture we always want to sample from it in shader
+	mSamplingType = SamplingType::GE_ST_SAMPLING;
 
 	return true;
 }
@@ -142,6 +141,21 @@ bool_t Texture::LoadFromFile(const std::string& texturePath)
 Texture::UsageType Texture::GetUsageType() const
 {
 	return mUsageType;
+}
+
+void Texture::SetUsageType(Texture::UsageType usageType)
+{
+	mUsageType = usageType;
+}
+
+Texture::SamplingType Texture::GetSamplingType() const
+{
+	return mSamplingType;
+}
+
+void Texture::SetSamplingType(Texture::SamplingType samplingType)
+{
+	mSamplingType = samplingType;
 }
 
 const Texture::MetaData& Texture::GetMetaData() const

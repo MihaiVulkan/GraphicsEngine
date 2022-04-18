@@ -2,7 +2,6 @@
 #include "Graphics/Cameras/Camera.hpp"
 #include "Graphics/SceneGraph/GeometryNode.hpp"
 #include "Graphics/SceneGraph/LightNode.hpp"
-#include "Graphics/Rendering/Resources/Material.hpp"
 #include "Graphics/Components/MaterialComponent.hpp"
 #include <cassert>
 
@@ -42,14 +41,6 @@ void RenderQueue::Push(GeometryNode* pGeoNode)
 	Renderable renderable{};
 	renderable.pGeometryNode = pGeoNode;
 
-	if (pMatComp)
-	{
-		Material* pMaterial = pMatComp->GetMaterial();
-		assert(pMaterial != nullptr);
-
-		renderable.pMaterial = pMaterial;
-	}
-
 	mRenderables[RenderQueue::RenderableType::GE_RT_OPAQUE].push_back(renderable);
 }
 
@@ -58,14 +49,6 @@ void RenderQueue::Push(LightNode* pLightNode)
 	assert(pLightNode != nullptr);
 
 	mLights.push_back(pLightNode);
-}
-
-const RenderQueue::RenderableCollection& RenderQueue::GetRenderables(const RenderQueue::RenderableType& type) const
-{
-	assert((RenderableType::GE_RT_BACKGROUND <= type) && (type < RenderableType::GE_RT_COUNT));
-	assert(mRenderables.size() > 0);
-
-	return mRenderables.at(type);
 }
 
 void RenderQueue::ForEach(const RenderQueue::RenderableCollection& renderables, std::function< void(const RenderQueue::Renderable*) > callback)
@@ -84,6 +67,24 @@ void RenderQueue::ForEach(std::function< void(const LightNode*) > callback)
 	{
 		callback(pLightNode);
 	}
+}
+
+const RenderQueue::RenderableCollection& RenderQueue::GetRenderables(const RenderQueue::RenderableType& type) const
+{
+	assert((RenderableType::GE_RT_BACKGROUND <= type) && (type < RenderableType::GE_RT_COUNT));
+	assert(mRenderables.size() > 0);
+
+	return mRenderables.at(type);
+}
+
+const std::vector<LightNode*>& RenderQueue::GetLights() const
+{
+	return mLights;
+}
+
+bool_t RenderQueue::HasLights() const
+{
+	return mLights.empty() == false;
 }
 
 Camera* RenderQueue::GetCamera() const

@@ -42,6 +42,13 @@ namespace GraphicsEngine
 			// NOTE! ordered_map as we want to maintain the order of attributes!
 			typedef std::map<VertexFormat::VertexAttribute, uint8_t> VertexAttributeMap;
 
+			enum class VertexInputRate : uint8_t
+			{
+				GE_VIR_VERTEX = 0,
+				GE_VIR_INSTANCE,
+				GE_VIR_COUNT
+			};
+
 			VertexFormat();
 			// TODO - maybe make the constructor variadic ?
 			explicit VertexFormat(uint8_t position, uint8_t normal, uint8_t tangent, uint8_t color, uint8_t texCoord);
@@ -60,13 +67,21 @@ namespace GraphicsEngine
 
 			const VertexFormat::VertexAttributeMap& GetVertexAttributes() const;
 
+			void SetVertexInputRate(VertexFormat::VertexInputRate inputRate);
+			const VertexFormat::VertexInputRate& GetVertexInputRate() const;
+
 		private:
 			void Create(uint8_t position, uint8_t normal, uint8_t tangent, uint8_t color, uint8_t texCoord);
 			void Copy(const VertexFormat& format);
 			void Move(VertexFormat&& format);
 			void Destroy();
 
+			void ComputeVertexTotalStride();
+
 			VertexAttributeMap mVertexAttributes;
+			uint32_t mVertexTotalStride;
+			VertexInputRate mVertexInputRate;
+			
 		};
 	}
 }

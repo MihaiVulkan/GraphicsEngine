@@ -159,7 +159,7 @@ struct glTF2Loader::Impl
 
 	bool_t LoadImages(tinygltf::Model& gltfModel);
 	bool_t LoadMaterials(tinygltf::Model& gltfModel);
-	bool_t LoadNode(glTF2Loader::Impl::Node* pParent, const tinygltf::Node& node, uint32_t nodeIndex, const tinygltf::Model& model);
+	bool_t LoadNode(glTF2Loader::Impl::Node* pParent, const tinygltf::Node& node, uint32_t nodeIndex, const tinygltf::Model& model, uint32_t loadingFlags);
 
 	void ApplyFlagsOnNode(glTF2Loader::Impl::Node* pNode, uint32_t loadingFlags);
 
@@ -243,7 +243,7 @@ bool_t glTF2Loader::Impl::LoadFromFile(const std::string& filePath, uint32_t loa
 		if ((node.name == "Camera") || ((node.name == "Light")))
 			continue;
 
-		result = LoadNode(nullptr, node, scene.nodes[i], gltfModel);
+		result = LoadNode(nullptr, node, scene.nodes[i], gltfModel, loadingFlags);
 		if (result == false)
 		{
 			LOG_ERROR("Failed to load node");
@@ -252,8 +252,10 @@ bool_t glTF2Loader::Impl::LoadFromFile(const std::string& filePath, uint32_t loa
 	}
 
 	// Pre-Calculations for requested features
-	if ((loadingFlags & FileLoadingFlags::PreTransformVertices) ||
-		(loadingFlags & FileLoadingFlags::PreMultiplyVertexColors))
+	if ((loadingFlags & LoadingFlags::GE_LF_TRANSFORM_POS) ||
+		(loadingFlags & LoadingFlags::GE_LF_COLORED) ||
+		(loadingFlags & LoadingFlags::GE_LF_TEXTURED) ||
+		(loadingFlags & LoadingFlags::GE_LF_LIT))
 	{
 		for (auto* pNode : mNodes)
 		{
@@ -325,7 +327,7 @@ bool_t glTF2Loader::Impl::LoadMaterials(tinygltf::Model& gltfModel)
 	return true;
 }
 
-bool_t glTF2Loader::Impl::LoadNode(glTF2Loader::Impl::Node* pParent, const tinygltf::Node& node, uint32_t nodeIndex, const tinygltf::Model& model)
+bool_t glTF2Loader::Impl::LoadNode(glTF2Loader::Impl::Node* pParent, const tinygltf::Node& node, uint32_t nodeIndex, const tinygltf::Model& model, uint32_t loadingFlags)
 {
 	glTF2Loader::Impl::Node* pNewNode = GE_ALLOC(glTF2Loader::Impl::Node);
 	pNewNode->index = nodeIndex;
@@ -352,7 +354,7 @@ bool_t glTF2Loader::Impl::LoadNode(glTF2Loader::Impl::Node* pParent, const tinyg
 	// Node with children
 	if (node.children.size() > 0) {
 		for (auto i = 0; i < node.children.size(); i++) {
-			LoadNode(pNewNode, model.nodes[node.children[i]], node.children[i], model);
+			LoadNode(pNewNode, model.nodes[node.children[i]], node.children[i], model, loadingFlags);
 		}
 	}
 
@@ -398,7 +400,8 @@ bool_t glTF2Loader::Impl::LoadNode(glTF2Loader::Impl::Node* pParent, const tinyg
 				posMax = glm::vec3(posAccessor.maxValues[0], posAccessor.maxValues[1], posAccessor.maxValues[2]);
 				mVertexAttributes.pos = 3;
 
-				if (primitive.attributes.find("NORMAL") != primitive.attributes.end())
+				if (loadingFlags & LoadingFlags::GE_LF_LIT
+					&& primitive.attributes.find("NORMAL") != primitive.attributes.end())
 				{
 					const tinygltf::Accessor& normAccessor = model.accessors[primitive.attributes.find("NORMAL")->second];
 					const tinygltf::BufferView& normView = model.bufferViews[normAccessor.bufferView];
@@ -406,7 +409,8 @@ bool_t glTF2Loader::Impl::LoadNode(glTF2Loader::Impl::Node* pParent, const tinyg
 					mVertexAttributes.normal = 3;
 				}
 
-				if (primitive.attributes.find("TEXCOORD_0") != primitive.attributes.end()) 
+				if (loadingFlags & LoadingFlags::GE_LF_TEXTURED
+					&& primitive.attributes.find("TEXCOORD_0") != primitive.attributes.end()) 
 				{
 					const tinygltf::Accessor& uvAccessor = model.accessors[primitive.attributes.find("TEXCOORD_0")->second];
 					const tinygltf::BufferView& uvView = model.bufferViews[uvAccessor.bufferView];
@@ -414,21 +418,25 @@ bool_t glTF2Loader::Impl::LoadNode(glTF2Loader::Impl::Node* pParent, const tinyg
 					mVertexAttributes.uv = 2;
 				}
 
-				if (primitive.attributes.find("COLOR_0") != primitive.attributes.end())
+				if (loadingFlags & LoadingFlags::GE_LF_COLORED)
 				{
-					const tinygltf::Accessor& colorAccessor = model.accessors[primitive.attributes.find("COLOR_0")->second];
-					const tinygltf::BufferView& colorView = model.bufferViews[colorAccessor.bufferView];
-					// Color buffer is either of type vec3 or vec4
-					numColorComponents = colorAccessor.type == TINYGLTF_PARAMETER_TYPE_FLOAT_VEC3 ? 3 : 4;
-					bufferColors = reinterpret_cast<const float32_t*>(&(model.buffers[colorView.buffer].data[colorAccessor.byteOffset + colorView.byteOffset])); // no copy, just reference to
-					mVertexAttributes.color = numColorComponents;
-				}
-				else // defaults to vec3 white color
-				{
-					mVertexAttributes.color = sizeof(defaultColor)/sizeof(float32_t);
+					if (primitive.attributes.find("COLOR_0") != primitive.attributes.end())
+					{
+						const tinygltf::Accessor& colorAccessor = model.accessors[primitive.attributes.find("COLOR_0")->second];
+						const tinygltf::BufferView& colorView = model.bufferViews[colorAccessor.bufferView];
+						// Color buffer is either of type vec3 or vec4
+						numColorComponents = colorAccessor.type == TINYGLTF_PARAMETER_TYPE_FLOAT_VEC3 ? 3 : 4;
+						bufferColors = reinterpret_cast<const float32_t*>(&(model.buffers[colorView.buffer].data[colorAccessor.byteOffset + colorView.byteOffset])); // no copy, just reference to
+						mVertexAttributes.color = numColorComponents;
+					}
+					else // defaults to vec3 white color
+					{
+						mVertexAttributes.color = sizeof(defaultColor)/sizeof(float32_t);
+					}
 				}
 
-				if (primitive.attributes.find("TANGENT") != primitive.attributes.end())
+				if (false && //TODO - add tangent support
+					primitive.attributes.find("TANGENT") != primitive.attributes.end())
 				{
 					const tinygltf::Accessor& tangentAccessor = model.accessors[primitive.attributes.find("TANGENT")->second];
 					const tinygltf::BufferView& tangentView = model.bufferViews[tangentAccessor.bufferView];
@@ -479,7 +487,7 @@ bool_t glTF2Loader::Impl::LoadNode(glTF2Loader::Impl::Node* pParent, const tinyg
 						index = offset + mVertexAttributes.colorOffset();
 						::memcpy(&mVertexBuffer[index], &bufferColors[v * mVertexAttributes.color], sizeof(float32_t) * mVertexAttributes.color);
 					}
-					else // defaults to vec3 white color
+					else if (mVertexAttributes.color > 0) // defaults to vec3 white color
 					{
 						index = offset + mVertexAttributes.colorOffset();
 						::memcpy(&mVertexBuffer[index], defaultColor, sizeof(float32_t) * mVertexAttributes.color);
@@ -572,8 +580,8 @@ void glTF2Loader::Impl::ApplyFlagsOnNode(glTF2Loader::Impl::Node* pNode, uint32_
 {
 	if (pNode && (pNode->pMesh || pNode->children.size() > 0))
 	{
-		const bool preTransform = loadingFlags & FileLoadingFlags::PreTransformVertices;
-		const bool preMultiplyColor = loadingFlags & FileLoadingFlags::PreMultiplyVertexColors;
+		const bool preTransform = loadingFlags & LoadingFlags::GE_LF_TRANSFORM_POS;
+		const bool preMultiplyColor = loadingFlags & LoadingFlags::GE_LF_COLORED;
 
 		if (pNode->pMesh)
 		{

@@ -9,14 +9,12 @@ using namespace GraphicsEngine::Graphics;
 VertexBuffer::VertexBuffer()
 	: Buffer()
 	, mpFormat(nullptr)
-	, mVertexInputRate(VertexBuffer::VertexInputRate::GE_VIR_COUNT)
 	, mVertexCount(0)
 {}
 
-VertexBuffer::VertexBuffer(VertexFormat* pFormat, Buffer::BufferUsage usage, VertexBuffer::VertexInputRate vertexInputRate, void* pData, uint32_t size)
+VertexBuffer::VertexBuffer(VertexFormat* pFormat, Buffer::BufferUsage usage, void* pData, uint32_t size)
 	: Buffer(usage, pData, size)
 	, mpFormat(pFormat)
-	, mVertexInputRate(vertexInputRate)
 	, mVertexCount(0)
 {
 	Create(pData);
@@ -39,7 +37,6 @@ void VertexBuffer::Create(void* pData)
 void VertexBuffer::Destroy()
 {
 	mVertexCount = 0;
-	mVertexInputRate = VertexInputRate::GE_VIR_COUNT;
 	mpFormat = nullptr;
 	
 	Buffer::Destroy();
@@ -48,11 +45,6 @@ void VertexBuffer::Destroy()
 VertexFormat* VertexBuffer::GetFormat() const
 {
 	return mpFormat;
-}
-
-const VertexBuffer::VertexInputRate& VertexBuffer::GetVertexInputRate() const
-{
-	return mVertexInputRate;
 }
 
 const uint32_t& VertexBuffer::GetVertexCount() const

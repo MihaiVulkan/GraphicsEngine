@@ -23,7 +23,7 @@ namespace GraphicsEngine
 			explicit GADRUniformBuffer(Renderer* pRenderer, UniformBuffer* pUniformBuffer);
 			virtual ~GADRUniformBuffer();
 
-			void UpdateData(UniformBuffer* pUniformBuffer = nullptr);
+			void UpdateData();
 			
 			virtual void OnBind(uint32_t currentBufferIdx = 0) override;
 			virtual void OnUnBind(uint32_t currentBufferIdx = 0) override;

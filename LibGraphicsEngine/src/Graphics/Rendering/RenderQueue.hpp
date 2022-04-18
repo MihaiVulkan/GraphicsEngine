@@ -15,7 +15,6 @@ namespace GraphicsEngine
 		class Node;
 		class GeometryNode;
 		class LightNode;
-		class Material;
 
 		class RenderQueue : public Object
 		{
@@ -25,9 +24,6 @@ namespace GraphicsEngine
 			struct Renderable
 			{
 				GeometryNode* pGeometryNode;
-				Material* pMaterial;
-				//glm::mat4 modelTransform;
-				//float64_t distanceFromCamera;
 			};
 
 			enum class RenderableType : uint8_t
@@ -50,12 +46,14 @@ namespace GraphicsEngine
 			void Push(GeometryNode* pGeoNode);
 			void Push(LightNode* pLightNode);
 
-			const RenderQueue::RenderableCollection& GetRenderables(const RenderQueue::RenderableType& type) const;
-
 			void ForEach(const RenderQueue::RenderableCollection& renderables, std::function< void(const RenderQueue::Renderable*) > callback);
 			void ForEach(std::function< void(const LightNode*) > callback);
 
 
+			const RenderQueue::RenderableCollection& GetRenderables(const RenderQueue::RenderableType& type) const;
+
+			const std::vector<LightNode*>& GetLights() const;
+			bool_t HasLights() const;
 
 			Camera* GetCamera() const;
 			void SetCamera(Camera* pCamera);

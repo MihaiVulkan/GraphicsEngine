@@ -42,6 +42,8 @@ namespace GraphicsEngine
 
 			void Update(const std::vector<VkWriteDescriptorSet>& writeSet, const std::vector<VkCopyDescriptorSet>& copySet);
 
+			void Bind(VkCommandBuffer commandBufferHandle, VkPipelineBindPoint pipelineBindPoint, VkPipelineLayout pipelineLayoutHandle);
+
 			const uint32_t& GetId() const;
 			const VkDescriptorSet& GetHandle() const;
 			const std::vector<VulkanDescriptorSetLayout*>& GetLayouts() const;

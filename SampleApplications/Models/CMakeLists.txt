@@ -17,8 +17,6 @@ set(CMAKE_SUPPRESS_REGENERATION true)
 file(GLOB_RECURSE SOURCE_LIST
 	${PROJECT_SOURCE_DIR}/*.hpp
 	${PROJECT_SOURCE_DIR}/*.cpp
-	${PROJECT_SOURCE_DIR}/res/shaders/*.vert
-	${PROJECT_SOURCE_DIR}/res/shaders/*.frag
 	${PROJECT_SOURCE_DIR}/res/models/*.gltf
 )
 

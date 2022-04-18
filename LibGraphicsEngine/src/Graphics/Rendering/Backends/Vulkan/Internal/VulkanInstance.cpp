@@ -95,19 +95,15 @@ void VulkanInstance::Create(const char_t* pTitle)
 
 	if (mEnableValidation)
 	{
-		if (false == isAvailableLunarGValidationLayer)
-		{
-			LOG_WARNING("%s layer is not supported!", VK_VALIDATION_LAYER_LUNARG);
-		}
-		if (false == isAvailableKhronosValidationLayer)
-		{
-			LOG_WARNING("%s layer is not supported!", VK_VALIDATION_LAYER_KHRONOS);
-		}
-
 		if ((false == isAvailableLunarGValidationLayer) && (false == isAvailableKhronosValidationLayer))
 		{
 			LOG_ERROR("No validation layer is supported! Abort!");
 			return;
+		}
+		else
+		{
+			LOG_WARNING("%s layer is %s supported!", VK_VALIDATION_LAYER_LUNARG, isAvailableLunarGValidationLayer ? "" : "not");
+			LOG_WARNING("%s layer is %s supported!", VK_VALIDATION_LAYER_KHRONOS, isAvailableKhronosValidationLayer ? "" : "not");
 		}
 	}
 
@@ -227,7 +223,11 @@ void VulkanInstance::Create(const char_t* pTitle)
 	{
 		// The report flags determine what type of messages for the layers will be displayed
 		// For validating (debugging) an appplication the error and warning bits should suffice
-		VkDebugReportFlagsEXT debugReportFlags = VkDebugReportFlagBitsEXT::VK_DEBUG_REPORT_ERROR_BIT_EXT | VkDebugReportFlagBitsEXT::VK_DEBUG_REPORT_WARNING_BIT_EXT;
+		VkDebugReportFlagsEXT debugReportFlags =
+			VkDebugReportFlagBitsEXT::VK_DEBUG_REPORT_ERROR_BIT_EXT | VkDebugReportFlagBitsEXT::VK_DEBUG_REPORT_WARNING_BIT_EXT; // CRITICAL REPORTS 
+		//	| VkDebugReportFlagBitsEXT::VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT; // PEROFMANCE REPORTS
+		//	| VkDebugReportFlagBitsEXT::VK_DEBUG_REPORT_INFORMATION_BIT_EXT; // INFO REPORTS
+		//	| VkDebugReportFlagBitsEXT::VK_DEBUG_REPORT_DEBUG_BIT_EXT; // DEBUG REPORTS
 		// Additional flags include performance info, loader and layer debug messages, etc.
 		VulkanDebug::SetupDebugging(mHandle, debugReportFlags, VK_NULL_HANDLE);
 

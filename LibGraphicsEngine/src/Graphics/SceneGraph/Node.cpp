@@ -220,18 +220,16 @@ void Node::SetIsEnabled(bool_t isEnabled)
 	mIsEnabled = isEnabled;
 }
 
-void Node::SetAllowedPasses(const std::unordered_set<ScenePass::PassType>& allowedPasses)
+void Node::AddAllowedPass(VisualPass::PassType passType)
 {
-	assert(allowedPasses.empty() == false);
-
-	mAllowedPasses = allowedPasses;
-
-	OnSetAllowedPasses();
+	mAllowedPasses.insert(passType);
 }
 
-bool_t Node::IsPassAllowed(ScenePass::PassType pass) const
+bool_t Node::IsPassAllowed(VisualPass::PassType passType) const
 {
-	return mAllowedPasses.find(pass) != mAllowedPasses.end();
+	assert(passType < VisualPass::PassType::GE_PT_COUNT);
+
+	return mAllowedPasses.find(passType) != mAllowedPasses.end();
 }
 
 const glm::mat4& Node::GetModelMatrix() const

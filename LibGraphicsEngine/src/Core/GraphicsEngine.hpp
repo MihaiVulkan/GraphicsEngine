@@ -24,19 +24,30 @@
 #include "Graphics/Rendering/PipelineStates/ColorBlendState.hpp"
 #include "Graphics/Rendering/PipelineStates/DynamicState.hpp"
 
-#include "Graphics/Rendering/ScenePasses/StandardScenePass.hpp"
-#include "Graphics/Rendering/ScenePasses/OffscreenScenePass.hpp"
-#include "Graphics/Rendering/ScenePasses/CompositeScenePass.hpp"
+#include "Graphics/Rendering/VisualEffects/VisualEffect.hpp"
+// Unlit effects
+#include "Graphics/Rendering/VisualEffects/UnlitEffects/UnlitColorAttributeVisualEffect.hpp"
+#include "Graphics/Rendering/VisualEffects/UnlitEffects/UnlitColorVisualEffect.hpp"
+#include "Graphics/Rendering/VisualEffects/UnlitEffects/Unlit2DTextureVisualEffect.hpp"
+#include "Graphics/Rendering/VisualEffects/UnlitEffects/Unlit2DTextureArrayVisualEffect.hpp"
+#include "Graphics/Rendering/VisualEffects/UnlitEffects/UnlitCubemapTextureVisualEffect.hpp"
+// Lit effects
+#include "Graphics/Rendering/VisualEffects/LitEffects/LitColorAttributeVisualEffect.hpp"
+#include "Graphics/Rendering/VisualEffects/LitEffects/LitColorVisualEffect.hpp"
+#include "Graphics/Rendering/VisualEffects/LitEffects/Lit2DTextureVisualEffect.hpp"
+#include "Graphics/Rendering/VisualEffects/LitEffects/LitEnvironmentMappingTextureVisualEffect.hpp"
+#include "Graphics/Rendering/VisualEffects/LitEffects/LitMirrorTextureVisualEffect.hpp"
+#include "Graphics/Rendering/VisualEffects/LitEffects/LitShadowColorAttributeVisualEffect.hpp"
 
 #include "Graphics/Loaders/KTX2Loader.hpp"
 #include "Graphics/Loaders/glTF2Loader.hpp"
 
 #include "Graphics/GeometricPrimitives/GeometricPrimitive.hpp"
 #include "Graphics/Lights/DirectionalLight.hpp"
+#include "Graphics/Lights/PointLight.hpp"
 
 #include "Graphics/Components/NodeComponent.hpp"
 #include "Graphics/Components/VisualComponent.hpp"
-#include "Graphics/Components/MaterialComponent.hpp"
 
 #include "Graphics/SceneGraph/Node.hpp"
 #include "Graphics/SceneGraph/GroupNode.hpp"

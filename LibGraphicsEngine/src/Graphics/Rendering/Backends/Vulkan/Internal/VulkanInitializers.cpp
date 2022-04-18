@@ -1139,8 +1139,8 @@ namespace GraphicsEngine
 				{
 					pipelineColorBlendStateCreateInfo.pAttachments = GE_ALLOC_ARRAY(VkPipelineColorBlendAttachmentState, attachmentCount); //TODO - solve memory leak, so this alocations are freed!
 					::memcpy((void*)pipelineColorBlendStateCreateInfo.pAttachments, pAttachments, attachmentCount * sizeof(VkPipelineColorBlendAttachmentState));
+					::memcpy(pipelineColorBlendStateCreateInfo.blendConstants, blendConstants, 4 * sizeof(float32_t));
 				}
-				::memcpy(pipelineColorBlendStateCreateInfo.blendConstants, blendConstants, 4 * sizeof(float32_t));
 
 				return pipelineColorBlendStateCreateInfo;
 			}

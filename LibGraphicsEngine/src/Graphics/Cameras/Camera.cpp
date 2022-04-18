@@ -50,14 +50,14 @@ void Camera::UpdateViewMatrix()
 
 void Camera::UpdatePerspectiveProjectionMatrix()
 {
-	assert(mFOVy > 0);
-	assert(mAspectRatio > 0);
-	assert(mZNear > 0);
-	assert(mZFar > 0);
+	assert(mFOVy > 0.0f);
+	assert(mAspectRatio > 0.0f);
+	assert(mZNear > 0.0f);
+	assert(mZFar > 0.0f);
 
 	float correctionFactor = ComputePerspectiveProjectionCorrectionFactor();
 
-	mProjection = glm::perspective(glm::radians(static_cast<float32_t>(mFOVy)), mAspectRatio,
+	mProjection = glm::perspective(glm::radians(mFOVy), mAspectRatio,
 		mZNear * correctionFactor, mZFar * correctionFactor);
 
 	//#if defined(RIGHT_HAND_COORDINATES)
@@ -104,12 +104,12 @@ float Camera::ComputePerspectiveProjectionCorrectionFactor() const
 	return cameraAltitude;
 }
 
-void Camera::UpdatePerspectiveProjectionMatrix(int32_t fovy, float32_t aspect, float32_t zNear, float32_t zFar)
+void Camera::UpdatePerspectiveProjectionMatrix(float32_t fovy, float32_t aspect, float32_t zNear, float32_t zFar)
 {
-	assert(fovy > 0);
-	assert(aspect > 0);
-	assert(zNear > 0);
-	assert(zFar > 0);
+	assert(fovy > 0.0f);
+	assert(aspect > 0.0f);
+	assert(zNear > 0.0f);
+	assert(zFar > 0.0f);
 
 	mFOVy = fovy;
 	mAspectRatio = aspect;
@@ -121,8 +121,8 @@ void Camera::UpdatePerspectiveProjectionMatrix(int32_t fovy, float32_t aspect, f
 
 void Camera::UpdateOrthographicProjectionMatrix(float32_t left, float32_t right, float32_t bottom, float32_t top, float32_t zNear, float32_t zFar)
 {
-	assert(zNear > 0);
-	assert(zFar > 0);
+	assert(zNear > 0.0f);
+	assert(zFar > 0.0f);
 
 	// NOTE! No FOV for the ortho projection
 	LOG_INFO("No FOV is used for the ortho projection! It remains unchanged!");
@@ -174,7 +174,7 @@ const glm::vec3& Camera::GetUp() const
 	return mUp;
 }
 
-int Camera::GetFOV() const
+float32_t Camera::GetFOV() const
 {
 	return mFOVy;
 }
@@ -234,7 +234,7 @@ void Camera::SetUp(const glm::vec3& up)
 	mUp = up;
 }
 
-void Camera::SetFOV(int32_t fov)
+void Camera::SetFOV(float32_t fov)
 {
 	mFOVy = fov;
 }

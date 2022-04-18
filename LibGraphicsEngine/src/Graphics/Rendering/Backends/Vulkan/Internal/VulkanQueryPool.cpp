@@ -66,6 +66,7 @@ void VulkanQueryPool::EndQuery(VkCommandBuffer commandBufferHandle)
 
 void VulkanQueryPool::ResetQuery(VkCommandBuffer commandBufferHandle, uint32_t queryCount)
 {
+	//TODO
 	//vkResetQueryPool(mpDevice->GetDeviceHandle(), mHandle, QUERY_ID, queryCount);
 
 	vkCmdResetQueryPool(commandBufferHandle, mHandle, QUERY_ID, queryCount);

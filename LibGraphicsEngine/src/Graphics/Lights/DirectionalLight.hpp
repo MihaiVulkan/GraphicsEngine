@@ -15,20 +15,18 @@ namespace GraphicsEngine
 
 		public:
 			DirectionalLight();
-			explicit DirectionalLight(const glm::vec3& dir, const glm::vec3& color);
+			explicit DirectionalLight(const glm::vec3& dir, const Color3f& color);
 			virtual ~DirectionalLight();
 
 			virtual const glm::vec3& GetDirection() const override;
 			virtual void SetDirection(const glm::vec3& dir) override;
 
-			virtual const glm::vec3& GetColor() const override;
-			virtual void SetColor(const glm::vec3& color) override;
-
 		private:
 			NO_COPY_NO_MOVE_CLASS(DirectionalLight)
 
+			virtual void ComputeLightPVM() override;
+
 			glm::vec3 mDirection;
-			glm::vec3 mColor;
 		};
 	}
 }

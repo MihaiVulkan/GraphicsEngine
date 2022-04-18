@@ -19,15 +19,15 @@ namespace GraphicsEngine
 				enum class TargetType : uint8_t
 				{
 					GE_TT_COLOR,
+					GE_TT_DEPTH,
 					GE_TT_DEPTH_STENCIL,
 					GE_TT_COUNT
 				};
 
 				enum class TargetOutput : uint8_t
 				{
-					GE_TO_RENDER = 0,
-					GE_TO_TEXTURE,
-					GE_TO_RENDER_TEXTURE,
+					GE_TO_RENDER = 0, // RT used for rendering, but no sampling in shader
+					GE_TO_RENDER_SAMPLING, // RT used for rendering and sampling in shader
 					GE_TO_COUNT
 				};
 
@@ -35,7 +35,7 @@ namespace GraphicsEngine
 				explicit RenderTarget(RenderTarget::TargetType type, RenderTarget::TargetOutput output, uint32_t width, uint32_t height, bool_t isFloatData = false);
 				virtual ~RenderTarget();
 
-				const RenderTarget::TargetType& GetType() const;
+				const RenderTarget::TargetType& GetTargetType() const;
 				const RenderTarget::TargetOutput& GetOutput() const;
 
 				uint32_t GetWidth() const;
@@ -47,7 +47,7 @@ namespace GraphicsEngine
 			void Create();
 			void Destroy();
 
-			TargetType mType;
+			TargetType mTargetType;
 			TargetOutput mOutput;
 			Texture2D* mpTexture;
 			uint32_t mWidth, mHeight;

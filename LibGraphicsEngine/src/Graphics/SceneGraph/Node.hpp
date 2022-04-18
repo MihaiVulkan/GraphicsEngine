@@ -3,7 +3,8 @@
 
 #include "Foundation/Object.hpp"
 #include "Graphics/SceneGraph/Visitors/NodeVisitor.hpp"
-#include "Graphics/Rendering/ScenePasses/ScenePass.hpp"
+//#include "Graphics/Rendering/ScenePasses/ScenePass.hpp"
+#include "Graphics/Rendering/VisualPasses/VisualPass.hpp"
 #include "glm/mat3x3.hpp"
 #include "glm/mat4x4.hpp"
 #include <string>
@@ -72,23 +73,20 @@ namespace GraphicsEngine
 			bool_t GetIsEnabled() const;
 			void SetIsEnabled(bool_t isEnabled);
 
-			void SetAllowedPasses(const std::unordered_set<ScenePass::PassType>& allowedPasses);
-			bool_t IsPassAllowed(ScenePass::PassType pass) const;
+			void AddAllowedPass(VisualPass::PassType passType);
+			bool_t IsPassAllowed(VisualPass::PassType passType) const;
 
 			const glm::mat4& GetModelMatrix() const;
 			void SetModelMatrix(const glm::mat4& transform);
 			const glm::mat4& GetNormalMatrix() const;
 			void ComputeNormalMatrix();
-		
-			////////
-			virtual void OnSetAllowedPasses() {}
 
 			///////// Visitor Pattern ///////
 			virtual void Traverse(NodeVisitor& visitor);
 			virtual void Accept(NodeVisitor& visitor);
 				
 		protected:
-			std::unordered_set<ScenePass::PassType> mAllowedPasses;
+			std::unordered_set<VisualPass::PassType> mAllowedPasses;
 
 		private:
 

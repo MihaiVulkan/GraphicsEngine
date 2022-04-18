@@ -18,7 +18,7 @@ namespace GraphicsEngine
 
 		public:
 			Model();
-			explicit Model(const std::string& filePath, uint32_t loadingFlags = glTF2Loader::FileLoadingFlags::None);
+			explicit Model(const std::string& filePath, uint32_t loadingFlags = glTF2Loader::LoadingFlags::GE_LF_DEFAULT);
 			virtual ~Model();
 
 			void Draw(std::function<void(uint32_t indexCount, uint32_t firstIndex)> onDrawCB);

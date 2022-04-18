@@ -112,7 +112,7 @@ namespace GraphicsEngine
 
 			virtual void UpdateViewMatrix();
 			virtual void UpdatePerspectiveProjectionMatrix();
-			virtual void UpdatePerspectiveProjectionMatrix(int32_t fovy, float32_t aspect, float32_t zNear, float32_t zFar);
+			virtual void UpdatePerspectiveProjectionMatrix(float32_t fovy, float32_t aspect, float32_t zNear, float32_t zFar);
 			virtual void UpdateOrthographicProjectionMatrix(float32_t left, float32_t right, float32_t bottom, float32_t top, float32_t zNear, float32_t zFar);
 
 			//// Getters ////
@@ -124,7 +124,7 @@ namespace GraphicsEngine
 			const glm::vec3& GetRight() const;
 			const glm::vec3& GetUp() const;
 
-			int32_t GetFOV() const;
+			float32_t GetFOV() const;
 
 			float32_t GetAspectRatio() const;
 
@@ -143,7 +143,7 @@ namespace GraphicsEngine
 			void SetRight(const glm::vec3& right);
 			void SetUp(const glm::vec3& up);
 
-			void SetFOV(int32_t fov);
+			void SetFOV(float32_t fov);
 			void ResetFOV();
 
 			void SetAspectRatio(float32_t aspectRatio);
@@ -194,7 +194,7 @@ namespace GraphicsEngine
 			glm::mat4 mProjectionView; // world -> clip
 
 			// Projection
-			int32_t mFOVy, mInitialFOVy;
+			float32_t mFOVy, mInitialFOVy;
 			float32_t mAspectRatio;
 			float32_t mZNear;
 			float32_t mZFar;

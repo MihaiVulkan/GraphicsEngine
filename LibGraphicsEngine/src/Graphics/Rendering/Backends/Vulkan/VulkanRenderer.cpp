@@ -7,7 +7,7 @@
 
 #include "Graphics/Rendering/RenderQueue.hpp"
 
-#include "Graphics/GeometricPrimitives/GeometricPrimitive.hpp"
+
 #include "Graphics/SceneGraph/GeometryNode.hpp"
 #include "Graphics/SceneGraph/LightNode.hpp"
 #include "Graphics/Lights/DirectionalLight.hpp"
@@ -15,6 +15,9 @@
 
 #include "Graphics/Components/VisualComponent.hpp"
 #include "Graphics/Components/MaterialComponent.hpp"
+
+#include "Graphics/Rendering/VisualEffects/VisualEffect.hpp"
+
 
 #include "Graphics/Rendering/Resources/Texture.hpp"
 #include "Graphics/Rendering/Resources/RenderTarget.hpp"
@@ -44,6 +47,7 @@
 #include "Graphics/Rendering/Backends/Vulkan/Internal/VulkanDevice.hpp"
 #include "Graphics/Rendering/Backends/Vulkan/Internal/VulkanQueue.hpp"
 #include "Graphics/Rendering/Backends/Vulkan/Internal/VulkanBuffer.hpp"
+#include "Graphics/Rendering/Backends/Vulkan/Internal/VulkanImage.hpp"
 #include "Graphics/Rendering/Backends/Vulkan/Internal/VulkanCommandPool.hpp"
 #include "Graphics/Rendering/Backends/Vulkan/Internal/VulkanCommandBuffer.hpp"
 #include "Graphics/Rendering/Backends/Vulkan/Internal/VulkanFrameBuffer.hpp"
@@ -52,6 +56,10 @@
 #include "Graphics/Rendering/Backends/Vulkan/Internal/VulkanSemaphore.hpp"
 #include "Graphics/Rendering/Backends/Vulkan/Internal/VulkanFence.hpp"
 #include "Graphics/Rendering/Backends/Vulkan/Internal/VulkanShaderModule.hpp"
+#include "Graphics/Rendering/Backends/Vulkan/Internal/VulkanBuffer.hpp"
+#include "Graphics/Rendering/Backends/Vulkan/Internal/VulkanBufferView.hpp"
+#include "Graphics/Rendering/Backends/Vulkan/Internal/VulkanImage.hpp"
+#include "Graphics/Rendering/Backends/Vulkan/Internal/VulkanImageView.hpp"
 #include "Graphics/Rendering/Backends/Vulkan/Internal/VulkanDescriptorPool.hpp"
 #include "Graphics/Rendering/Backends/Vulkan/Internal/VulkanDescriptorSetLayout.hpp"
 #include "Graphics/Rendering/Backends/Vulkan/Internal/VulkanDescriptorSet.hpp"
@@ -63,8 +71,6 @@
 #include "Graphics/Rendering/Backends/Vulkan/Internal/VulkanHelpers.hpp"
 #include "Graphics/Rendering/Backends/Vulkan/Internal/VulkanDebug.hpp"
 
-#include <unordered_map>
-
 //#define PIPELINE_STATS
 
 using namespace GraphicsEngine;
@@ -73,14 +79,12 @@ using namespace GraphicsEngine::Graphics;
 VulkanRenderer::VulkanRenderer()
 	: Renderer()
 	, mpDevice(nullptr)
-	, mpScenePass(nullptr)
 	, mpRenderCompleteSemaphore(nullptr)
 	, mpPresentCompleteSemaphore(nullptr)
 	, mpCommandPool(nullptr)
 	, mCurrentBufferIdx(0) 
 	, mSubmitInfo{}
 	, mpPipelineCache(nullptr)
-	, mpQueryPool(nullptr)
 {}
 
 VulkanRenderer::VulkanRenderer(Platform::Window* pWindow)
@@ -92,7 +96,6 @@ VulkanRenderer::VulkanRenderer(Platform::Window* pWindow)
 	, mCurrentBufferIdx(0)
 	, mSubmitInfo{}
 	, mpPipelineCache(nullptr)
-	, mpQueryPool(nullptr)
 {
 	Init(pWindow);
 }
@@ -130,60 +133,36 @@ void VulkanRenderer::Terminate()
 
 	Renderer::Terminate();
 
-	//////////
-	// pipeline objects
-	for (auto iter = mPipelineDataCollection.begin(); iter != mPipelineDataCollection.end(); ++iter)
-	{
-		auto& pipelineDataVector = iter->second;
-		for (auto& ref : pipelineDataVector)
-		{
-			GE_FREE(ref.pPipelineLayout);
-			GE_FREE(ref.pGraphicsPipeline);
-			ref.pVisualComponent = nullptr;
-		}
-	}
-	mPipelineDataCollection.clear();
-
-	// descriptor set objects
-	for (auto iter = mDescriptorSetDataCollection.begin(); iter != mDescriptorSetDataCollection.end(); ++iter)
-	{
-		auto& refVector = iter->second;
-		for (auto& ref : refVector)
-		{
-			GE_FREE(ref.pDescriptorSetLayout);
-			GE_FREE(ref.pDescriptorSet);
-			ref.pVisualComponent = nullptr;
-		}
-		refVector.clear();
-	}
-	mDescriptorSetDataCollection.clear();
-
-	// descriptor pools
-	for (auto iter = mpDescriptorPoolMap.begin(); iter != mpDescriptorPoolMap.end(); ++iter)
-	{
-		auto& refVector = iter->second;
-		for (auto& ref : refVector)
-		{
-			GE_FREE(ref.pDescriptorPool);
-			ref.pVisualComponent = nullptr;
-		}
-		refVector.clear();
-	}
-	mpDescriptorPoolMap.clear();
-
-	/////////////
-
-
-
 #ifdef PIPELINE_STATS
-	GE_FREE(mpQueryPool);
+	for (auto& it : mPipelineStatsMap)
+	{
+		auto& psBuff = it.second;
+
+		GE_FREE(psBuff.pQueryPool);
+		psBuff.pipelineStats.clear();
+		psBuff.pipelineStatNames.clear();
+	}
+	mPipelineStatsMap.clear();
 #endif
+
+	for (auto& it : mVisualPassMap)
+	{
+		auto& rpBuff = it.second;
+
+		GE_FREE(rpBuff.pRenderPass);
+		for (auto& fb : rpBuff.frameBuffers)
+		{
+			GE_FREE(fb);
+		}
+	}
+	mVisualPassMap.clear();
 
 	// draw command buffers
 	for (auto& commandBufferRef : mDrawCommandBuffers)
 	{
 		GE_FREE(commandBufferRef);
 	}
+	mDrawCommandBuffers.clear();
 
 	GE_FREE(mpCommandPool);
 
@@ -197,8 +176,7 @@ void VulkanRenderer::Terminate()
 	{
 		GE_FREE(fence);
 	}
-
-	GE_FREE(mpScenePass);
+	mWaitFences.clear();
 
 	GE_FREE(mpDevice);
 }
@@ -210,9 +188,6 @@ void VulkanRenderer::Prepare()
 
 	// All these general resources should be managed by the renderer or the Device itself!
 
-	mpScenePass = GE_ALLOC(VulkanScenePass)(this);
-	assert(mpScenePass != nullptr);
-
 	SetupDrawCommandPool();
 
 	SetupDrawCommandBuffers();
@@ -222,8 +197,6 @@ void VulkanRenderer::Prepare()
 	SetupPipelineCache();
 
 	SetupSubmitInfo();
-
-	SetupPipelineStats();
 
 	mIsPrepared = true;
 }
@@ -242,7 +215,6 @@ void VulkanRenderer::OnWindowResize(uint32_t width, uint32_t height)
 		mWindowHeight = height;
 
 	assert(mpDevice != nullptr);
-	assert(mpScenePass != nullptr);
 
 	// Ensure all operations on the device have been finished before destroying resources
 	mpDevice->WaitIdle();
@@ -250,7 +222,7 @@ void VulkanRenderer::OnWindowResize(uint32_t width, uint32_t height)
 	// Recreate swap chain
 	mpDevice->ResetSwapChain();
 
-	mpScenePass->Reset();
+	//TODO - re-init framebuffers !!!
 
 	// Command buffers need to be recreated as they may store
 	// references to the recreated frame buffer
@@ -301,6 +273,357 @@ void VulkanRenderer::SetupDrawCommandBuffers()
 			VkCommandBufferLevel::VK_COMMAND_BUFFER_LEVEL_PRIMARY
 		);
 		assert(commandBufferRef != nullptr);
+	}
+}
+
+VulkanRenderPass* VulkanRenderer::SetupRenderPass(VisualPass* pVisualPass)
+{
+	assert(pVisualPass != nullptr);
+	assert(mpDevice != nullptr);
+
+	/*
+		In a standard render pass we have the following:
+		- 1 color attachement
+		- 1 depth + stencil attachment
+		- 1 subpass
+	*/
+
+	VulkanRenderPass* pRenderPass = nullptr;
+
+	VkFormat colorFormat, depthFormat;
+	switch (pVisualPass->GetPassType())
+	{
+		case VisualPass::PassType::GE_PT_STANDARD:
+		{
+			// NOTE! In this case the color and depth formats are the one used by the swapchain buffers as well !!!
+			colorFormat = mpDevice->GetSurfaceFormat().format;
+			depthFormat = mpDevice->GetDepthStencilFormat();
+		} break;
+		case VisualPass::PassType::GE_PT_OFFSCREEN:
+		{
+			auto* pColorRT = pVisualPass->GetRenderTarget(RenderTarget::TargetType::GE_TT_COLOR);
+			if (pColorRT)
+			{
+				colorFormat = VulkanUtils::TextureFormatToVulkanFormat(pColorRT->GetTexture()->GetMetaData().format);
+			}
+			auto* pDepthRT = pVisualPass->GetRenderTarget(RenderTarget::TargetType::GE_TT_DEPTH_STENCIL);
+			if (pDepthRT)
+			{
+				depthFormat = VulkanUtils::TextureFormatToVulkanFormat(pDepthRT->GetTexture()->GetMetaData().format);
+			}
+		} break;
+		case VisualPass::PassType::GE_PT_SHADOWS:
+		{
+			auto* pDepthRT = pVisualPass->GetRenderTarget(RenderTarget::TargetType::GE_TT_DEPTH);
+			if (pDepthRT)
+			{
+				depthFormat = VulkanUtils::TextureFormatToVulkanFormat(pDepthRT->GetTexture()->GetMetaData().format);
+			}
+		}
+		break;
+		case VisualPass::PassType::GE_PT_COUNT:
+		default:
+			LOG_ERROR("Invalid visual pass type!");
+			return pRenderPass;
+	}
+
+	if (pVisualPass->GetPassType() == VisualPass::PassType::GE_PT_STANDARD ||
+		pVisualPass->GetPassType() == VisualPass::PassType::GE_PT_OFFSCREEN)
+	{
+		VkAttachmentDescription colorAttachment{};
+		colorAttachment.format = colorFormat;
+		colorAttachment.samples = MIN_NUM_SAMPLES; // use at least 1 sample
+		colorAttachment.loadOp = VkAttachmentLoadOp::VK_ATTACHMENT_LOAD_OP_CLEAR; //clear color attachment on new frame
+		colorAttachment.storeOp = VkAttachmentStoreOp::VK_ATTACHMENT_STORE_OP_STORE; //store the color attachment in memory
+		colorAttachment.stencilLoadOp = VkAttachmentLoadOp::VK_ATTACHMENT_LOAD_OP_DONT_CARE; //color att, so we don't care avout the stencil op
+		colorAttachment.stencilStoreOp = VkAttachmentStoreOp::VK_ATTACHMENT_STORE_OP_DONT_CARE; //color att, so we don't care avout the stencil op
+		colorAttachment.initialLayout = VkImageLayout::VK_IMAGE_LAYOUT_UNDEFINED; // we don't care of the previous layout the image was in
+		// the image needs to be presented to the swapchain or read from the shader
+		colorAttachment.finalLayout = (pVisualPass->GetPassType() == VisualPass::PassType::GE_PT_STANDARD ?
+			VkImageLayout::VK_IMAGE_LAYOUT_PRESENT_SRC_KHR : VkImageLayout::VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
+		VkAttachmentDescription depthStencilAttachment{};
+		depthStencilAttachment.format = depthFormat;
+		depthStencilAttachment.samples = MIN_NUM_SAMPLES; // use at least 1 sample
+		depthStencilAttachment.loadOp = VkAttachmentLoadOp::VK_ATTACHMENT_LOAD_OP_CLEAR; //clear depth attachement on new frame
+		depthStencilAttachment.storeOp = VkAttachmentStoreOp::VK_ATTACHMENT_STORE_OP_STORE; //store the depth attachment on new frame
+		depthStencilAttachment.stencilLoadOp = VkAttachmentLoadOp::VK_ATTACHMENT_LOAD_OP_DONT_CARE; // we don't care about stencil, only depth
+		depthStencilAttachment.stencilStoreOp = VkAttachmentStoreOp::VK_ATTACHMENT_STORE_OP_DONT_CARE; // we don't care about stencil, only depth
+		depthStencilAttachment.initialLayout = VkImageLayout::VK_IMAGE_LAYOUT_UNDEFINED;  // we don't care of the previous layout the image was in
+		depthStencilAttachment.finalLayout = VkImageLayout::VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL; // we just need depth/stencil buffer without sampling it in shader
+
+		VkAttachmentReference colorReference;
+		colorReference.attachment = COLOR_ATT;
+		colorReference.layout = VkImageLayout::VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+		VkAttachmentReference depthStencilReference;
+		depthStencilReference.attachment = DEPTH_ATT;
+		depthStencilReference.layout = VkImageLayout::VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
+		// subPasses
+		VkSubpassDescription subPass{};
+		subPass.pipelineBindPoint = VkPipelineBindPoint::VK_PIPELINE_BIND_POINT_GRAPHICS;
+		subPass.colorAttachmentCount = 1;
+		subPass.pColorAttachments = &colorReference;
+		subPass.pDepthStencilAttachment = &depthStencilReference;
+
+		VkSubpassDependency subPassDep_1;
+		subPassDep_1.srcSubpass = VK_SUBPASS_EXTERNAL;
+		subPassDep_1.dstSubpass = SUBPASS_ID;
+
+		VkSubpassDependency subPassDep_2;
+		subPassDep_2.srcSubpass = SUBPASS_ID;
+		subPassDep_2.dstSubpass = VK_SUBPASS_EXTERNAL;
+
+		if (pVisualPass->GetPassType() == VisualPass::PassType::GE_PT_STANDARD)
+		{
+			subPassDep_1.srcStageMask = VkPipelineStageFlagBits::VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+			subPassDep_1.dstStageMask = VkPipelineStageFlagBits::VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+			subPassDep_1.srcAccessMask = VkAccessFlagBits::VK_ACCESS_MEMORY_READ_BIT;
+			subPassDep_1.dstAccessMask = VkAccessFlagBits::VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VkAccessFlagBits::VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+			subPassDep_1.dependencyFlags = VkDependencyFlagBits::VK_DEPENDENCY_BY_REGION_BIT;
+
+			subPassDep_2.srcStageMask = VkPipelineStageFlagBits::VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+			subPassDep_2.dstStageMask = VkPipelineStageFlagBits::VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+			subPassDep_2.srcAccessMask = VkAccessFlagBits::VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VkAccessFlagBits::VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+			subPassDep_2.dstAccessMask = VkAccessFlagBits::VK_ACCESS_MEMORY_READ_BIT;
+			subPassDep_2.dependencyFlags = VkDependencyFlagBits::VK_DEPENDENCY_BY_REGION_BIT;
+		}
+		else  // offscreen
+		{
+			subPassDep_1.srcStageMask = VkPipelineStageFlagBits::VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+			subPassDep_1.dstStageMask = VkPipelineStageFlagBits::VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+			subPassDep_1.srcAccessMask = VkAccessFlagBits::VK_ACCESS_SHADER_READ_BIT;
+			subPassDep_1.dstAccessMask = VkAccessFlagBits::VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+			subPassDep_1.dependencyFlags = VkDependencyFlagBits::VK_DEPENDENCY_BY_REGION_BIT;
+
+			subPassDep_2.srcStageMask = VkPipelineStageFlagBits::VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+			subPassDep_2.dstStageMask = VkPipelineStageFlagBits::VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+			subPassDep_2.srcAccessMask = VkAccessFlagBits::VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VkAccessFlagBits::VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+			subPassDep_2.dstAccessMask = VkAccessFlagBits::VK_ACCESS_SHADER_READ_BIT;
+			subPassDep_2.dependencyFlags = VkDependencyFlagBits::VK_DEPENDENCY_BY_REGION_BIT;
+		}
+
+		pRenderPass = GE_ALLOC(VulkanRenderPass)(mpDevice, { colorAttachment, depthStencilAttachment }, { subPass }, { subPassDep_1, subPassDep_2 });
+	}
+	else if (pVisualPass->GetPassType() == VisualPass::PassType::GE_PT_SHADOWS)
+	{
+		VkAttachmentDescription depthStencilAttachment{};
+		depthStencilAttachment.format = depthFormat;
+		depthStencilAttachment.samples = MIN_NUM_SAMPLES; // use at least 1 sample
+		depthStencilAttachment.loadOp = VkAttachmentLoadOp::VK_ATTACHMENT_LOAD_OP_CLEAR; //clear depth attachement on new frame
+		depthStencilAttachment.storeOp = VkAttachmentStoreOp::VK_ATTACHMENT_STORE_OP_STORE; //store the depth attachment on new frame
+		depthStencilAttachment.stencilLoadOp = VkAttachmentLoadOp::VK_ATTACHMENT_LOAD_OP_DONT_CARE; // we don't care about stencil, only depth
+		depthStencilAttachment.stencilStoreOp = VkAttachmentStoreOp::VK_ATTACHMENT_STORE_OP_DONT_CARE; // we don't care about stencil, only depth
+		depthStencilAttachment.initialLayout = VkImageLayout::VK_IMAGE_LAYOUT_UNDEFINED;  // we don't care of the previous layout the image was in
+		depthStencilAttachment.finalLayout = VkImageLayout::VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL; // Attachment will be transitioned to shader read at render pass end
+
+		VkAttachmentReference depthStencilReference;
+		depthStencilReference.attachment = 0; //TODO
+		depthStencilReference.layout = VkImageLayout::VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
+		// subPasses
+		VkSubpassDescription subPass{};
+		subPass.pipelineBindPoint = VkPipelineBindPoint::VK_PIPELINE_BIND_POINT_GRAPHICS;
+		subPass.colorAttachmentCount = 0; // no color attachmnent, only depth
+		subPass.pColorAttachments = nullptr;
+		subPass.pDepthStencilAttachment = &depthStencilReference;
+
+		VkSubpassDependency subPassDep_1;
+		subPassDep_1.srcSubpass = VK_SUBPASS_EXTERNAL;
+		subPassDep_1.dstSubpass = SUBPASS_ID;
+
+		subPassDep_1.srcStageMask = VkPipelineStageFlagBits::VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+		subPassDep_1.dstStageMask = VkPipelineStageFlagBits::VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+		subPassDep_1.srcAccessMask = VkAccessFlagBits::VK_ACCESS_SHADER_READ_BIT;
+		subPassDep_1.dstAccessMask = VkAccessFlagBits::VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+		subPassDep_1.dependencyFlags = VkDependencyFlagBits::VK_DEPENDENCY_BY_REGION_BIT;
+
+		VkSubpassDependency subPassDep_2;
+		subPassDep_2.srcSubpass = SUBPASS_ID;
+		subPassDep_2.dstSubpass = VK_SUBPASS_EXTERNAL;
+
+		subPassDep_2.srcStageMask = VkPipelineStageFlagBits::VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+		subPassDep_2.dstStageMask = VkPipelineStageFlagBits::VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+		subPassDep_2.srcAccessMask = VkAccessFlagBits::VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+		subPassDep_2.dstAccessMask = VkAccessFlagBits::VK_ACCESS_SHADER_READ_BIT;
+		subPassDep_2.dependencyFlags = VkDependencyFlagBits::VK_DEPENDENCY_BY_REGION_BIT;
+
+		pRenderPass = GE_ALLOC(VulkanRenderPass)(mpDevice, { depthStencilAttachment }, { subPass }, { subPassDep_1, subPassDep_2 });
+	}
+
+	assert(pRenderPass != nullptr);
+
+	return pRenderPass;
+}
+
+void VulkanRenderer::SetupFrameBuffers(VisualPass* pVisualPass, VulkanRenderPass* pRenderPass, std::vector<VulkanFrameBuffer*>& frameBuffersOut,
+	VisualPassBeginData& visualPassBeginDataOut)
+{
+	assert(pVisualPass != nullptr);
+	assert(pRenderPass != nullptr);
+	assert(mpDevice != nullptr);
+
+	frameBuffersOut.clear();
+
+	// prepare color + depth image views as attachments for the framebuffer
+	std::vector<VkImageView> frameBufferAttachments;
+	VkExtent2D extent;
+
+	//NOTE! Currently Depth attachment is supported by default
+
+	switch (pVisualPass->GetPassType())
+	{
+		case VisualPass::PassType::GE_PT_STANDARD:
+		{
+			assert(GetWindowWidth() > 0);
+			assert(GetWindowHeight() > 0);
+
+			// color
+			auto& colorBuffers = mpDevice->GetSwapChainColorBuffers();
+			assert(colorBuffers.empty() == false);
+
+			// depth stencil
+			auto* pDepthStencilBuffer = mpDevice->GetSwapChainDepthStencilBuffer();
+			assert(pDepthStencilBuffer != nullptr);
+
+			// Create one frame buffer for each swap chain image and reuse for rendering
+			frameBuffersOut.resize(colorBuffers.size());
+			frameBufferAttachments.resize(ATT_COUNT * frameBuffersOut.size());
+
+			for (uint32_t i = 0; i < frameBuffersOut.size(); ++i)
+			{
+				uint32_t idx = i * ATT_COUNT;
+				frameBufferAttachments[idx + COLOR_ATT] = colorBuffers[i]->GetImageViewHandle();
+				frameBufferAttachments[idx + DEPTH_ATT] = pDepthStencilBuffer->GetImageViewHandle();;
+			}
+
+			extent.width = GetWindowWidth();
+			extent.height = GetWindowHeight();
+
+			visualPassBeginDataOut.width = extent.width;
+			visualPassBeginDataOut.height = extent.height;
+			visualPassBeginDataOut.depth = 1.0f;
+			visualPassBeginDataOut.stencil = 0;
+			//TODO - clear color
+
+		assert(frameBuffersOut.size() == frameBufferAttachments.size() / ATT_COUNT);
+
+		for (uint32_t i = 0; i < frameBuffersOut.size(); ++i)
+		{
+			uint32_t idx = i * ATT_COUNT;
+
+			frameBuffersOut[i] = GE_ALLOC(VulkanFrameBuffer)
+				(
+					mpDevice,
+					pRenderPass,
+					{ frameBufferAttachments[idx + COLOR_ATT], frameBufferAttachments[idx + DEPTH_ATT] },
+					extent.width,
+					extent.height
+					);
+			assert(frameBuffersOut[i] != nullptr);
+		}
+
+		} break;
+		case VisualPass::PassType::GE_PT_OFFSCREEN:
+		{
+			auto& renderTargets = pVisualPass->GetRenderTargets();
+
+			assert(renderTargets.size() == ATT_COUNT);
+
+			auto colorIt = renderTargets.find(RenderTarget::TargetType::GE_TT_COLOR);
+			assert(colorIt != renderTargets.end());
+			auto* pColorRT = Get(colorIt->second);
+			assert(pColorRT != nullptr);
+
+			auto depthIt = renderTargets.find(RenderTarget::TargetType::GE_TT_DEPTH_STENCIL);
+			assert(depthIt != renderTargets.end());
+			auto* pDepthRT = Get(depthIt->second);
+			assert(pDepthRT != nullptr);
+
+			frameBuffersOut.resize(1);
+
+			// prepare color + depth image views as attachments for the framebuffer
+			frameBufferAttachments.resize(ATT_COUNT);
+			frameBufferAttachments[COLOR_ATT] = pColorRT->GetImageView()->GetHandle();
+			frameBufferAttachments[DEPTH_ATT] = pDepthRT->GetImageView()->GetHandle();
+
+			// get RT width and height for the framebuffer size
+			const auto& extent3D = pColorRT->GetImage()->GetData().extent;
+
+			extent.width = extent3D.width;
+			extent.height = extent3D.height;
+
+			visualPassBeginDataOut.width = extent.width;
+			visualPassBeginDataOut.height = extent.height;
+			visualPassBeginDataOut.depth = 1.0f;
+			visualPassBeginDataOut.stencil = 0;
+			//TODO - clear color
+
+			assert(frameBuffersOut.size() == frameBufferAttachments.size() / ATT_COUNT);
+
+			for (uint32_t i = 0; i < frameBuffersOut.size(); ++i)
+			{
+				frameBuffersOut[i] = GE_ALLOC(VulkanFrameBuffer)
+					(
+						mpDevice,
+						pRenderPass,
+						frameBufferAttachments,
+						extent.width,
+						extent.height
+						);
+				assert(frameBuffersOut[i] != nullptr);
+			}
+
+		} break;
+		case VisualPass::PassType::GE_PT_SHADOWS:
+		{
+			auto& renderTargets = pVisualPass->GetRenderTargets();
+
+			assert(renderTargets.size() == 1);
+
+			auto depthIt = renderTargets.find(RenderTarget::TargetType::GE_TT_DEPTH);
+			assert(depthIt != renderTargets.end());
+			auto* pDepthRT = Get(depthIt->second);
+			assert(pDepthRT != nullptr);
+
+			frameBuffersOut.resize(1);
+
+			// prepare depth image view as attachment for the framebuffer
+			frameBufferAttachments.resize(1);
+			frameBufferAttachments[0] = pDepthRT->GetImageView()->GetHandle();
+
+			// get RT width and height for the framebuffer size
+			const auto& extent3D = pDepthRT->GetImage()->GetData().extent;
+
+			extent.width = extent3D.width;
+			extent.height = extent3D.height;
+
+			visualPassBeginDataOut.width = extent.width;
+			visualPassBeginDataOut.height = extent.height;
+			visualPassBeginDataOut.depth = 1.0f;
+			visualPassBeginDataOut.stencil = 0;
+			//TODO - clear color
+
+			assert(frameBuffersOut.size() == frameBufferAttachments.size());
+
+			for (uint32_t i = 0; i < frameBuffersOut.size(); ++i)
+			{
+				frameBuffersOut[i] = GE_ALLOC(VulkanFrameBuffer)
+					(
+						mpDevice,
+						pRenderPass,
+						frameBufferAttachments,
+						extent.width,
+						extent.height
+						);
+				assert(frameBuffersOut[i] != nullptr);
+			}
+		} break;
+		case VisualPass::PassType::GE_PT_COUNT:
+		default:
+			LOG_ERROR("Invalid visual pass type!");
+			return;
 	}
 }
 
@@ -360,9 +683,14 @@ void VulkanRenderer::SetupSubmitInfo()
 void VulkanRenderer::SetupPipelineStats()
 {
 #ifdef PIPELINE_STATS
-	assert(mpDevice != nullptr);
+	if (! mPipelineStatsMap.empty())
+		return;
 
-	mPipelineStatNames = {
+	assert(mpDevice != nullptr);
+	assert(false == mVisualPassMap.empty());
+
+	PipelineStatsData pipelineStatsData;
+	pipelineStatsData.pipelineStatNames = {
 			"Input assembly vertex count        ",
 			"Input assembly primitives count    ",
 			"Vertex shader invocations          ",
@@ -370,11 +698,10 @@ void VulkanRenderer::SetupPipelineStats()
 			"Clipping stage primtives output    ",
 			"Fragment shader invocations        "
 	};
-	
-	mPipelineStats.resize(mPipelineStatNames.size());
 
+	pipelineStatsData.pipelineStats.resize(pipelineStatsData.pipelineStatNames.size());
 
-	VkQueryPipelineStatisticFlags pipelineStatsFlags = 
+	VkQueryPipelineStatisticFlags pipelineStatsFlags =
 		VkQueryPipelineStatisticFlagBits::VK_QUERY_PIPELINE_STATISTIC_INPUT_ASSEMBLY_VERTICES_BIT |
 		VkQueryPipelineStatisticFlagBits::VK_QUERY_PIPELINE_STATISTIC_INPUT_ASSEMBLY_PRIMITIVES_BIT |
 		VkQueryPipelineStatisticFlagBits::VK_QUERY_PIPELINE_STATISTIC_VERTEX_SHADER_INVOCATIONS_BIT |
@@ -382,70 +709,118 @@ void VulkanRenderer::SetupPipelineStats()
 		VkQueryPipelineStatisticFlagBits::VK_QUERY_PIPELINE_STATISTIC_CLIPPING_PRIMITIVES_BIT |
 		VkQueryPipelineStatisticFlagBits::VK_QUERY_PIPELINE_STATISTIC_FRAGMENT_SHADER_INVOCATIONS_BIT;
 
-	mpQueryPool = GE_ALLOC(VulkanQueryPool)
-	(
-		mpDevice,
-		VkQueryType::VK_QUERY_TYPE_PIPELINE_STATISTICS, 
-		static_cast<uint32_t>(mPipelineStats.size()),
-		pipelineStatsFlags
-	);
-	assert(mpQueryPool != nullptr);
+	for (auto& it : mVisualPassMap)
+	{
+		auto& passType = it.first;
+
+		pipelineStatsData.pQueryPool = GE_ALLOC(VulkanQueryPool)
+			(
+				mpDevice,
+				VkQueryType::VK_QUERY_TYPE_PIPELINE_STATISTICS,
+				static_cast<uint32_t>(pipelineStatsData.pipelineStats.size()),
+				pipelineStatsFlags
+				);
+		assert(pipelineStatsData.pQueryPool != nullptr);
+
+		mPipelineStatsMap.emplace(passType, pipelineStatsData);
+	}
+
+
 #endif
 }
 
 // Retrieves the results of the pipeline statistics query submitted to the command buffer
-void VulkanRenderer::GetQueryResults()
+void VulkanRenderer::GetQueryResults()// VisualPass::PassType passType)
 {
 #ifdef PIPELINE_STATS
-	assert(mpQueryPool != nullptr);
+	assert(false == mPipelineStatsMap.empty());
 
-	uint32_t count = static_cast<uint32_t>(mPipelineStats.size());
-	VkQueryResultFlags flags = VkQueryResultFlagBits::VK_QUERY_RESULT_64_BIT;// | VkQueryResultFlagBits::VK_QUERY_RESULT_WAIT_BIT;
-
-	mpQueryPool->GetQueryResults(1, mPipelineStats.data(), count * sizeof(uint64_t), sizeof(uint64_t), flags);
-
-	// log query stats
-	LOG_INFO("####### Pipeline Stats ########");
-	for (uint32_t i = 0; i < mPipelineStats.size(); ++ i)
+	for (auto& it : mPipelineStatsMap)
 	{
-		LOG_INFO("%s : %lu", mPipelineStatNames[i].c_str(), mPipelineStats[i]);
+		auto& passType = it.first;
+		auto& queryData = it.second;
+		
+		if (queryData.pQueryPool)
+		{
+			uint32_t count = static_cast<uint32_t>(queryData.pipelineStats.size());
+			VkQueryResultFlags flags = VkQueryResultFlagBits::VK_QUERY_RESULT_64_BIT;// | VkQueryResultFlagBits::VK_QUERY_RESULT_WAIT_BIT;
+
+			queryData.pQueryPool->GetQueryResults(1, queryData.pipelineStats.data(), count * sizeof(uint64_t), sizeof(uint64_t), flags);
+
+			// log query stats
+			std::string passTypeStr = (passType == VisualPass::PassType::GE_PT_SHADOWS ? "SHADOW" : (passType == VisualPass::PassType::GE_PT_OFFSCREEN ? "OFFSCREEN" : "STANDARD"));
+			LOG_INFO("Render pass: %s", passTypeStr.c_str());
+			LOG_INFO("####### Pipeline Stats ########");
+			for (uint32_t i = 0; i < queryData.pipelineStats.size(); ++i)
+			{
+				LOG_INFO("%s : %lu", queryData.pipelineStatNames[i].c_str(), queryData.pipelineStats[i]);
+			}
+			LOG_INFO("");
+		}
 	}
-	LOG_INFO("");
 #endif
 }
 
-void VulkanRenderer::ResetQuery(uint32_t currentBufferIdx)
+void VulkanRenderer::ResetQuery(VisualPass::PassType passType, uint32_t currentBufferIdx)
 {
 #ifdef PIPELINE_STATS
+	assert(false == mPipelineStatsMap.empty());
 	assert(currentBufferIdx < mDrawCommandBuffers.size());
-	assert(mpQueryPool != nullptr);
-
-	mpQueryPool->ResetQuery(mDrawCommandBuffers[currentBufferIdx]->GetHandle(), static_cast<uint32_t>(mPipelineStats.size()));
+	
+	auto it = mPipelineStatsMap.find(passType);
+	if (it != mPipelineStatsMap.end())
+	{
+		auto* pQueryPool = it->second.pQueryPool;
+		if (pQueryPool)
+		{
+			pQueryPool->ResetQuery(mDrawCommandBuffers[currentBufferIdx]->GetHandle(), static_cast<uint32_t>(it->second.pipelineStats.size()));
+		}
+	}
 #endif
 }
 
-void VulkanRenderer::BeginQuery(uint32_t currentBufferIdx)
+void VulkanRenderer::BeginQuery(VisualPass::PassType passType, uint32_t currentBufferIdx)
 {
 #ifdef PIPELINE_STATS
+	// before every use and in between uses the query pool must be reset
+	ResetQuery(passType, currentBufferIdx);
+
+	assert(false == mPipelineStatsMap.empty());
 	assert(currentBufferIdx < mDrawCommandBuffers.size());
-	assert(mpQueryPool != nullptr);
+
 	auto pCrrDrawCommandBuffer = mDrawCommandBuffers[currentBufferIdx];
 	assert(pCrrDrawCommandBuffer != nullptr);
 
-	mpQueryPool->BeginQuery(pCrrDrawCommandBuffer->GetHandle());
+	auto it = mPipelineStatsMap.find(passType);
+	if (it != mPipelineStatsMap.end())
+	{
+		auto* pQueryPool = it->second.pQueryPool;
+		if (pQueryPool)
+		{
+			pQueryPool->BeginQuery(pCrrDrawCommandBuffer->GetHandle());
+		}
+	}
 #endif
 }
 
-void VulkanRenderer::EndQuery(uint32_t currentBufferIdx)
+void VulkanRenderer::EndQuery(VisualPass::PassType passType, uint32_t currentBufferIdx)
 {
 #ifdef PIPELINE_STATS
+	assert(false == mPipelineStatsMap.empty());
 	assert(currentBufferIdx < mDrawCommandBuffers.size());
-	assert(mpQueryPool != nullptr);
 
 	auto pCrrDrawCommandBuffer = mDrawCommandBuffers[currentBufferIdx];
 	assert(pCrrDrawCommandBuffer != nullptr);
 
-	mpQueryPool->EndQuery(pCrrDrawCommandBuffer->GetHandle());
+	auto it = mPipelineStatsMap.find(passType);
+	if (it != mPipelineStatsMap.end())
+	{
+		auto* pQueryPool = it->second.pQueryPool;
+		if (pQueryPool)
+		{
+			pQueryPool->EndQuery(pCrrDrawCommandBuffer->GetHandle());
+		}
+	}
  #endif
 }
 
@@ -469,15 +844,11 @@ void VulkanRenderer::UpdateFrame(Camera* pCamera, float32_t crrTime)
 		return;
 
 	assert(mpRenderQueue != nullptr);
-	assert(mpScenePass != nullptr);
 
 	assert(pCamera != nullptr);
 	mpCamera = pCamera;
 
-	mpScenePass->Update(this, mpRenderQueue, mpCamera, crrTime);
-
-	/// pipeline stats per frame
-	GetQueryResults();
+	UpdateNodes(pCamera, crrTime);
 }
 
 void VulkanRenderer::BeginFrame()
@@ -592,108 +963,364 @@ void VulkanRenderer::PresentFrame()
 	VK_CHECK_RESULT(pQueue->WaitIdle());
 }
 
-///////////////////////
-
-void VulkanRenderer::DrawObject(ScenePass* pScenePass, const RenderQueue::Renderable* pRenderable, uint32_t currentBufferIdx)
+void VulkanRenderer::ComputeGraphicsResources(RenderQueue* pRenderQueue)
 {
-	/*if (false == mIsPrepared)
-		return;*/
+	if (false == mIsPrepared)
+		return;
 
-	assert(pScenePass != nullptr);
-	assert(pRenderable != nullptr);
-	assert(currentBufferIdx < mDrawCommandBuffers.size());
+	assert(pRenderQueue != nullptr);
 
-	assert(mDescriptorSetDataCollection.empty() == false);
-	assert(mPipelineDataCollection.empty() == false);
+	mpRenderQueue = pRenderQueue;
 
-	auto pGeoNode = pRenderable->pGeometryNode;
-	assert(pGeoNode != nullptr);
+	// TODO - compute resources for all renderable types
+	auto& renderableList = mpRenderQueue->GetRenderables(RenderQueue::RenderableType::GE_RT_OPAQUE);
 
-	if (false == pGeoNode->IsPassAllowed(pScenePass->GetPassType()))
+	mpRenderQueue->ForEach(renderableList,
+		[&, this](const RenderQueue::Renderable* pRenderable)
+		{
+			assert(pRenderable != nullptr);
+
+			auto* pGeoNode = pRenderable->pGeometryNode;
+			assert(pGeoNode != nullptr);
+
+			auto* pVisComp = pGeoNode->GetComponent<VisualComponent>();
+			assert(pVisComp != nullptr);
+			auto* pVisEffect = pVisComp->GetVisualEffect();
+			assert(pVisEffect != nullptr);
+
+			// we didn't call this earlier as we needed to have
+			// the node info first
+			pVisEffect->Init();
+
+			// TODO - Compute mVisualPasses list of passes in their proper order
+			const auto& passMap = pVisEffect->GetPasses();
+			for (auto& it : passMap)
+			{
+				auto& passVector = it.second;
+				for (auto* pPass : passVector)
+				{
+					AddVisualPass(pPass);
+				}
+			}
+
+			pVisEffect->InitPasses(this);
+		}
+	);
+
+	SetupPipelineStats();
+}
+
+void VulkanRenderer::UpdateDynamicStates(VisualPass* pVisualPass, uint32_t currentBufferIdx)
+{
+	assert(pVisualPass != nullptr);
+
+	// update dynamic states if any
+	const auto& dynamicState = pVisualPass->GetDynamicState();
+
+	if (false == dynamicState.HasStates())
 	{
-		LOG_DEBUG("Skip processing node: %s for pass: %s", pGeoNode->GetName().c_str(), ScenePass::PassTypeToStr(pScenePass->GetPassType()).c_str());
+		LOG_INFO("No dynamic states!");
 		return;
 	}
 
+	assert(pVisualPass->GetRenderData().width > 0);
+	assert(pVisualPass->GetRenderData().height > 0);
+
+	assert(currentBufferIdx < mDrawCommandBuffers.size());
 	auto pCrrDrawCommandBuffer = mDrawCommandBuffers[currentBufferIdx];
 	assert(pCrrDrawCommandBuffer != nullptr);
 
-	auto* pVisComp = pGeoNode->GetComponent<VisualComponent>();
-	assert(pVisComp != nullptr);
+	auto dynStates = dynamicState.GetStates();
+	std::vector<VkDynamicState> dynamicStateEnables;
+	dynamicStateEnables.resize(dynStates.size());
 
-	auto it2 = mPipelineDataCollection.find(pScenePass->GetPassType());
-	assert(it2 != mPipelineDataCollection.end());
-	const auto& pipelineDataVector = it2->second;
-
-	std::vector<PipelineData>::const_iterator cIt;
-	for (cIt = pipelineDataVector.begin(); cIt != pipelineDataVector.end(); ++ cIt)
+	for (size_t i = 0; i < dynamicStateEnables.size(); ++i)
 	{
-		if (cIt->pVisualComponent == pVisComp)
-			break;
-	}
-	const auto& pipelineData = *cIt;
-
-	assert(pipelineData.pGraphicsPipeline != nullptr);
-	assert(pipelineData.pPipelineLayout != nullptr);
-
-	auto it3 = mDescriptorSetDataCollection.find(pScenePass->GetPassType());
-	assert(it3 != mDescriptorSetDataCollection.end());
-	const auto& descriptorSetDataVector = it3->second;
-
-	std::vector<DescriptorSetData>::const_iterator cIt2;
-	for (cIt2 = descriptorSetDataVector.begin(); cIt2 != descriptorSetDataVector.end(); ++ cIt2)
-	{
-		if (cIt2->pVisualComponent == pVisComp)
-			break;
-	}
-	const auto& descriptorSetData = *cIt2;
-
-	assert(descriptorSetData.pDescriptorSet != nullptr);
-
-	// update dynamic states if any
-	auto& dynamicState = pVisComp->GetDynamicState();
-
-	if (dynamicState.HasStates())
-	{
-		UpdateDynamicStates(pScenePass, dynamicState, currentBufferIdx);
+		dynamicStateEnables[i] = VulkanUtils::DynamicStateToVulkanDynamicState(dynStates[i]);
 	}
 
-	// bind textures if any
-	if (pVisComp->HasTextures())
+	for (auto& state : dynamicStateEnables)
 	{
-		auto& textureMap = pVisComp->GetTextures();
-		for (auto& iter : textureMap) // per shader stage
+		switch (state)
 		{
-			auto& textureArray = iter.second;
-			for (auto* pTexture : textureArray) // per texture
+		case VkDynamicState::VK_DYNAMIC_STATE_VIEWPORT:
+		{
+			VkViewport viewport{};
+			viewport.x = 0;
+			viewport.y = 0;
+			viewport.width = static_cast<float32_t>(pVisualPass->GetRenderData().width);
+			viewport.height = static_cast<float32_t>(pVisualPass->GetRenderData().height);
+			viewport.minDepth = 0.0f;
+			viewport.maxDepth = 1.0f;
+
+			vkCmdSetViewport(pCrrDrawCommandBuffer->GetHandle(), 0, 1, &viewport);
+		}
+		break;
+		case VkDynamicState::VK_DYNAMIC_STATE_SCISSOR:
+		{
+			VkExtent2D extent { pVisualPass->GetRenderData().width, pVisualPass->GetRenderData().width };
+
+			VkRect2D scissor{};
+			scissor.offset = VkOffset2D{ 0, 0 };
+			scissor.extent = extent;
+
+			vkCmdSetScissor(pCrrDrawCommandBuffer->GetHandle(), 0, 1, &scissor);
+		}
+		break;
+		case VkDynamicState::VK_DYNAMIC_STATE_DEPTH_BIAS:
+		{
+			// Set depth bias (aka "Polygon offset")
+			// Required to avoid shadow mapping artifacts
+			vkCmdSetDepthBias(pCrrDrawCommandBuffer->GetHandle(), DEPTH_BIAS_CONSTANT, DEPTH_CLAMP, DEPTH_BIAS_SLOPE);
+		} break;
+
+		//TODO other cases
+
+		default:
+			LOG_ERROR("Invalid dynamic state!");
+		}
+	}
+}
+
+void VulkanRenderer::UpdateUniformBuffers(VisualPass* pVisualPass, GeometryNode* pGeoNode, Camera* pCamera, float32_t crrTime)
+{
+	assert(pVisualPass != nullptr);
+	assert(pGeoNode != nullptr);
+	assert(pCamera != nullptr);
+
+	auto shaders = pVisualPass->GetShaders();
+	for (auto iter = shaders.begin(); iter != shaders.end(); ++iter)
+	{
+		auto shaderStage = iter->first;
+		auto uniformBuffer = pVisualPass->GetUniformBuffer(shaderStage);
+
+		if (uniformBuffer)
+		{
+			const auto& uniforms = uniformBuffer->GetUniforms();
+
+			for (const auto& uni : uniforms)
 			{
-				Bind(pTexture);
+				const auto& uniformType = uni.first;
+
+				switch(uniformType)
+				{
+					case GLSLShaderTypes::UniformType::GE_UT_PVM_MATRIX4:
+					{
+						uniformBuffer->SetUniform(GLSLShaderTypes::UniformType::GE_UT_PVM_MATRIX4,
+							pCamera->GetProjectionViewMatrix() * pVisualPass->GetTransform() * pGeoNode->GetModelMatrix());
+					} break;
+					case GLSLShaderTypes::UniformType::GE_UT_PV_CUBEMAP_MATRIX4:
+					{
+						glm::mat4 PV = pCamera->GetProjectionViewMatrix();
+
+						// we remove the translation transform to allow the cubemap to never change position in world space
+						PV[3] = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+
+						uniformBuffer->SetUniform(GLSLShaderTypes::UniformType::GE_UT_PVM_MATRIX4, PV * pGeoNode->GetModelMatrix());
+					} break;
+					case GLSLShaderTypes::UniformType::GE_UT_MODEL_MATRIX4:
+					{
+						uniformBuffer->SetUniform(GLSLShaderTypes::UniformType::GE_UT_MODEL_MATRIX4, pVisualPass->GetTransform() * pGeoNode->GetModelMatrix());
+					} break;
+					case GLSLShaderTypes::UniformType::GE_UT_NORMAL_MATRIX4:
+					{
+						uniformBuffer->SetUniform(GLSLShaderTypes::UniformType::GE_UT_NORMAL_MATRIX4, pVisualPass->GetTransform() * pGeoNode->GetNormalMatrix());
+					} break;
+					case GLSLShaderTypes::UniformType::GE_UT_CAMERA_POS:
+					{
+						uniformBuffer->SetUniform(GLSLShaderTypes::UniformType::GE_UT_CAMERA_POS, glm::vec4(pCamera->GetPosition(), 0.0f));
+					} break;
+					case GLSLShaderTypes::UniformType::GE_UT_PROJECTION_MATRIX4:
+					case GLSLShaderTypes::UniformType::GE_UT_VIEW_MATRIX4:
+					case GLSLShaderTypes::UniformType::GE_UT_COLOR_VEC4:
+					case GLSLShaderTypes::UniformType::GE_UT_LIGHT_DIR:
+					case GLSLShaderTypes::UniformType::GE_UT_LIGHT_COLOR:
+					case GLSLShaderTypes::UniformType::GE_UT_CRR_TIME:
+					// TODO
+						break;
+					case GLSLShaderTypes::UniformType::GE_UT_COUNT:
+					default:
+						//LOG_ERROR("Invalid uniform type! Failed to update the uniform!");
+						break;
+				}
+			}
+
+			Bind(uniformBuffer);
+		}
+	}
+}
+
+void VulkanRenderer::BindLight(VisualPass* pVisualPass, const LightNode* pLightNode, GeometryNode* pGeoNode)
+{
+	assert(pVisualPass != nullptr);
+	assert(pLightNode != nullptr);
+	assert(pGeoNode != nullptr);
+
+	if (false == pGeoNode->IsLit())
+	{
+		LOG_INFO("No light to bind for this node as it is unlit!");
+		return;
+	}
+
+	auto* pLight = pLightNode->GetLight();
+	assert(pLight != nullptr);
+
+	switch (pVisualPass->GetPassType())
+	{
+		case VisualPass::PassType::GE_PT_STANDARD:
+		case VisualPass::PassType::GE_PT_OFFSCREEN:
+		{
+			auto* pVertUBO = pVisualPass->GetUniformBuffer(Shader::ShaderStage::GE_SS_VERTEX);
+			auto* pFragUBO = pVisualPass->GetUniformBuffer(Shader::ShaderStage::GE_SS_FRAGMENT);
+
+			switch (pLight->GetLightType())
+			{
+			case Light::LightType::GE_LT_DIRECTIONAL:
+			{
+				if (pFragUBO)
+				{
+					pFragUBO->SetUniform(GLSLShaderTypes::UniformType::GE_UT_LIGHT_DIR, glm::vec4(pLight->GetDirection(), 0.0f));
+					pFragUBO->SetUniform(GLSLShaderTypes::UniformType::GE_UT_LIGHT_COLOR, glm::vec4(pLight->GetColor(), 1.0f));
+				}
+			}
+			break;
+			case Light::LightType::GE_LT_POINT:
+			{
+				if (pGeoNode->IsPassAllowed(VisualPass::PassType::GE_PT_SHADOWS))
+				{
+					if (pVertUBO)
+						pVertUBO->SetUniform(GLSLShaderTypes::UniformType::GE_UT_LIGHT_PVM_MATRIX4, pLight->GetLightPVM());
+				}
+
+				if (pFragUBO)
+				{
+					pFragUBO->SetUniform(GLSLShaderTypes::UniformType::GE_UT_LIGHT_POS, glm::vec4(pLight->GetPosition(), 1.0f));
+					pFragUBO->SetUniform(GLSLShaderTypes::UniformType::GE_UT_LIGHT_COLOR, glm::vec4(pLight->GetColor(), 1.0f));
+				}
+			} break;
+			case Light::LightType::GE_LT_SPOT:
+				//TODO
+				break;
+			case Light::LightType::GE_PT_COUNT:
+			default:
+				LOG_ERROR("Invalid light type!");
+			}
+		} break;
+		case VisualPass::PassType::GE_PT_SHADOWS:
+		{
+			auto* pUBO = pVisualPass->GetUniformBuffer(Shader::ShaderStage::GE_SS_VERTEX);
+
+			switch (pLight->GetLightType())
+			{
+			case Light::LightType::GE_LT_POINT:
+			{
+				if (pUBO)
+					pUBO->SetUniform(GLSLShaderTypes::UniformType::GE_UT_LIGHT_PVM_MATRIX4, pLight->GetLightPVM());
+			} break;
+			case Light::LightType::GE_LT_DIRECTIONAL:
+			case Light::LightType::GE_LT_SPOT:
+				//TODO
+				break;
+			case Light::LightType::GE_PT_COUNT:
+			default:
+				LOG_ERROR("Invalid light type!");
+			}
+		} break;
+	}
+}
+
+void VulkanRenderer::DrawSceneToCommandBuffer()
+{
+	assert(mpRenderQueue != nullptr);
+
+	// THE ACTUAL RENDERING IS DONE HERE !!!!
+
+	for (uint32_t i = 0; i < mDrawCommandBuffers.size(); ++i)
+	{
+		assert(mDrawCommandBuffers[i] != nullptr);
+
+		// Begin command buffer recording
+		VK_CHECK_RESULT(mDrawCommandBuffers[i]->Begin());
+;
+		DrawNodes(i);
+
+		// End command buffer recording
+		VK_CHECK_RESULT(mDrawCommandBuffers[i]->End());
+	}
+}
+
+void VulkanRenderer::DrawNodes(uint32_t currentBufferIdx)
+{
+	assert(currentBufferIdx < mDrawCommandBuffers.size());
+
+	for (auto& it : mVisualPassMap)
+	{
+		auto& passType = it.first;
+		auto& passData = it.second;
+
+		//
+		BeginQuery(passType, currentBufferIdx);
+		//
+
+		BeginRenderPass(passData, currentBufferIdx);
+
+		for (auto* pPass : passData.passes)
+		{
+			if (pPass)
+			{
+				pPass->RenderNode(currentBufferIdx);
 			}
 		}
 
+		EndRenderPass(passData, currentBufferIdx);
+
+		//
+		EndQuery(passType, currentBufferIdx);
+		//
+	}
+}
+
+
+void VulkanRenderer::UpdateNodes(Camera* pCamera, float32_t crrTime)
+{
+	assert(pCamera != nullptr);
+
+	for (auto& it : mVisualPassMap)
+	{
+		auto& passType = it.first;
+		auto& passData = it.second;
+
+		for (auto* pPass : passData.passes)
+		{
+			if (pPass)
+			{
+				pPass->UpdateNode(pCamera, crrTime);
+			}
+		}
 	}
 
-	//bind material
-/*if (pRenderable->pMaterial)
+	GetQueryResults();
+}
+
+void VulkanRenderer::DrawNode(VisualPass* pVisualPass, GeometryNode* pGeoNode, uint32_t currentBufferIdx)
 {
-	Bind(pRenderable->pMaterial, currentBufferIdx);
-}*/
+	assert(pVisualPass != nullptr);
+	assert(pGeoNode != nullptr);
+	assert(currentBufferIdx < mDrawCommandBuffers.size());
 
-	//bind pipeline 
-	// Bind the rendering pipeline
-	// The pipeline (state object) contains all states of the rendering pipeline, binding it will set all the states specified at pipeline creation time
-	vkCmdBindPipeline(pCrrDrawCommandBuffer->GetHandle(), VkPipelineBindPoint::VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineData.pGraphicsPipeline->GetHandle());
+	UpdateDynamicStates(pVisualPass, currentBufferIdx);
 
-	// uniform -> descriptorsets bindings
-	// Bind descriptor sets describing shader binding points
-	vkCmdBindDescriptorSets(pCrrDrawCommandBuffer->GetHandle(), VkPipelineBindPoint::VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineData.pPipelineLayout->GetHandle(), descriptorSetData.pDescriptorSet->GetId(), 1, &descriptorSetData.pDescriptorSet->GetHandle(), 0, nullptr);
+	// debug case
+	if (pVisualPass->GetIsDebug())
+	{
+		DrawDirect(3, 0, 1, currentBufferIdx);
+		return;
+	}
 
 	// draw geometric primitives
 	auto* pGeometry = pGeoNode->GetGeometry();
 	assert(pGeometry != nullptr);
-	//bind vertex format
-	Bind(pGeometry->GetVertexFormat());
-			
+
 	// bind vertex buffer
 	auto* pVertexBuffer = pGeometry->GetVertexBuffer();
 	assert(pVertexBuffer != nullptr);
@@ -718,8 +1345,10 @@ void VulkanRenderer::DrawObject(ScenePass* pScenePass, const RenderQueue::Render
 		count = pVertexBuffer->GetVertexCount();
 	}
 
-	//TODO - improve instance count logic
-	uint32_t instanceCount = (pVertexBuffer->GetVertexInputRate() == VertexBuffer::VertexInputRate::GE_VIR_VERTEX ? 1 : 0);
+	auto* pVertexFormat = pGeometry->GetVertexFormat();
+	assert(pVertexFormat != nullptr);
+
+	uint32_t instanceCount = (pVertexFormat->GetVertexInputRate() == VertexFormat::VertexInputRate::GE_VIR_VERTEX ? 1 : 0); //TODO
 	bool isIndexedDrawing = pGeometry->IsIndexed();
 
 	// in case of model loading
@@ -732,9 +1361,9 @@ void VulkanRenderer::DrawObject(ScenePass* pScenePass, const RenderQueue::Render
 			assert(gadrModel != nullptr);
 
 			gadrModel->Draw([this, &currentBufferIdx, &instanceCount, &isIndexedDrawing](uint32_t indexCount, uint32_t firstIndex)
-							{
-								DrawDirect(indexCount, firstIndex, instanceCount, currentBufferIdx, isIndexedDrawing);
-							});
+				{
+					DrawDirect(indexCount, firstIndex, instanceCount, currentBufferIdx, isIndexedDrawing);
+				});
 		}
 	}
 	else
@@ -743,1109 +1372,15 @@ void VulkanRenderer::DrawObject(ScenePass* pScenePass, const RenderQueue::Render
 	}
 }
 
-void VulkanRenderer::BindLight(ScenePass* pScenePass, const LightNode* pLightNode, GeometryNode* pGeoNode)
+void VulkanRenderer::UpdateNode(VisualPass* pVisualPass, GeometryNode* pGeoNode, Camera* pCamera, float32_t crrTime)
 {
-	assert(pScenePass != nullptr);
-	assert(pLightNode != nullptr);
-	assert(pGeoNode != nullptr);
-
-	if (false == pGeoNode->IsLit())
-		return;
-
-	auto* pVisComp = pGeoNode->GetComponent<VisualComponent>();
-	assert(pVisComp != nullptr);
-
-	auto* pLight = pLightNode->GetLight();
-	assert(pLight != nullptr);
-
-	switch (pScenePass->GetPassType())
-	{
-	case ScenePass::PassType::GE_PT_STANDARD:
-	case ScenePass::PassType::GE_PT_OFFSCREEN:
-	{
-		if (pGeoNode->IsPassAllowed(pScenePass->GetPassType()))
-		{
-			auto* pUBO = pVisComp->GetUniformBuffer(pScenePass->GetPassType(), Shader::ShaderStage::GE_SS_FRAGMENT);
-			assert(pUBO != nullptr);
-
-			switch (pLight->GetLightType())
-			{
-			case Light::LightType::GE_LT_DIRECTIONAL:
-			{
-				pUBO->AddUniform(GLSLShaderTypes::UniformType::GE_UT_LIGHT_DIR, pLight->GetDirection());
-				pUBO->AddUniform(GLSLShaderTypes::UniformType::GE_UT_LIGHT_COLOR, pLight->GetColor());
-			}
-			break;
-			case Light::LightType::GE_LT_POINT:
-			case Light::LightType::GE_LT_SPOT:
-				//TODO
-				break;
-			case Light::LightType::GE_PT_COUNT:
-			default:
-				LOG_ERROR("Invalid light type!");
-			}
-		}
-	}
-	break;
-	case ScenePass::PassType::GE_PT_SHADOWS:
-		//TODO
-		break;
-	case ScenePass::PassType::GE_PT_COMPOSITE:
-	{
-		auto& passes = pScenePass->GetPasses();
-		ScenePass::ScenePassMap::const_iterator cIt;
-		for (cIt = passes.begin(); cIt != passes.end(); ++cIt)
-		{
-			BindLight(cIt->second, pLightNode, pGeoNode);
-		}
-	}
-	break;
-	default:
-		LOG_ERROR("Invalid pass type!");
-	}
-}
-
-//void VulkanRenderer::ComputeGraphicsResources(RenderQueue* pRenderQueue, RenderPass* pRenderPass)
-void VulkanRenderer::ComputeGraphicsResources(RenderQueue* pRenderQueue, ScenePass* pScenePass)
-{
-	if (false == mIsPrepared)
-		return;
-
-	assert(pRenderQueue != nullptr);
-	assert(mpScenePass != nullptr);
-	assert(pScenePass != nullptr);
-
-	mpRenderQueue = pRenderQueue;
-	mpScenePass->Init(pScenePass);
-
-	// TODO - compute resources for all renderable types
-	auto renderableList = mpRenderQueue->GetRenderables(RenderQueue::RenderableType::GE_RT_OPAQUE);
-
-	mpRenderQueue->ForEach(renderableList,
-		[&, this](const RenderQueue::Renderable* pRenderable)
-		{
-			assert(pRenderable != nullptr);
-
-			auto pGeoNode = pRenderable->pGeometryNode;
-			assert(pGeoNode != nullptr);
-
-			if (pGeoNode->IsLit())
-			{
-				pRenderQueue->ForEach([&, this](const LightNode* pLightNode)
-					{
-						BindLight(mpScenePass->GetScenePass(), pLightNode, pGeoNode);
-					});
-			}
-
-			SetupPipelines(mpScenePass->GetScenePass(), pGeoNode);
-		}
-	);
-
-	//TODO - cleanup
-	mDescriptorSetBindingMapCollection.clear();
-}
-
-void VulkanRenderer::SetupPipelines(ScenePass* pScenePass, GeometryNode* pGeoNode)
-{
-	assert(pScenePass != nullptr);
-	assert(pGeoNode != nullptr);
-
-	switch (pScenePass->GetPassType())
-	{
-		case ScenePass::PassType::GE_PT_STANDARD:
-		{
-			SetupStandardPipeline(pScenePass, pGeoNode);
-		}
-		break;
-		case ScenePass::PassType::GE_PT_OFFSCREEN:
-		{
-			SetupOffscreenPipeline(pScenePass, pGeoNode);
-		}
-		break;
-		case ScenePass::PassType::GE_PT_SHADOWS:
-			//TODO
-			break;
-		case ScenePass::PassType::GE_PT_COMPOSITE:
-		{
-			auto& passes = pScenePass->GetPasses();
-			ScenePass::ScenePassMap::const_iterator cIt;
-			for (cIt = passes.begin(); cIt != passes.end(); ++cIt)
-			{
-				SetupPipelines(cIt->second, pGeoNode);
-			}
-		}
-			break;
-		default:
-			LOG_ERROR("Invalid pass type!");
-	}
-}
-
-void VulkanRenderer::SetupStandardPipeline(ScenePass* pScenePass, GeometryNode* pGeoNode)
-{
-	assert(pScenePass != nullptr);
-	assert(pGeoNode != nullptr);
-
-	if (false == pGeoNode->IsPassAllowed(pScenePass->GetPassType()))
-	{
-		LOG_DEBUG("Skip processing node: %s for pass: %s", pGeoNode->GetName().c_str(), ScenePass::PassTypeToStr(pScenePass->GetPassType()).c_str());
-		return;
-	}
-
-	assert(mpDevice != nullptr);
-	assert(mpScenePass != nullptr);
-
-	auto* pVisComp = pGeoNode->GetComponent<VisualComponent>();
-	assert(pVisComp != nullptr);
-
-	auto* pGeometry = pGeoNode->GetGeometry();
-	assert(pGeometry != nullptr);
-
-	ScenePass::PassType passType = pScenePass->GetPassType();
-
-
-	// in case we have a model to load
-	if (pGeometry->IsModel())
-	{
-		Model* pModel = dynamic_cast<Model*>(pGeometry);
-		if (pModel)
-		{
-			Get(pModel);
-		}
-	}
-
-
-	////  Shaders state
-	std::vector<VkPipelineShaderStageCreateInfo> pipelineShaderStages;
-	SetupShaderStage(pScenePass, pVisComp, pipelineShaderStages);
-
-	//// Descriptor sets 
-	SetupDescriptorSets(passType, pVisComp);
-
-	//// Vertex input state
-	VkPipelineVertexInputStateCreateInfo pipelineVertexInputStateCreateInfo {};
-	SetupVertexInputState(pVisComp, pGeometry, pipelineVertexInputStateCreateInfo);
-
-	//// Input assembly state describes how primitives are assembled
-	//// This pipeline will assemble vertex data as a triangle lists
-	VkPipelineInputAssemblyStateCreateInfo pipelineInputAssemblyStateCreateInfo {};
-	SetupPrimitiveAssemblyState(pGeometry, pipelineInputAssemblyStateCreateInfo);
-
-	//// Viewport state sets the number of viewports and scissor used in this pipeline
-	//// Note: This is actually overriden by the dynamic states (see below)
-	VkPipelineViewportStateCreateInfo pipelineViewportStateCreateInfo {};
-	SetupViewportScissorState(pVisComp, pipelineViewportStateCreateInfo);
-
-	//// Rasterization state
-	VkPipelineRasterizationStateCreateInfo pipelineRasterizationStateCreateInfo {};
-	SetupRasterizationState(pScenePass, pVisComp, pGeometry, pipelineRasterizationStateCreateInfo);
-
-	// Multi sampling state
-	// This example does not make use fo multi sampling (for anti-aliasing), the state must still be set and passed to the pipeline
-	VkPipelineMultisampleStateCreateInfo pipelineMultisampleStateCreateInfo {};
-	SetupMultisampleState(pipelineMultisampleStateCreateInfo);
-
-	//// Depth and stencil state containing depth and stencil compare and test operations
-	//// We only use depth tests and want depth tests and writes to be enabled and compare with less or equal
-	VkPipelineDepthStencilStateCreateInfo pipelineDepthStencilStateCreateInfo {};
-	SetupDepthStencilState(pVisComp, pipelineDepthStencilStateCreateInfo);
-
-	// Color blend state describes how blend factors are calculated (if used)
-	// We need one blend attachment state per color attachment (even if blending is not used)
-	VkPipelineColorBlendStateCreateInfo pipelineColorBlendStateCreateInfo {};
-	SetupColorBlendState(pVisComp, pipelineColorBlendStateCreateInfo);
-
-	// Enable dynamic states
-	// Most states are baked into the pipeline, but there are still a few dynamic states that can be changed within a command buffer
-	// To be able to change these we need do specify which dynamic states will be changed using this pipeline. Their actual states are set later on in the command buffer.
-	// For this example we will set the viewport and scissor using dynamic states
-	VkPipelineDynamicStateCreateInfo pipelineDynamicStateCreateInfo {};
-	SetupDynamicState(pVisComp, pipelineDynamicStateCreateInfo);
-
-	///////////////////
-	{
-		PipelineData pipelineData{};
-		pipelineData.pVisualComponent = pVisComp;
-
-		auto it = mDescriptorSetDataCollection.find(pScenePass->GetPassType());
-		const auto& descriptorSetDataVector = it->second;
-
-		std::vector<DescriptorSetData>::const_iterator cIt;
-		for (cIt = descriptorSetDataVector.begin(); cIt != descriptorSetDataVector.end(); ++cIt)
-		{
-			if (cIt->pVisualComponent == pVisComp)
-				break;
-		}
-		const auto& descriptorSetData = *cIt;
-
-		pipelineData.pPipelineLayout = GE_ALLOC(VulkanPipelineLayout)
-			(
-				mpDevice,
-				{ descriptorSetData.pDescriptorSetLayout }, {}
-		);
-		assert(pipelineData.pPipelineLayout != nullptr);
-
-		//// Assign the pipeline states to the pipeline creation info structure
-		pipelineData.pGraphicsPipeline = GE_ALLOC(VulkanGraphicsPipeline)
-			(
-				mpDevice,
-				mpPipelineCache,
-				pipelineShaderStages,
-				pipelineVertexInputStateCreateInfo, pipelineInputAssemblyStateCreateInfo, {},
-				pipelineViewportStateCreateInfo, pipelineRasterizationStateCreateInfo,
-				pipelineMultisampleStateCreateInfo, pipelineDepthStencilStateCreateInfo,
-				pipelineColorBlendStateCreateInfo, pipelineDynamicStateCreateInfo,
-				pipelineData.pPipelineLayout, mpScenePass->GetRenderPass(passType)
-				);
-		assert(pipelineData.pGraphicsPipeline != nullptr);
-
-		mPipelineDataCollection[passType].push_back(pipelineData);
-	}
-}
-
-void VulkanRenderer::SetupOffscreenPipeline(ScenePass* pScenePass, GeometryNode* pGeoNode)
-{
-	assert(pScenePass != nullptr);
-	assert(pGeoNode != nullptr);
-
-	if (false == pGeoNode->IsPassAllowed(pScenePass->GetPassType()))
-	{
-		LOG_DEBUG("Skip processing node: %s for pass: %s", pGeoNode->GetName().c_str(), ScenePass::PassTypeToStr(pScenePass->GetPassType()).c_str());
-		return;
-	}
-
-	assert(mpDevice != nullptr);
-	assert(mpScenePass != nullptr);
-
-	auto* pVisComp = pGeoNode->GetComponent<VisualComponent>();
-	assert(pVisComp != nullptr);
-
-	auto* pGeometry = pGeoNode->GetGeometry();
-	assert(pGeometry != nullptr);
-
-	ScenePass::PassType passType = pScenePass->GetPassType();
-
-	// in case we have a model to load
-	if (pGeometry->IsModel())
-	{
-		Model* pModel = dynamic_cast<Model*>(pGeometry);
-		if (pModel)
-		{
-			Get(pModel);
-		}
-	}
-
-
-	////  Shaders state
-	std::vector<VkPipelineShaderStageCreateInfo> pipelineShaderStages;
-	SetupShaderStage(pScenePass, pVisComp, pipelineShaderStages);
-
-	//// Descriptor sets 
-	SetupDescriptorSets(passType, pVisComp);
-
-	//// Vertex input state
-	VkPipelineVertexInputStateCreateInfo pipelineVertexInputStateCreateInfo{};
-	SetupVertexInputState(pVisComp, pGeometry, pipelineVertexInputStateCreateInfo);
-
-	//// Input assembly state describes how primitives are assembled
-	//// This pipeline will assemble vertex data as a triangle lists
-	VkPipelineInputAssemblyStateCreateInfo pipelineInputAssemblyStateCreateInfo{};
-	SetupPrimitiveAssemblyState(pGeometry, pipelineInputAssemblyStateCreateInfo);
-
-	//// Viewport state sets the number of viewports and scissor used in this pipeline
-	//// Note: This is actually overriden by the dynamic states (see below)
-	VkPipelineViewportStateCreateInfo pipelineViewportStateCreateInfo{};
-	SetupViewportScissorState(pVisComp, pipelineViewportStateCreateInfo);
-
-	//// Rasterization state
-	VkPipelineRasterizationStateCreateInfo pipelineRasterizationStateCreateInfo{};
-	SetupRasterizationState(pScenePass, pVisComp, pGeometry, pipelineRasterizationStateCreateInfo);
-
-	// Multi sampling state
-	// This example does not make use fo multi sampling (for anti-aliasing), the state must still be set and passed to the pipeline
-	VkPipelineMultisampleStateCreateInfo pipelineMultisampleStateCreateInfo{};
-	SetupMultisampleState(pipelineMultisampleStateCreateInfo);
-
-	//// Depth and stencil state containing depth and stencil compare and test operations
-	//// We only use depth tests and want depth tests and writes to be enabled and compare with less or equal
-	VkPipelineDepthStencilStateCreateInfo pipelineDepthStencilStateCreateInfo{};
-	SetupDepthStencilState(pVisComp, pipelineDepthStencilStateCreateInfo);
-
-	// Color blend state describes how blend factors are calculated (if used)
-	// We need one blend attachment state per color attachment (even if blending is not used)
-	VkPipelineColorBlendStateCreateInfo pipelineColorBlendStateCreateInfo{};
-	SetupColorBlendState(pVisComp, pipelineColorBlendStateCreateInfo);
-
-	// Enable dynamic states
-	// Most states are baked into the pipeline, but there are still a few dynamic states that can be changed within a command buffer
-	// To be able to change these we need do specify which dynamic states will be changed using this pipeline. Their actual states are set later on in the command buffer.
-	// For this example we will set the viewport and scissor using dynamic states
-	VkPipelineDynamicStateCreateInfo pipelineDynamicStateCreateInfo{};
-	SetupDynamicState(pVisComp, pipelineDynamicStateCreateInfo);
-
-	///////////////////
-	{
-		PipelineData pipelineData{};
-		pipelineData.pVisualComponent = pVisComp;
-
-		auto it = mDescriptorSetDataCollection.find(pScenePass->GetPassType());
-		const auto& descriptorSetDataVector = it->second;
-
-		std::vector<DescriptorSetData>::const_iterator cIt;
-		for (cIt = descriptorSetDataVector.begin(); cIt != descriptorSetDataVector.end(); ++cIt)
-		{
-			if (cIt->pVisualComponent == pVisComp)
-				break;
-		}
-		const auto& descriptorSetData = *cIt;
-
-		pipelineData.pPipelineLayout = GE_ALLOC(VulkanPipelineLayout)
-			(
-				mpDevice,
-				{ descriptorSetData.pDescriptorSetLayout }, {}
-		);
-		assert(pipelineData.pPipelineLayout != nullptr);
-
-		//// Assign the pipeline states to the pipeline creation info structure
-		pipelineData.pGraphicsPipeline = GE_ALLOC(VulkanGraphicsPipeline)
-			(
-				mpDevice,
-				mpPipelineCache,
-				pipelineShaderStages,
-				pipelineVertexInputStateCreateInfo, pipelineInputAssemblyStateCreateInfo, {},
-				pipelineViewportStateCreateInfo, pipelineRasterizationStateCreateInfo,
-				pipelineMultisampleStateCreateInfo, pipelineDepthStencilStateCreateInfo,
-				pipelineColorBlendStateCreateInfo, pipelineDynamicStateCreateInfo,
-				pipelineData.pPipelineLayout, mpScenePass->GetRenderPass(passType)
-				);
-		assert(pipelineData.pGraphicsPipeline != nullptr);
-
-		mPipelineDataCollection[passType].push_back(pipelineData);
-	}
-}
-
-void VulkanRenderer::SetupDescriptorSets(ScenePass::PassType passType, VisualComponent* pVisComp)
-{
-	assert(pVisComp != nullptr);
-
-	auto iter = mDescriptorSetBindingMapCollection.find(passType);
-	if (iter == mDescriptorSetBindingMapCollection.end()) //not found
-	{
-		LOG_ERROR("pVisComp not found in descriptor set binding map collection !");
-		return;
-	}
-	auto& descriptorSetBindingMap = iter->second;
-
-	//// setup Descriptor pool
-	{
-		std::vector<VkDescriptorPoolSize> poolSizes;
-		for (auto iter = descriptorSetBindingMap.begin(); iter != descriptorSetBindingMap.end(); ++iter)
-		{
-			auto descriptorSetId = iter->first;
-			uint32_t descriptorCount = static_cast<uint32_t>(iter->second.size());
-
-			auto& setBindingDataVector = iter->second;
-
-			for (auto& bindingData : setBindingDataVector)
-			{
-				// interested only in our vis comp
-				if (bindingData.pVisualComponent != pVisComp)
-				{
-					continue;
-				}
-
-				if (poolSizes.empty())
-				{
-					VkDescriptorPoolSize poolSize{};
-					poolSize.type = bindingData.layoutBinding.descriptorType;
-					poolSize.descriptorCount = bindingData.layoutBinding.descriptorCount;
-
-					poolSizes.push_back(poolSize);
-				}
-				else
-				{
-					bool_t found = false;
-					for (auto& poolSize : poolSizes)
-					{
-						if (bindingData.layoutBinding.descriptorType == poolSize.type)
-						{
-							poolSize.descriptorCount += bindingData.layoutBinding.descriptorCount;
-							found = true;
-							break;
-						}
-					}
-
-					if (found == false)
-					{
-						VkDescriptorPoolSize poolSize{};
-						poolSize.type = bindingData.layoutBinding.descriptorType;
-						poolSize.descriptorCount = bindingData.layoutBinding.descriptorCount;
-
-						poolSizes.push_back(poolSize);
-					}
-				}
-			}
-		}
-
-		//////////////
-
-		uint32_t descriptorSetMaxCount = poolSizes.size();
-
-		auto& descPoolVector = mpDescriptorPoolMap[passType];
-
-		DescriptorPoolData descriptorPoolData{};
-		descriptorPoolData.pVisualComponent = pVisComp;
-		descriptorPoolData.pDescriptorPool = GE_ALLOC(VulkanDescriptorPool)(mpDevice, descriptorSetMaxCount, poolSizes);
-		assert(descriptorPoolData.pDescriptorPool != nullptr);
-
-		descPoolVector.push_back(descriptorPoolData);
-	}
-
-	// setup Descriptor sets
-	{
-		for (auto iter = descriptorSetBindingMap.begin(); iter != descriptorSetBindingMap.end(); ++iter)
-		{
-			DescriptorSetData descriptorSetData{};
-			descriptorSetData.pVisualComponent = pVisComp;
-
-			auto& setId = iter->first;
-			auto& setBindingDataVector = iter->second;
-
-			// Basically connects the different shader stages to descriptors for binding uniform buffers, image samplers, etc.
-			std::vector<VkDescriptorSetLayoutBinding> layoutBindings;
-			for (auto& bindingData : setBindingDataVector)
-			{
-				// interested only in our vis comp
-				if (bindingData.pVisualComponent != pVisComp)
-				{
-					continue;
-				}
-
-				layoutBindings.push_back(bindingData.layoutBinding);
-			}
-
-			//TODO - for now we reuse the same descriptor set layout for all descriptor sets!
-			descriptorSetData.pDescriptorSetLayout = GE_ALLOC(VulkanDescriptorSetLayout)(mpDevice, layoutBindings);
-			assert(descriptorSetData.pDescriptorSetLayout != nullptr);
-
-			// Allocate a new descriptor set from the selected descriptor pool
-			std::vector<DescriptorPoolData>::const_iterator cIt;
-			auto it = mpDescriptorPoolMap.find(passType);
-			assert(it != mpDescriptorPoolMap.end());
-
-			const auto& poolDataVector = it->second;
-			for (cIt = poolDataVector.begin(); cIt != poolDataVector.end(); ++ cIt)
-			{
-				if (cIt->pVisualComponent == pVisComp)
-					break;
-			}
-			auto* pPool = cIt->pDescriptorPool;
-			assert(pPool != nullptr);
-
-			descriptorSetData.pDescriptorSet = GE_ALLOC(VulkanDescriptorSet)(mpDevice, pPool, setId, { descriptorSetData.pDescriptorSetLayout });
-			assert(descriptorSetData.pDescriptorSet != nullptr);
-
-			std::vector<VkWriteDescriptorSet> writeDescriptorSets;
-			for (auto& bindingData : setBindingDataVector)
-			{
-				// interested only in our vis comp
-				if (bindingData.pVisualComponent != pVisComp)
-				{
-					continue;
-				}
-
-				bindingData.writeSet.dstSet = descriptorSetData.pDescriptorSet->GetHandle();
-
-				writeDescriptorSets.push_back(bindingData.writeSet);
-			}
-
-			//TODO - for now only write descriptor sets
-			descriptorSetData.pDescriptorSet->Update(writeDescriptorSets, {});
-
-			auto& descriptorSetDataVector = mDescriptorSetDataCollection[passType];
-			descriptorSetDataVector.push_back(descriptorSetData);
-		}
-	}
-}
-
-void VulkanRenderer::SetupShaderStage(ScenePass* pScenePass, VisualComponent* pVisComp, std::vector<VkPipelineShaderStageCreateInfo>& shaderStagesOut)
-{
-	assert(pScenePass != nullptr);
-	assert(pVisComp != nullptr);
-	assert(mpScenePass != nullptr);
-
-	shaderStagesOut.clear();
-
-	// setup Shaders
-	const auto& shaders = pVisComp->GetShaders();
-
-	// pipeline shader stages data
-	shaderStagesOut.resize(shaders.size());
-
-	size_t i = 0;
-	for (auto iter = shaders.begin(); iter != shaders.end(); ++iter)
-	{
-		auto* pShader = iter->second;
-		if (pShader)
-		{
-			//NOTE! At this point the shader parser already parsed the shader source code
-
-			auto* pParser = pShader->GetGLSLParser();
-			assert(pParser != nullptr);
-
-			// COMPUTE DESCRIPTOR SET INFO
-
-			VkShaderStageFlagBits shaderStage = VulkanUtils::ShaderStageToVulkanShaderStage(pShader->GetShaderStage());
-
-			// uniform buffer is present
-			if (pParser->GetUniformBlock().IsValid())
-			{
-				// uniform data
-				GADRUniformBuffer* pGadrUniformBuffer = nullptr;
-				if (pVisComp->HasUniformBuffers(pScenePass->GetPassType())) //get available one
-				{
-					pGadrUniformBuffer = Get(pVisComp->GetUniformBuffer(pScenePass->GetPassType(), pShader->GetShaderStage()));
-				}
-				else
-				{
-					//otherwise make one of our own
-					//pVisComp->AddUniformBuffer();
-
-				}
-				assert(pGadrUniformBuffer != nullptr);
-
-				// descriptor metadata
-				VkDescriptorType descriptorType = VkDescriptorType::VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-
-				AddWriteDescriptorSet(pScenePass->GetPassType(), pVisComp, shaderStage, pParser->GetUniformBlock().setId, pParser->GetUniformBlock().binding,
-					descriptorType, nullptr, &(pGadrUniformBuffer->GetVKBuffer()->GetDescriptorInfo()));
-			}
-
-			// texture sampler(s) are present
-			if (pParser->GetUniforms().empty() == false)
-			{
-				//TODO - for now we know its only samplers
-				VkDescriptorType descriptorType = VkDescriptorType::VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-
-				auto& uniforms = pParser->GetUniforms();
-
-				if (pVisComp->HasTextures())
-				{
-					auto& textureMap = pVisComp->GetTextures();
-					auto& textureArray = textureMap.at(pShader->GetShaderStage());
-
-					assert(textureArray.size() == uniforms.size()); //TODO - improve this
-
-					auto texIter = textureArray.begin();
-					auto unifIter = uniforms.begin();
-					for (; texIter != textureArray.end(); ++texIter, ++unifIter)
-					{
-						auto* pTexture = *texIter;
-
-						if (pTexture->GetUsageType() == Texture::UsageType::GE_UT_RENDER)
-						{
-							auto* gadrTexture = Get(pTexture);
-							assert(gadrTexture != nullptr);
-
-							AddWriteDescriptorSet(pScenePass->GetPassType(), pVisComp, shaderStage, unifIter->second.setId, unifIter->second.binding,
-								descriptorType, &(gadrTexture->GetDescriptorInfo()), nullptr);
-						}
-						else if (pTexture->GetUsageType() == Texture::UsageType::GE_UT_RENDER_TARGET)
-						{
-							const auto& passes = mpScenePass->GetScenePass()->GetPasses();
-
-							bool_t foundRT = false;
-							ScenePass::ScenePassMap::const_iterator cIt;
-							ScenePass::RenderTargetMap::const_iterator cIt2;
-							for (cIt = passes.begin(); cIt != passes.end(); ++ cIt)
-							{
-								const auto& RTs = cIt->second->GetRenderTargets();
-								for (cIt2 = RTs.begin(); cIt2 != RTs.end(); ++ cIt2)
-								{
-									if (cIt2->second->GetTexture() == pTexture)
-									{
-										foundRT = true;
-										break;
-									}
-								}
-
-								if (foundRT)
-									break;
-							}
-
-							if (foundRT)
-							{
-								auto* pPass = cIt->second;
-								auto* pRT = cIt2->second;
-
-								auto* gadrTexture = Get(pRT);
-								assert(gadrTexture != nullptr);
-
-								AddWriteDescriptorSet(pScenePass->GetPassType(), pVisComp, shaderStage, unifIter->second.setId, unifIter->second.binding,
-									descriptorType, &(gadrTexture->GetDescriptorInfo()), nullptr);
-							}
-						}
-					}
-				}
-			}
-
-			// pipeline shader state setup
-			auto GADRShader = Get(pShader);
-			assert(GADRShader != nullptr);
-
-			auto refVkShader = GADRShader->GetVkShaderModule();
-			assert(refVkShader != nullptr);
-
-			shaderStagesOut[i++] = VulkanInitializers::PipelineShaderStageCreateInfo
-			(
-				shaderStage,
-				refVkShader->GetHandle(),
-				SHADER_ENTRY_POINT
-			);
-		}
-	}
-}
-
-void VulkanRenderer::AddWriteDescriptorSet(ScenePass::PassType passType, VisualComponent* pVisComp, VkShaderStageFlagBits shaderStage, uint32_t setId, uint32_t binding, VkDescriptorType descriptorType,
-	const VkDescriptorImageInfo* pDescriptorImageInfo, const VkDescriptorBufferInfo* pDescriptorBufferInfo)
-{
-	assert(pVisComp != nullptr);
-
-	DescriptorSetBindingData descriptorSetBindingData{};
-	descriptorSetBindingData.pVisualComponent = pVisComp;
-
-	// So every shader binding should map to one descriptor set layout binding
-	VkDescriptorSetLayoutBinding descriptorSetLayoutBinding{};
-	descriptorSetLayoutBinding.binding = binding; // taken from the shader
-	descriptorSetLayoutBinding.descriptorType = descriptorType;
-	descriptorSetLayoutBinding.descriptorCount = 1;
-	descriptorSetLayoutBinding.stageFlags = shaderStage; //NOTE! Can have more than one shader stage!
-
-	descriptorSetBindingData.layoutBinding = descriptorSetLayoutBinding;
-
-	VkWriteDescriptorSet writeDescriptorSet = VulkanInitializers::WriteDescriptorSet
-	(
-		VK_NULL_HANDLE,
-		binding,
-		0, 1,
-		descriptorType,
-		pDescriptorImageInfo ? pDescriptorImageInfo : nullptr,
-		pDescriptorBufferInfo ? pDescriptorBufferInfo : nullptr
-	);
-
-	descriptorSetBindingData.writeSet = writeDescriptorSet;
-
-
-	auto& descriptorSetBindingMap = mDescriptorSetBindingMapCollection[passType];
-	descriptorSetBindingMap[setId].push_back(descriptorSetBindingData);
-}
-
-void VulkanRenderer::SetupVertexInputState(VisualComponent* pVisComp, GeometricPrimitive* pGeometry, VkPipelineVertexInputStateCreateInfo& pipelineVertexInputStateCreateInfoOut)
-{
-	assert(pVisComp != nullptr);
-	assert(pGeometry != nullptr);
-
-	// setup vertex input
-	GADRVertexFormat* gadrVertexFormat = Get(pGeometry->GetVertexFormat());
-	assert(gadrVertexFormat != nullptr);
-
-	Shader* pVertexShader = pVisComp->GetShader(Shader::ShaderStage::GE_SS_VERTEX);
-	assert(pVertexShader != nullptr);
-
-	GLSLShaderParser* pGlslParser = pVertexShader->GetGLSLParser();
-	assert(pGlslParser != nullptr);
-
-	auto shaderAttribs = pGlslParser->GetVertexAttributes();
-
-	// update attribute locations based on the current used vertex shader
-	auto inputAttribs = gadrVertexFormat->GetVkInputAttributes();
-
-	// the shader can use a smaller number of attributes compared to input geometry data
-	assert(shaderAttribs.size() <= inputAttribs.size());
-
-	std::vector<VkVertexInputAttributeDescription> updatedShaderAttribs(shaderAttribs.size());
-
-	size_t index = 0;
-	auto shaderAttIter = shaderAttribs.begin();
-	for (auto shaderAttIter = shaderAttribs.begin(); shaderAttIter != shaderAttribs.end(); ++shaderAttIter)
-	{
-		auto& refAtt = updatedShaderAttribs[index];
-		refAtt = inputAttribs[shaderAttIter->first];
-		auto refInput = shaderAttIter->second.pInput;
-		if (refInput)
-			refAtt.location = refInput->location;
-
-		index++;
-	}
-
-
-	GADRVertexBuffer* gadrVertexBuffer = Get(pGeometry->GetVertexBuffer());
-	assert(gadrVertexBuffer != nullptr);
-
-	const auto& inputBinding = gadrVertexBuffer->GetVkInputBinding();
-
-	// TODO - improve resource creation - get it first time to create the Vulkan Index Buffer
-	if (pGeometry->IsIndexed())
-		Get(pGeometry->GetIndexBuffer());
-
-	/////////////////////////////////
-	pipelineVertexInputStateCreateInfoOut =
-		VulkanInitializers::PipelineVertexInputStateCreateInfo(1, &inputBinding, static_cast<uint32_t>(updatedShaderAttribs.size()), updatedShaderAttribs.data());
-}
-
-void VulkanRenderer::SetupPrimitiveAssemblyState(GeometricPrimitive* pGeometry, VkPipelineInputAssemblyStateCreateInfo& pipelineInputAssemblyStateCreateInfoOut)
-{
-	assert(pGeometry != nullptr);
-
-	// Input assembly state describes how primitives are assembled
-	// This pipeline will assemble vertex data as a triangle lists
-	VkPrimitiveTopology vulkanTopology = VulkanUtils::PrimitiveTopologyToVulkanTopolgy(pGeometry->GetTopology());
-
-	auto restartPrimitve = (pGeometry->IsIndexed() ? pGeometry->GetIndexBuffer()->GetIsRestartPrimitive() : false);
-
-	pipelineInputAssemblyStateCreateInfoOut  =
-		VulkanInitializers::PipelineInputAssemblyStateCreateInfo(vulkanTopology, restartPrimitve);
-}
-
-void VulkanRenderer::SetupViewportScissorState(VisualComponent* pVisComp, VkPipelineViewportStateCreateInfo& pipelineViewportStateCreateInfoOut)
-{
-	assert(pVisComp != nullptr);
-
-	// viewport & scicors state
-	auto& dynamicState = pVisComp->GetDynamicState();
-
-	// Viewport state sets the number of viewports and scissor used in this pipeline
-	// Note: This is actually overriden by the dynamic states (see below)
-
-	// if viewport and scisosrs are part of dynamic state, we don't handlle them here!
-	if (dynamicState.HasStates())
-	{
-		pipelineViewportStateCreateInfoOut = VulkanInitializers::PipelineViewportStateCreateInfo(MIN_NUM_VIEWPORTS, nullptr, MIN_NUM_SCISSORS, nullptr);
-	}
-	else
-	{
-		VkViewport viewport{};
-		viewport.x = 0;
-		viewport.y = 0;
-		viewport.width = static_cast<float32_t>(GetWindowWidth());
-		viewport.height = static_cast<float32_t>(GetWindowHeight());
-		viewport.minDepth = 0.0f;
-		viewport.maxDepth = 1.0f;
-
-		VkRect2D scissor{};
-		scissor.offset = VkOffset2D{ 0, 0 };
-		scissor.extent = VkExtent2D{ GetWindowWidth(), GetWindowHeight() };
-
-		pipelineViewportStateCreateInfoOut = VulkanInitializers::PipelineViewportStateCreateInfo(1, &viewport, 1, &scissor);
-	}
-}
-
-void VulkanRenderer::SetupRasterizationState(ScenePass* pScenePass, VisualComponent* pVisComp, GeometricPrimitive* pGeometry, VkPipelineRasterizationStateCreateInfo& pipelineRasterizationStateCreateInfoOut)
-{
-	assert(pScenePass != nullptr);
-	assert(pVisComp != nullptr);
-	assert(pGeometry != nullptr);
-
-	CullFaceState cfs;
-	const auto& effect = pScenePass->GetVisualEffect();
-	if (effect.isEnabled)
-	{
-		cfs = effect.cullFaceState;
-	}
-	else
-	{
-		cfs = pVisComp->GetCullFaceState();
-	}
-
-	// Rasterization state
-	VkPolygonMode vulkanPolygonMode = VulkanUtils::PrimitivePolygonModeToVulkanPolygonMode(pGeometry->GetPolygonMode());
-	VkFrontFace vulkanFaceWinding = VulkanUtils::PrimitiveFaceWindingToVulkanFaceWinding(pGeometry->GetFaceWinding());
-	VkCullModeFlagBits vulkanCullMode = VulkanUtils::FaceCullModeToVulkanFaceCullMode(cfs.GetCullMode());
-
-	pipelineRasterizationStateCreateInfoOut =
-		VulkanInitializers::PipelineRasterizationStateCreateInfo(VK_FALSE, VK_FALSE, vulkanPolygonMode, vulkanCullMode,
-			vulkanFaceWinding, VK_FALSE, 0, 0, 0, RASTER_MIN_LINE_WIDTH);
-
-}
-
-void VulkanRenderer::SetupMultisampleState(VkPipelineMultisampleStateCreateInfo& pipelineMultisampleStateCreateInfoOut)
-{
-	// Multi sampling state
-	// This example does not make use fo multi sampling (for anti-aliasing), the state must still be set and passed to the pipeline
-	pipelineMultisampleStateCreateInfoOut =
-		VulkanInitializers::PipelineMultisampleStateCreateInfo(MIN_NUM_SAMPLES, VK_FALSE, 0.0f, nullptr, VK_FALSE, VK_FALSE);
-}
-
-void VulkanRenderer::SetupDepthStencilState(VisualComponent* pVisComp, VkPipelineDepthStencilStateCreateInfo& pipelineDepthStencilStateCreateInfoOut)
-{
-	assert(pVisComp != nullptr);
-
-	// Depth and stencil state containing depth and stencil compare and test operations
-	// We only use depth tests and want depth tests and writes to be enabled and compare with less or equal
-	auto& depthStencilState = pVisComp->GetDepthStencilState();
-
-	auto depthEnabled = depthStencilState.GetIsDepthEnabled();
-	auto depthWritable = depthStencilState.GetIsDepthWritable();
-	auto depthCompareOp = VulkanUtils::CompareOpToVulkanCompareOp(depthStencilState.GetDepthCompareOp());
-
-	VkStencilOpState stencilOpState{};
-	auto stencilEnabled = depthStencilState.GetIsStencilEnabled();
-
-	if (stencilEnabled)
-	{
-		stencilOpState.failOp = VulkanUtils::StencilOpToVulkanStencilOp(depthStencilState.GetStencilFailOp());
-		stencilOpState.passOp = VulkanUtils::StencilOpToVulkanStencilOp(depthStencilState.GetStencilPassDepthPassOp());
-		stencilOpState.depthFailOp = VulkanUtils::StencilOpToVulkanStencilOp(depthStencilState.GetStencilPassDepthFailOp());
-		stencilOpState.compareOp = VulkanUtils::CompareOpToVulkanCompareOp(depthStencilState.GetStencilCompareOp());
-		stencilOpState.compareMask = depthStencilState.GetStencilCompareMask();
-		stencilOpState.writeMask = depthStencilState.GetStencilWriteMask();
-		stencilOpState.reference = depthStencilState.GetStencilReference();
-	}
-
-	// NOTE! Depth can be writable only if enabled!
-	pipelineDepthStencilStateCreateInfoOut =
-		VulkanInitializers::PipelineDepthStencilStateCreateInfo(depthEnabled, depthEnabled && depthWritable, depthCompareOp, VK_FALSE, stencilEnabled, stencilOpState, stencilOpState, 0, 0);
-}
-
-void VulkanRenderer::SetupColorBlendState(VisualComponent* pVisComp, VkPipelineColorBlendStateCreateInfo& pipelineColorBlendStateCreateInfoOut)
-{
-	assert(pVisComp != nullptr);
-
-	auto& colorBlendState = pVisComp->GetColorBlendState();
-
-	auto blendEnabled = colorBlendState.GetIsBlendEnabled();
-
-	// NOTE! We need one blend attachment state per color attachment (even if blending is not used)
-	auto srcColorBlendFactor = VulkanUtils::BlendFactorToVulkanBlendFactor(colorBlendState.GetSrcColorBlendFactor());
-	auto dstColorBlendFactor = VulkanUtils::BlendFactorToVulkanBlendFactor(colorBlendState.GetDstColorBlendFactor());
-	auto colorBlendOp = VulkanUtils::BlendOpToVulkanBlendOp(colorBlendState.GetColorBlendOp());
-	auto srcAlphaBlendFactor = VulkanUtils::BlendFactorToVulkanBlendFactor(colorBlendState.GetSrcAlphaBlendFactor());
-	auto dstAlphaBlendFactor = VulkanUtils::BlendFactorToVulkanBlendFactor(colorBlendState.GetDstAlphaBlendFactor());
-	auto alphaBlendOp = VulkanUtils::BlendOpToVulkanBlendOp(colorBlendState.GetAlphaBlendOp());
-	auto colorWriteMask = colorBlendState.GetColorWriteMask();
-
-	VkPipelineColorBlendAttachmentState	pipelineColorBlendAttachmentState{};
-	pipelineColorBlendAttachmentState.blendEnable = blendEnabled;
-	pipelineColorBlendAttachmentState.srcColorBlendFactor = srcColorBlendFactor;
-	pipelineColorBlendAttachmentState.dstColorBlendFactor = dstColorBlendFactor;
-	pipelineColorBlendAttachmentState.colorBlendOp = colorBlendOp;
-	pipelineColorBlendAttachmentState.srcAlphaBlendFactor = srcAlphaBlendFactor;
-	pipelineColorBlendAttachmentState.dstAlphaBlendFactor = dstAlphaBlendFactor;
-	pipelineColorBlendAttachmentState.alphaBlendOp = alphaBlendOp;
-	pipelineColorBlendAttachmentState.colorWriteMask = colorWriteMask;
-
-	auto constantColor = colorBlendState.GetConstantColor();
-
-	pipelineColorBlendStateCreateInfoOut =
-		VulkanInitializers::PipelineColorBlendStateCreateInfo(VK_FALSE, VkLogicOp::VK_LOGIC_OP_NO_OP, 1, &pipelineColorBlendAttachmentState, &constantColor[0]);
-}
-
-void VulkanRenderer::SetupDynamicState(VisualComponent* pVisComp, VkPipelineDynamicStateCreateInfo& pipelineDynamicStateCreateInfoOut)
-{
-	assert(pVisComp != nullptr);
-
-	std::vector<VkDynamicState> vulkanDynamicStates;
-
-	auto& dynamicState = pVisComp->GetDynamicState();
-
-	if (dynamicState.HasStates())
-	{
-		auto dynamicStates = dynamicState.GetStates();
-		vulkanDynamicStates.resize(dynamicStates.size());
-
-		for (size_t i = 0; i < vulkanDynamicStates.size(); ++i)
-		{
-			vulkanDynamicStates[i] = VulkanUtils::DynamicStateToVulkanDynamicState(dynamicStates[i]);
-		}
-
-		pipelineDynamicStateCreateInfoOut = VulkanInitializers::PipelineDynamicStateCreateInfo(static_cast<uint32_t>(vulkanDynamicStates.size()), vulkanDynamicStates.data());
-	}
-	else
-	{
-		pipelineDynamicStateCreateInfoOut = VulkanInitializers::PipelineDynamicStateCreateInfo(0, nullptr);
-	}
-}
-
-void VulkanRenderer::UpdateUniformBuffers(ScenePass* pScenePass, const RenderQueue::Renderable* pRenderable, Camera* pCamera, float32_t crrTime)
-{
-	assert(pScenePass != nullptr);
-	assert(pRenderable != nullptr);
-
-	auto* pGeoNode = pRenderable->pGeometryNode;
+	assert(pVisualPass != nullptr);
 	assert(pGeoNode != nullptr);
 	assert(pCamera != nullptr);
 
-	if (false == pGeoNode->IsPassAllowed(pScenePass->GetPassType()))
-	{
-		LOG_DEBUG("Skip processing node: %s for pass: %s", pGeoNode->GetName().c_str(), ScenePass::PassTypeToStr(pScenePass->GetPassType()).c_str());
-		return;
-	}
+	UpdateUniformBuffers(pVisualPass, pGeoNode, pCamera, crrTime);
 
-	auto* pVisComp = pGeoNode->GetComponent<VisualComponent>();
-	assert(pVisComp != nullptr);
-
-	const auto& effect = pScenePass->GetVisualEffect();
-
-	auto shaders = pVisComp->GetShaders();
-	for (auto iter = shaders.begin(); iter != shaders.end(); ++iter)
-	{
-		auto shaderStage = iter->first;
-		auto uniformBuffer = pVisComp->GetUniformBuffer(pScenePass->GetPassType(), shaderStage);
-
-		if (uniformBuffer)
-		{
-			// spacial case for cubemaps - environment mapping
-			if (uniformBuffer->HasUniform(GLSLShaderTypes::UniformType::GE_UT_PV_CUBEMAP_MATRIX4))
-			{
-				glm::mat4 PV = pCamera->GetProjectionViewMatrix();
-
-				// we remove the translation transform to allow the cubemap to never change position in world space
-				PV[3] = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
-
-				uniformBuffer->SetUniform(GLSLShaderTypes::UniformType::GE_UT_PVM_MATRIX4, PV * pGeoNode->GetModelMatrix());
-			}
-			else if (uniformBuffer->HasUniform(GLSLShaderTypes::UniformType::GE_UT_PVM_MATRIX4))
-			{
-				glm::mat4 PVM = pCamera->GetProjectionViewMatrix();
-				//TODO - improve effect support
-				if (effect.isEnabled)
-				{
-					PVM *= effect.transform * pGeoNode->GetModelMatrix();
-				}
-				else
-				{
-					PVM *= pGeoNode->GetModelMatrix();
-				}
-				uniformBuffer->SetUniform(GLSLShaderTypes::UniformType::GE_UT_PVM_MATRIX4, PVM);
-			}
-
-			if (uniformBuffer->HasUniform(GLSLShaderTypes::UniformType::GE_UT_MODEL_MATRIX4))
-			{
-				uniformBuffer->SetUniform(GLSLShaderTypes::UniformType::GE_UT_MODEL_MATRIX4, pGeoNode->GetModelMatrix());
-			}
-
-			if (uniformBuffer->HasUniform(GLSLShaderTypes::UniformType::GE_UT_NORMAL_MATRIX4))
-			{
-				uniformBuffer->SetUniform(GLSLShaderTypes::UniformType::GE_UT_NORMAL_MATRIX4, pGeoNode->GetNormalMatrix());
-			}
-
-			if (uniformBuffer->HasUniform(GLSLShaderTypes::UniformType::GE_UT_NORMAL_MATRIX3))
-			{
-				uniformBuffer->SetUniform(GLSLShaderTypes::UniformType::GE_UT_NORMAL_MATRIX3, glm::mat3(pGeoNode->GetNormalMatrix()));
-			}
-
-			if (uniformBuffer->HasUniform(GLSLShaderTypes::UniformType::GE_UT_CAMERA_POS))
-			{
-				uniformBuffer->SetUniform(GLSLShaderTypes::UniformType::GE_UT_CAMERA_POS, pCamera->GetPosition());
-			}
-
-			if (uniformBuffer->HasUniform(GLSLShaderTypes::UniformType::GE_UT_CRR_TIME))
-			{
-				uniformBuffer->SetUniform(GLSLShaderTypes::UniformType::GE_UT_CRR_TIME, crrTime);
-			}
-
-			Bind(uniformBuffer);
-		}
-	}
-}
-
-void VulkanRenderer::UpdateDynamicStates(ScenePass* pPass, const DynamicState& dynamicState, uint32_t currentBufferIdx)
-{
-	assert(pPass != nullptr);
-	assert(currentBufferIdx < mDrawCommandBuffers.size());
-	auto pCrrDrawCommandBuffer = mDrawCommandBuffers[currentBufferIdx];
-	assert(pCrrDrawCommandBuffer != nullptr);
-
-	VkExtent2D extent;
-	switch (pPass->GetPassType())
-	{
-		case ScenePass::PassType::GE_PT_STANDARD:
-		{
-			extent.width = GetWindowWidth();
-			extent.height = GetWindowHeight();
-		}
-		break;
-		case ScenePass::PassType::GE_PT_OFFSCREEN:
-		{
-			auto* pColorRT = pPass->GetRenderTarget(RenderTarget::TargetType::GE_TT_COLOR);
-			extent.width = pColorRT->GetWidth();
-			extent.height = pColorRT->GetHeight();
-		}
-		break;
-		case ScenePass::PassType::GE_PT_SHADOWS:
-			//TODO
-			break;
-	}
-
-	auto dynStates = dynamicState.GetStates();
-	std::vector<VkDynamicState> dynamicStateEnables;
-	dynamicStateEnables.resize(dynStates.size());
-
-	for (size_t i = 0; i < dynamicStateEnables.size(); ++i)
-	{
-		dynamicStateEnables[i] = VulkanUtils::DynamicStateToVulkanDynamicState(dynStates[i]);
-	}
-
-
-	for (auto& state : dynamicStateEnables)
-	{
-		switch (state)
-		{
-		case VkDynamicState::VK_DYNAMIC_STATE_VIEWPORT:
-		{
-			VkViewport viewport{};
-			viewport.x = 0;
-			viewport.y = 0;
-			viewport.width = static_cast<float32_t>(extent.width);
-			viewport.height = static_cast<float32_t>(extent.height);
-			viewport.minDepth = 0.0f;
-			viewport.maxDepth = 1.0f;
-
-			vkCmdSetViewport(pCrrDrawCommandBuffer->GetHandle(), 0, 1, &viewport);
-		}
-		break;
-		case VkDynamicState::VK_DYNAMIC_STATE_SCISSOR:
-		{
-			VkRect2D scissor{};
-			scissor.offset = VkOffset2D{ 0, 0 };
-			scissor.extent = extent;
-
-			vkCmdSetScissor(pCrrDrawCommandBuffer->GetHandle(), 0, 1, &scissor);
-		}
-		break;
-
-		//TODO other cases
-
-		default:
-			LOG_ERROR("Invalid dynamic state!");
-		}
-	}
-}
-
-void VulkanRenderer::DrawSceneToCommandBuffer()
-{
-	assert(mpScenePass != nullptr);
-	assert(mpRenderQueue != nullptr);
-
-	// THE ACTUAL RENDERING IS DONE HERE !!!!
-
-	for (uint32_t i = 0; i < mDrawCommandBuffers.size(); ++i)
-	{
-		assert(mDrawCommandBuffers[i] != nullptr);
-
-		// Begin command buffer recording
-		VK_CHECK_RESULT(mDrawCommandBuffers[i]->Begin());
-
-		ResetQuery(i);
-
-		BeginQuery(i);
-
-		mpScenePass->Render(this, mpRenderQueue, i);
-
-		EndQuery(i);
-
-		// End command buffer recording
-		VK_CHECK_RESULT(mDrawCommandBuffers[i]->End());
-	}
+	//TODO - other stuff to update
 }
 
 void VulkanRenderer::DrawDirect(uint32_t indexCount, uint32_t firstIndex, uint32_t instanceCount, uint32_t currentBufferIdx, bool_t isIndexedDrawing)
@@ -1857,12 +1392,12 @@ void VulkanRenderer::DrawDirect(uint32_t indexCount, uint32_t firstIndex, uint32
 
 	if (isIndexedDrawing)
 	{
-		// TODO - for now firstVertex/Index, firstInstance, vertexOffset are all 0
+		// TODO - for now firstInstance, vertexOffset are both 0
 		vkCmdDrawIndexed(pCrrDrawCommandBuffer->GetHandle(), indexCount, instanceCount, firstIndex, 0, 0);
 	}
 	else
 	{
-		// TODO - for now firstVertex/Index, firstInstance are all 0
+		// TODO - for now firstVertex/Index, firstInstance are both 0
 		vkCmdDraw(pCrrDrawCommandBuffer->GetHandle(), indexCount, instanceCount, 0, 0);
 	}
 }
@@ -1874,6 +1409,118 @@ void VulkanRenderer::DrawIndirect(uint32_t indexCount, uint32_t firstIndex, uint
 
 
 /////////////////////////////////////
+
+void VulkanRenderer::BeginRenderPass(const VisualPassData& visualPassData, uint32_t currentBufferIdx)
+{
+	assert(visualPassData.pRenderPass != nullptr);
+	if (visualPassData.frameBuffers.size() > 1)
+	{
+		assert(currentBufferIdx < visualPassData.frameBuffers.size());
+	}
+
+	auto& dataRef = visualPassData.passBeginData;
+
+	std::vector<VkClearValue> clearValues;
+
+	if (visualPassData.passes[0]->GetPassType() == VisualPass::PassType::GE_PT_SHADOWS)
+	{
+		clearValues.resize(1);
+
+		clearValues[0].depthStencil = { dataRef.depth, dataRef.stencil };
+	}
+	else // standard or offscreen
+	{
+		clearValues.resize(CLEARVALUES_COUNT);
+
+		//TODO - allow custom clear color
+		if (visualPassData.passes[0]->GetPassType() == VisualPass::PassType::GE_PT_STANDARD)
+		{
+			clearValues[0].color = { 0.5, 0.5, 0.5, 1.0 };
+		}
+		else
+		{
+			clearValues[0].color = { dataRef.clearColor.r, dataRef.clearColor.g, dataRef.clearColor.b, dataRef.clearColor.a };
+		}
+
+		clearValues[1].depthStencil = { dataRef.depth, dataRef.stencil };
+	}
+
+
+	// TODO - for now the render area size is the size of: screen/framebuffer/render target
+	VkRect2D renderArea = { { 0, 0 }, { dataRef.width, dataRef.height } };
+
+	auto* pVulkanCmdBuff = GetCommandBuffer(currentBufferIdx);
+	assert(pVulkanCmdBuff != nullptr);
+
+	auto& refFB = (visualPassData.frameBuffers.size() > 1 ? visualPassData.frameBuffers[currentBufferIdx] : visualPassData.frameBuffers[0]);
+	visualPassData.pRenderPass->Begin(pVulkanCmdBuff->GetHandle(), refFB->GetHandle(), renderArea, clearValues);
+}
+
+void VulkanRenderer::EndRenderPass(const VisualPassData& visualPassData, uint32_t currentBufferIdx)
+{
+	assert(visualPassData.pRenderPass != nullptr);
+
+	auto* pVulkanCmdBuff = GetCommandBuffer(currentBufferIdx);
+	assert(pVulkanCmdBuff != nullptr);
+
+	// NOTE! Ending the render pass will add an implicit barrier transitioning the frame buffer color attachment to 
+	// VK_IMAGE_LAYOUT_PRESENT_SRC_KHR for presenting it to the windowing system (if it's the final pass)
+
+	visualPassData.pRenderPass->End(pVulkanCmdBuff->GetHandle());
+
+	// NOTE! Explicit synchronization is not required between the render pass, as this is done implicit via sub pass dependencies
+}
+
+void VulkanRenderer::AddVisualPass(VisualPass* pVisualPass)//, GeometryNode* pGeoNode)
+{
+	assert(pVisualPass != nullptr);
+	//assert(pGeoNode != nullptr);
+
+	auto* pGeoNode = pVisualPass->GetNode();
+	assert(pGeoNode != nullptr);
+
+	if (pGeoNode->IsPassAllowed(pVisualPass->GetPassType()))
+	{
+		auto it = mVisualPassMap.find(pVisualPass->GetPassType());
+		if (it != mVisualPassMap.end())
+		{
+			bool foundNode = false;
+			auto& passData = it->second;
+			for (auto* pPass : passData.passes)
+			{
+				if (pPass && pPass->GetNode() == pGeoNode)
+				{
+					foundNode = true;
+					break;
+				}
+			}
+
+			if (false == foundNode)
+			{
+				passData.passes.push_back(pVisualPass);
+			}
+		}
+		else
+		{
+			auto* pRenderPass = SetupRenderPass(pVisualPass);
+
+			std::vector<VulkanFrameBuffer*> frameBuffers;
+			VisualPassBeginData passBeginData;
+			SetupFrameBuffers(pVisualPass, pRenderPass, frameBuffers, passBeginData);
+
+			VisualPassData passData;
+			passData.passBeginData = passBeginData;
+			passData.pRenderPass = pRenderPass;
+			passData.frameBuffers = frameBuffers;
+
+			passData.passes.push_back(pVisualPass);
+
+			mVisualPassMap.emplace(pVisualPass->GetPassType(), passData);
+		}
+	}
+};
+
+//////////////////////
 
 VulkanDevice* VulkanRenderer::GetDevice() const
 {
@@ -1895,4 +1542,18 @@ VulkanCommandBuffer* VulkanRenderer::GetCommandBuffer(uint32_t currentBufferIdx)
 	assert(currentBufferIdx < mDrawCommandBuffers.size());
 
 	return mDrawCommandBuffers[currentBufferIdx];
+}
+
+VulkanRenderPass* VulkanRenderer::GetRenderPass(VisualPass* pVisualPass)
+{
+	assert(pVisualPass != nullptr);
+
+	auto it = mVisualPassMap.find(pVisualPass->GetPassType());
+	if (it != mVisualPassMap.end())
+	{
+		auto& passBuff = it->second;
+		return passBuff.pRenderPass;
+	}
+
+	return nullptr;
 }

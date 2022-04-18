@@ -11,10 +11,9 @@
 
 #include "Graphics/Rendering/Backends/Vulkan/Common/VulkanObject.hpp"
 #include "Graphics/Rendering/Renderer.hpp"
-#include "Graphics/Rendering/ScenePasses/ScenePass.hpp"
-#include "Graphics/Rendering/Backends/Vulkan/ScenePasses/VulkanScenePass.hpp"
+#include "Graphics/Rendering/VisualPasses/VisualPass.hpp"
 #include <vector>
-#include <unordered_map>
+#include <map>
 
 namespace GraphicsEngine
 {
@@ -28,14 +27,13 @@ namespace GraphicsEngine
 		class Camera;
 
 		class VulkanDevice;
-		class VulkanBuffer;
+
 		class VulkanCommandPool;
 		class VulkanCommandBuffer;
-		class VulkanFrameBuffer;
-		class VulkanFrameBufferAttachment;
-		class VulkanRenderPass;
+
 		class VulkanSemaphore;
 		class VulkanFence;
+
 		class VulkanShaderModule;
 		class VulkanDescriptorPool;
 		class VulkanDescriptorSetLayout;
@@ -43,9 +41,11 @@ namespace GraphicsEngine
 		class VulkanPipelineCache;
 		class VulkanPipelineLayout;
 		class VulkanGraphicsPipeline;
+		class VulkanFrameBuffer;
+		class VulkanRenderPass;
+
 		class VulkanQueryPool;
 
-		class GeometricPrimitive; // TODO
 		class VisualComponent;
 
 		class VulkanRenderer : public VulkanObject, public Renderer
@@ -65,17 +65,12 @@ namespace GraphicsEngine
 
 			/////////////////////////////////
 
-			virtual void ComputeGraphicsResources(RenderQueue* pRenderQueue, ScenePass* pScenePass) override;
+			virtual void ComputeGraphicsResources(RenderQueue* pRenderQueue) override;
 
-			virtual void UpdateUniformBuffers(ScenePass* pScenePass, const RenderQueue::Renderable* pRenderable, Camera* pCamera, float32_t crrTime) override;
-			virtual void UpdateDynamicStates(ScenePass* pScenePass, const DynamicState& dynamicState, uint32_t currentBufferIdx) override;
+			virtual void BindLight(VisualPass* pVisualPass, const LightNode* pLightNode, GeometryNode* pGeoNode) override;
 
-			virtual void DrawObject(ScenePass* pScenePass, const RenderQueue::Renderable* pRenderable, uint32_t currentBufferIdx) override;
-
-			virtual void BindLight(ScenePass* pScenePass, const LightNode* pLightNode, GeometryNode* pGeoNode) override;
-
-			void DrawDirect(uint32_t indexCount, uint32_t firstIndex, uint32_t instanceCount, uint32_t currentBufferIdx, bool_t isIndexedDrawing = false);
-			void DrawIndirect(uint32_t indexCount, uint32_t firstIndex, uint32_t instanceCount, uint32_t currentBufferIdx, bool_t isIndexedDrawing = false);
+			virtual void DrawNode(VisualPass* pVisualPass, GeometryNode* pGeoNode, uint32_t currentBufferIdx) override;
+			virtual void UpdateNode(VisualPass* pVisualPass, GeometryNode* pGeoNode, Camera* pCamera, float32_t crrTime) override;
 
 			//////////////////////////////
 
@@ -85,8 +80,33 @@ namespace GraphicsEngine
 
 			VulkanCommandBuffer* GetCommandBuffer(uint32_t currentBufferIdx) const;
 
+			VulkanRenderPass* GetRenderPass(VisualPass* pVisualPass);
+
 		private:
 			NO_COPY_NO_MOVE_CLASS(VulkanRenderer)
+
+			struct VisualPassBeginData
+			{
+				VisualPassBeginData()
+					: width(0), height(0)
+					, clearColor(0.0f)
+					, depth(0.0f), stencil(0)
+				{}
+
+				uint32_t width, height;
+				Color4f clearColor;
+				float32_t depth;
+				uint32_t stencil;
+			};
+
+			struct VisualPassData
+			{
+				VisualPassBeginData passBeginData;
+
+				VulkanRenderPass* pRenderPass;
+				std::vector<VulkanFrameBuffer*> frameBuffers;
+				std::vector<VisualPass*> passes;
+			};
 
 			virtual void Init(Platform::Window* pWindow) override;
 			virtual void Terminate() override;
@@ -96,6 +116,10 @@ namespace GraphicsEngine
 			void SetupDrawCommandPool();
 			void SetupDrawCommandBuffers();
 
+			VulkanRenderPass* SetupRenderPass(VisualPass* pVisualPass);
+			void SetupFrameBuffers(VisualPass* pVisualPass, VulkanRenderPass* pRenderPass, std::vector<VulkanFrameBuffer*>& frameBuffersOut,
+				VisualPassBeginData& visualPassBeginDataOut);
+
 			void SetupSynchronizationPrimitives();
 			void SetupPipelineCache();
 			void SetupSubmitInfo();
@@ -103,29 +127,14 @@ namespace GraphicsEngine
 			void SetupPipelineStats();
 			void GetQueryResults();
 
-			void SetupPipelines(ScenePass* pScenePass, GeometryNode* pGeoNode);
-			void SetupStandardPipeline(ScenePass* pScenePass, GeometryNode* pGeoNode);
-			void SetupOffscreenPipeline(ScenePass* pScenePass, GeometryNode* pGeoNode);
-
-			void SetupDescriptorSets(ScenePass::PassType passType, VisualComponent* pVisComp);
-			void SetupShaderStage(ScenePass* pScenePass, VisualComponent* pVisComp, std::vector<VkPipelineShaderStageCreateInfo>& shaderStagesOut);
-			void SetupVertexInputState(VisualComponent* pVisComp, GeometricPrimitive* pGeometry, VkPipelineVertexInputStateCreateInfo& pipelineVertexInputStateCreateInfoOut);
-			void SetupPrimitiveAssemblyState(GeometricPrimitive* pGeometry, VkPipelineInputAssemblyStateCreateInfo& pipelineInputAssemblyStateCreateInfoOut);
-			void SetupViewportScissorState(VisualComponent* pVisComp, VkPipelineViewportStateCreateInfo& pipelineViewportStateCreateInfoOut);
-			void SetupRasterizationState(ScenePass* pScenePass, VisualComponent* pVisComp, GeometricPrimitive* pGeometry, VkPipelineRasterizationStateCreateInfo& pipelineRasterizationStateCreateInfoOut);
-			void SetupMultisampleState(VkPipelineMultisampleStateCreateInfo& pipelineMultisampleStateCreateInfoOut);
-			void SetupDepthStencilState(VisualComponent* pVisComp, VkPipelineDepthStencilStateCreateInfo& pipelineDepthStencilStateCreateInfoOut);
-			void SetupColorBlendState(VisualComponent* pVisComp, VkPipelineColorBlendStateCreateInfo& pipelineColorBlendStateCreateInfoOut);
-			void SetupDynamicState(VisualComponent* pVisComp, VkPipelineDynamicStateCreateInfo& pipelineDynamicStateCreateInfoOut);
-
-			void AddWriteDescriptorSet(ScenePass::PassType passType, VisualComponent* pVisComp, VkShaderStageFlagBits shaderStage, uint32_t setId, uint32_t binding, VkDescriptorType descriptorType,
-				const VkDescriptorImageInfo* pDescriptorImageInfo, const VkDescriptorBufferInfo* pDescriptorBufferInfo);
-
-			void ResetQuery(uint32_t currentBufferIdx);
-			void BeginQuery(uint32_t currentBufferIdx);
-			void EndQuery(uint32_t currentBufferIdx);
+			void ResetQuery(VisualPass::PassType passType, uint32_t currentBufferIdx);
+			void BeginQuery(VisualPass::PassType passType, uint32_t currentBufferIdx);
+			void EndQuery(VisualPass::PassType passType, uint32_t currentBufferIdx);
 
 			void DrawSceneToCommandBuffer();
+			void DrawNodes(uint32_t currentBufferIdx);
+
+			void UpdateNodes(Camera* pCamera, float32_t crrTime);
 
 			virtual void BeginFrame() override;
 			virtual void EndFrame() override;
@@ -133,14 +142,22 @@ namespace GraphicsEngine
 			void PrepareFrame();
 			void PresentFrame();
 
+			void UpdateDynamicStates(VisualPass* pVisualPass, uint32_t currentBufferIdx);
+			void UpdateUniformBuffers(VisualPass* pVisualPass, GeometryNode* pGeoNode, Camera* pCamera, float32_t crrTime);
+
+			void DrawDirect(uint32_t indexCount, uint32_t firstIndex, uint32_t instanceCount, uint32_t currentBufferIdx, bool_t isIndexedDrawing = false);
+			void DrawIndirect(uint32_t indexCount, uint32_t firstIndex, uint32_t instanceCount, uint32_t currentBufferIdx, bool_t isIndexedDrawing = false);
+
+
+			void BeginRenderPass(const VisualPassData& visualPassData, uint32_t currentBufferIdx);
+			void EndRenderPass(const VisualPassData& visualPassData, uint32_t currentBufferIdx);
+
+			void AddVisualPass(VisualPass* pVisualPass);
 
 			// VULKAN RESOURCES
 
 			// Device
 			VulkanDevice* mpDevice;
-
-			// Scene pass
-			VulkanScenePass* mpScenePass;
 
 			// Synchronization primitives
 			// Synchronization is an important concept of Vulkan that OpenGL mostly hid away. Getting this right is crucial to using Vulkan.
@@ -170,12 +187,19 @@ namespace GraphicsEngine
 			// Pipeline cache object
 			VulkanPipelineCache* mpPipelineCache;
 
+			// map must be ordered as the passes must be processed in the pass type order
+			std::map<VisualPass::PassType, VisualPassData> mVisualPassMap;
+
 
 			//  pipeline statistics results
-			VulkanQueryPool* mpQueryPool;
+			struct PipelineStatsData
+			{
+				VulkanQueryPool* pQueryPool;
+				std::vector<uint64_t> pipelineStats;
+				std::vector<std::string> pipelineStatNames;
+			};
 
-			std::vector<uint64_t> mPipelineStats;
-			std::vector<std::string> mPipelineStatNames;
+			std::map<VisualPass::PassType, PipelineStatsData> mPipelineStatsMap;
 
 			//////////////////////////////////////////
 
@@ -190,59 +214,6 @@ namespace GraphicsEngine
 				/** @brief Enable UI overlay */
 				bool overlay = false;
 			} mSettings;
-
-
-
-			///////////////////////////////////
-
-			////////// descriptor/uniform map data
-			struct DescriptorSetBindingData
-			{
-				VisualComponent* pVisualComponent; // reference to the visual component to be able to differentiate
-
-				VkDescriptorSetLayoutBinding layoutBinding;
-				VkWriteDescriptorSet writeSet;
-			//	VkCopyDescriptorSet copySet; //TODO
-			};
-
-			// key - is descriptor setId, value - vector of descriptor binding data
-			typedef std::unordered_map<uint32_t, std::vector<DescriptorSetBindingData>> DescriptorSetBindingMap;
-			std::unordered_map<ScenePass::PassType, DescriptorSetBindingMap> mDescriptorSetBindingMapCollection;
-
-			// descriptor pools
-			struct DescriptorPoolData
-			{
-				VisualComponent* pVisualComponent; // reference to the visual component to be able to differentiate
-
-				VulkanDescriptorPool* pDescriptorPool;
-			};
-
-
-			std::unordered_map<ScenePass::PassType, std::vector<DescriptorPoolData>> mpDescriptorPoolMap;
-
-			struct DescriptorSetData
-			{
-				VisualComponent* pVisualComponent; // reference to the visual component to be able to differentiate
-
-				// 1 descriptor set per material/visual effect
-				VulkanDescriptorSetLayout* pDescriptorSetLayout;
-				VulkanDescriptorSet* pDescriptorSet;
-			};
-
-			//TOOD - for now only 1 descriptor set per visual component!
-			std::unordered_map<ScenePass::PassType, std::vector<DescriptorSetData>> mDescriptorSetDataCollection;
-
-			struct PipelineData
-			{
-				// 1 pipeline per material/visual effect
-				VisualComponent* pVisualComponent; // reference to the visual component to be able to differentiate
-
-				VulkanPipelineLayout* pPipelineLayout;
-				VulkanGraphicsPipeline* pGraphicsPipeline;
-			};
-
-			std::unordered_map<ScenePass::PassType, std::vector<PipelineData>> mPipelineDataCollection;
-
 		};
 	}
 }

@@ -50,19 +50,19 @@ namespace GraphicsEngine
 				return format;
 			}
 
-			VkVertexInputRate VertexInputRateToVulkanVertexInputRate(const VertexBuffer::VertexInputRate& vertecInputRate)
+			VkVertexInputRate VertexInputRateToVulkanVertexInputRate(const VertexFormat::VertexInputRate& vertexInputRate)
 			{
 				VkVertexInputRate vulkanVertexInputRate = VkVertexInputRate::VK_VERTEX_INPUT_RATE_MAX_ENUM;
 
-				switch (vertecInputRate)
+				switch (vertexInputRate)
 				{
-				case VertexBuffer::VertexInputRate::GE_VIR_VERTEX:
+				case VertexFormat::VertexInputRate::GE_VIR_VERTEX:
 					vulkanVertexInputRate = VkVertexInputRate::VK_VERTEX_INPUT_RATE_VERTEX;
 					break;
-				case VertexBuffer::VertexInputRate::GE_VIR_INSTANCE:
+				case VertexFormat::VertexInputRate::GE_VIR_INSTANCE:
 					vulkanVertexInputRate = VkVertexInputRate::VK_VERTEX_INPUT_RATE_INSTANCE;
 					break;
-				case VertexBuffer::VertexInputRate::GE_VIR_COUNT:
+				case VertexFormat::VertexInputRate::GE_VIR_COUNT:
 				default:
 					LOG_ERROR("Invalid Vulkan Vertex Input Rate!");
 				}
@@ -93,34 +93,34 @@ namespace GraphicsEngine
 				return vulkanIndexType;
 			}
 
-			VkPrimitiveTopology PrimitiveTopologyToVulkanTopolgy(GeometricPrimitive::PrimitiveTopology topology)
+			VkPrimitiveTopology PrimitiveTopologyToVulkanTopolgy(VisualPass::PrimitiveTopology topology)
 			{
 				VkPrimitiveTopology vulkanTopology = VkPrimitiveTopology::VK_PRIMITIVE_TOPOLOGY_MAX_ENUM;
 
 				switch (topology)
 				{
-				case GeometricPrimitive::PrimitiveTopology::GE_PT_POINT_LIST:
+				case VisualPass::PrimitiveTopology::GE_PT_POINT_LIST:
 					vulkanTopology = VkPrimitiveTopology::VK_PRIMITIVE_TOPOLOGY_LINE_LIST;
 					break;
-				case GeometricPrimitive::PrimitiveTopology::GE_PT_LINE_LIST:
+				case VisualPass::PrimitiveTopology::GE_PT_LINE_LIST:
 					vulkanTopology = VkPrimitiveTopology::VK_PRIMITIVE_TOPOLOGY_LINE_LIST;
 					break;
-				case GeometricPrimitive::PrimitiveTopology::GE_PT_LINE_LOOP:
+				case VisualPass::PrimitiveTopology::GE_PT_LINE_LOOP:
 					LOG_ERROR("Line loop topology is not supported by Vulkan API!");
 					break;
-				case GeometricPrimitive::PrimitiveTopology::GE_PT_LINE_STRIP:
+				case VisualPass::PrimitiveTopology::GE_PT_LINE_STRIP:
 					vulkanTopology = VkPrimitiveTopology::VK_PRIMITIVE_TOPOLOGY_LINE_STRIP;
 					break;
-				case GeometricPrimitive::PrimitiveTopology::GE_PT_TRIANGLE_LIST:
+				case VisualPass::PrimitiveTopology::GE_PT_TRIANGLE_LIST:
 					vulkanTopology = VkPrimitiveTopology::VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 					break;
-				case GeometricPrimitive::PrimitiveTopology::GE_PT_TRIANGLE_STRIP:
+				case VisualPass::PrimitiveTopology::GE_PT_TRIANGLE_STRIP:
 					vulkanTopology = VkPrimitiveTopology::VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
 					break;
-				case GeometricPrimitive::PrimitiveTopology::GE_PT_TRIANGLE_FAN:
+				case VisualPass::PrimitiveTopology::GE_PT_TRIANGLE_FAN:
 					vulkanTopology = VkPrimitiveTopology::VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN;
 					break;
-				case GeometricPrimitive::PrimitiveTopology::GE_PT_PATCH_LIST:
+				case VisualPass::PrimitiveTopology::GE_PT_PATCH_LIST:
 					vulkanTopology = VkPrimitiveTopology::VK_PRIMITIVE_TOPOLOGY_PATCH_LIST;
 					break;
 
@@ -132,16 +132,16 @@ namespace GraphicsEngine
 				return vulkanTopology;
 			}
 
-			VkFrontFace PrimitiveFaceWindingToVulkanFaceWinding(GeometricPrimitive::FaceWinding faceWinding)
+			VkFrontFace PrimitiveFaceWindingToVulkanFaceWinding(VisualPass::FaceWinding faceWinding)
 			{
 				VkFrontFace vulkanFaceWinding = VkFrontFace::VK_FRONT_FACE_MAX_ENUM;
 
 				switch (faceWinding)
 				{
-				case GeometricPrimitive::FaceWinding::GE_FW_CLOCKWISE:
+				case VisualPass::FaceWinding::GE_FW_CLOCKWISE:
 					vulkanFaceWinding = VkFrontFace::VK_FRONT_FACE_CLOCKWISE;
 					break;
-				case GeometricPrimitive::FaceWinding::GE_FW_COUNTER_CLOCKWISE:
+				case VisualPass::FaceWinding::GE_FW_COUNTER_CLOCKWISE:
 					vulkanFaceWinding = VkFrontFace::VK_FRONT_FACE_COUNTER_CLOCKWISE;
 					break;
 				default:
@@ -152,19 +152,19 @@ namespace GraphicsEngine
 				return vulkanFaceWinding;
 			}
 
-			VkPolygonMode PrimitivePolygonModeToVulkanPolygonMode(GeometricPrimitive::PolygonMode polygonMode)
+			VkPolygonMode PrimitivePolygonModeToVulkanPolygonMode(VisualPass::PolygonMode polygonMode)
 			{
 				VkPolygonMode vulkanPolygonMode = VkPolygonMode::VK_POLYGON_MODE_MAX_ENUM;
 
 				switch (polygonMode)
 				{
-				case GeometricPrimitive::PolygonMode::GE_PM_FILL:
+				case VisualPass::PolygonMode::GE_PM_FILL:
 					vulkanPolygonMode = VkPolygonMode::VK_POLYGON_MODE_FILL;
 					break;
-				case GeometricPrimitive::PolygonMode::GE_PM_LINE:
+				case VisualPass::PolygonMode::GE_PM_LINE:
 					vulkanPolygonMode = VkPolygonMode::VK_POLYGON_MODE_LINE;
 					break;
-				case GeometricPrimitive::PolygonMode::GE_PM_POINT:
+				case VisualPass::PolygonMode::GE_PM_POINT:
 					vulkanPolygonMode = VkPolygonMode::VK_POLYGON_MODE_POINT;
 					break;
 				default:
@@ -253,6 +253,9 @@ namespace GraphicsEngine
 					break;
 				case Texture::TextureFormat::GE_TF_D32_S8:
 					vulkanFormat = VkFormat::VK_FORMAT_D32_SFLOAT_S8_UINT;
+					break;
+				case Texture::TextureFormat::GE_TF_D32:
+					vulkanFormat = VkFormat::VK_FORMAT_D32_SFLOAT;
 					break;
 					// TODO - other formats
 				case Texture::TextureFormat::GE_TF_COUNT:

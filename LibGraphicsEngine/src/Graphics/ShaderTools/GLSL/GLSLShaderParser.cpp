@@ -53,7 +53,7 @@ constexpr const char_t* VEC_NAME = "vec";
 constexpr const char_t* MAT_NAME = "mat";
 
 // Uniform buffers
-constexpr const char_t* UBO_NAME = "UBO";
+constexpr const char_t* UBO_NAME = "UniformBuffer";
 
 // images
 constexpr const char_t* SAMPLER_NAME = "sampler";
@@ -507,8 +507,9 @@ bool_t GLSLShaderParser::ParseUboData(const std::string& crrUboData)
 
 bool_t GLSLShaderParser::ComputeVertexInputs()
 {
+	// debug shaders may have zero vertex inputs!!!
 	if (mInputMap.empty())
-		return false;
+		return true;
 
 	// compute vertex attribute data
 	for (auto iter = mInputMap.begin(); iter != mInputMap.end(); ++ iter)
@@ -596,24 +597,3 @@ const GLSLShaderParser::UniformBlock& GLSLShaderParser::GetUniformBlock() const
 {
 	return mUniformBlock;
 }
-
-//const GLSLShaderParser::Input& GLSLShaderParser::GetInput(const std::string& name) const
-//{
-//	assert(name.empty() == false);
-//
-//	auto iter = mInputMap.find(name);
-//	if (iter != mInputMap.end())
-//	{
-//		return iter->second;
-//	}
-//}
-//
-//const GLSLShaderParser::Output& GLSLShaderParser::GetOutput(const std::string& name) const
-//{
-//
-//}
-//
-//const GLSLShaderParser::Uniform& GLSLShaderParser::GetUniform(const std::string& name) const
-//{
-//
-//}

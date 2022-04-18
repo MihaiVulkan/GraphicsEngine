@@ -15,7 +15,6 @@ namespace GraphicsEngine
 	{
 		class Renderer;
 		class RenderQueue;
-		class ScenePass;
 		class Node;
 		class Camera;
 	}
@@ -44,9 +43,6 @@ namespace GraphicsEngine
 		Graphics::Camera* GetMainCamera();
 		void SetMainCamera(Graphics::Camera* pCamera);
 
-		Graphics::ScenePass* GetMainScenePass();
-		void SetMainScenePass(Graphics::ScenePass* pScenePass);
-
 	private:
 		NO_COPY_NO_MOVE_CLASS(GraphicsSystem)
 
@@ -70,8 +66,6 @@ namespace GraphicsEngine
 
 		// Main Camera - TODO - for now we have only one camera
 		Graphics::Camera* mpMainCamera;
-
-		Graphics::ScenePass* mpScenePass;
 	};
 }
 

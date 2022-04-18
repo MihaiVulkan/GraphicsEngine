@@ -22,37 +22,29 @@ int main()
 	// light setup - light dir in world space, inverted on Y compared to OpenGL as Vulkan has a different coordinate system
 	// in VUlkan to get -1.0 dir on OY I actually need to specify +1.0 (-1 * -1.0f)
 	auto dirLight = GE_ALLOC(DirectionalLight)(glm::vec3(0.0f, +1.0f, 0.65f), glm::vec3(1.0f));
-	auto lightNode = GE_ALLOC(LightNode);
+	auto lightNode = GE_ALLOC(LightNode)("Light");
 	lightNode->SetLight(dirLight);
 
 
 	// geometry setup
 
 	// GL - CCW winding
-	auto model = GE_ALLOC(Model)(std::string() + GE_ASSET_PATH + "models/armor.gltf", glTF2Loader::FileLoadingFlags::PreTransformVertices);
-
-	//TODO - improve asset paths
-	auto vsCube = GE_ALLOC(Shader)(std::string() + GE_ASSET_PATH + "shaders/litmodel.vert");
-	auto fsCube = GE_ALLOC(Shader)(std::string() + GE_ASSET_PATH + "shaders/litmodel.frag");
+	auto model = GE_ALLOC(Model)(std::string() + GE_ASSET_PATH + "models/armor.gltf", 
+		glTF2Loader::LoadingFlags::GE_LF_TRANSFORM_POS | glTF2Loader::LoadingFlags::GE_LF_TEXTURED | glTF2Loader::LoadingFlags::GE_LF_LIT);
 
 	auto colorTexture = GE_ALLOC(Texture2D)(std::string() + GE_ASSET_PATH + "models/colormap_rgba.ktx2");
 
 	//TODO - add check support for all enabled features (physical device)
 
 	//TODO - enable anisotropic filtering - via physical device enabled features
-	auto modelNode = GE_ALLOC(GeometryNode);
-	modelNode->SetIsLit(true); // lit node !
-
+	auto modelNode = GE_ALLOC(GeometryNode)("Armor");
 	modelNode->SetGeometry(model);
-	modelNode->GetComponent<VisualComponent>()->AddShader(vsCube);
-	modelNode->GetComponent<VisualComponent>()->AddShader(fsCube);
-	modelNode->GetComponent<VisualComponent>()->AddTexture(colorTexture, Shader::ShaderStage::GE_SS_FRAGMENT);
 
-	// respected vertex shader order of elements in UBO
-	modelNode->GetComponent<VisualComponent>()->GetUniformBuffer(ScenePass::PassType::GE_PT_STANDARD, Shader::ShaderStage::GE_SS_VERTEX)->AddUniform(GLSLShaderTypes::UniformType::GE_UT_MODEL_MATRIX4);
-	modelNode->GetComponent<VisualComponent>()->GetUniformBuffer(ScenePass::PassType::GE_PT_STANDARD, Shader::ShaderStage::GE_SS_VERTEX)->AddUniform(GLSLShaderTypes::UniformType::GE_UT_CAMERA_POS);
+	auto visualEffect = GE_ALLOC(Lit2DTextureVisualEffect)(colorTexture);
 
-	modelNode->GetComponent<VisualComponent>()->GetCullFaceState().SetCullMode(CullFaceState::CullMode::GE_CM_NONE);
+	// add the impacted node
+	visualEffect->SetTargetNode(modelNode);
+	modelNode->GetComponent<VisualComponent>()->SetVisualEffect(visualEffect);
 
 	/////////////////////////////
 
@@ -60,7 +52,7 @@ int main()
 	app->GetGraphicsSystem()->GetMainCamera()->SetPosition(glm::vec3(0.0f, 0.0f, 15.0f));
 	app->GetGraphicsSystem()->GetMainCamera()->SetFOV(60.0f);
 	app->GetGraphicsSystem()->GetMainCamera()->SetZNear(0.1f);
-	app->GetGraphicsSystem()->GetMainCamera()->SetZFar(1000.0f);
+	app->GetGraphicsSystem()->GetMainCamera()->SetZFar(100.0f);
 	app->GetGraphicsSystem()->GetMainCamera()->EnableConstraints();
 
 	////////////////////////////////////

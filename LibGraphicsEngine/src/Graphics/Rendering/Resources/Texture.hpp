@@ -19,7 +19,15 @@ namespace GraphicsEngine
 			enum class UsageType : uint8_t
 			{
 				GE_UT_RENDER = 0,
-				GE_UT_RENDER_TARGET
+				GE_UT_RENDER_TARGET,
+				GE_UT_COUNT
+			};
+
+			enum class SamplingType : uint8_t
+			{
+				GE_ST_SAMPLING = 0,
+				GE_ST_NO_SAMPLING,
+				GE_ST_COUNT
 			};
 
 			enum class TextureType : uint8_t
@@ -156,6 +164,10 @@ namespace GraphicsEngine
 			bool_t LoadFromFile(const std::string& texturePath);
 
 			Texture::UsageType GetUsageType() const;
+			void SetUsageType(Texture::UsageType usageType);
+
+			Texture::SamplingType GetSamplingType() const;
+			void SetSamplingType(Texture::SamplingType samplingType);
 
 			const Texture::MetaData& GetMetaData() const;
 
@@ -172,6 +184,7 @@ namespace GraphicsEngine
 				uint32_t width, uint32_t height, uint32_t depth, uint32_t mipLevels, uint32_t layerCount);
 
 			UsageType mUsageType;
+			SamplingType mSamplingType;
 
 			Texture::MetaData mTextureMetaData;
 		};
@@ -188,8 +201,6 @@ namespace GraphicsEngine
 			explicit Texture1D(Texture::TextureType type, Texture::TextureFormat format, uint32_t width);
 			virtual ~Texture1D();
 
-			//char_t* GetData(uint32_t level) const;
-
 		private:
 
 		};
@@ -203,8 +214,6 @@ namespace GraphicsEngine
 			explicit Texture1DArray(const std::string& texturePath);
 			explicit Texture1DArray(Texture::TextureType type, Texture::TextureFormat format, uint32_t width, uint32_t layerCount);
 			virtual ~Texture1DArray();
-
-			//char_t* GetData(uint32_t index, uint32_t level) const;
 
 		private:
 
@@ -221,8 +230,6 @@ namespace GraphicsEngine
 				 Texture::MipMapMode mipMapMode, uint32_t width, uint32_t height, uint32_t mipLevels);
 			virtual ~Texture2D();
 
-			//char_t* GetData(uint32_t level) const;
-
 		private:
 		};
 
@@ -236,9 +243,6 @@ namespace GraphicsEngine
 			explicit Texture2DArray(Texture::TextureType type, Texture::TextureFormat format, Texture::WrapMode wrapMode, Texture::FilterMode filterMode, Texture::MipMapMode mipMapMode,
 				uint32_t width, uint32_t height, uint32_t mipLevels);
 			virtual ~Texture2DArray();
-
-
-			//char_t* GetData(uint32_t index, uint32_t level) const;
 
 		private:
 
@@ -254,9 +258,6 @@ namespace GraphicsEngine
 			explicit Texture3D(Texture::TextureType type, Texture::TextureFormat format, Texture::WrapMode wrapMode, Texture::FilterMode filterMode, Texture::MipMapMode mipMapMode,
 				uint32_t width, uint32_t height, uint32_t depth, uint32_t mipLevels);
 			virtual ~Texture3D();
-			
-
-			//char_t* GetData(uint32_t level) const;
 
 		private:
 
@@ -274,8 +275,6 @@ namespace GraphicsEngine
 		//		uint32_t width, uint32_t height, uint32_t depth, uint32_t mipLevels, uint32_t layerCount);
 		//	virtual ~Texture3DArray();
 
-		//	//char_t* GetData(uint32_t index, uint32_t level) const;
-
 		//private:
 
 		//};
@@ -292,8 +291,6 @@ namespace GraphicsEngine
 				uint32_t width, uint32_t height, uint32_t mipLevels);
 			virtual ~TextureCubeMap();
 
-			//char_t* GetData(uint32_t face, uint32_t level) const;
-
 		private:
 
 		};
@@ -309,8 +306,6 @@ namespace GraphicsEngine
 			explicit TextureCubeMapArray(Texture::TextureType type, Texture::TextureFormat format, Texture::WrapMode wrapMode, Texture::FilterMode filterMode, Texture::MipMapMode mipMapMode,
 				uint32_t width, uint32_t height, uint32_t mipLevels);
 			virtual ~TextureCubeMapArray();
-
-			//char_t* GetData(uint32_t face, uint32_t level) const;
 
 		private:
 

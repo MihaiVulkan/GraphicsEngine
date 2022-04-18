@@ -2,6 +2,7 @@
 #define GRAPHICS_LIGHTS_LIGHT_HPP
 
 #include "Foundation/Object.hpp"
+#include "glm/mat4x4.hpp"
 
 namespace GraphicsEngine
 {
@@ -31,11 +32,21 @@ namespace GraphicsEngine
 			virtual const glm::vec3& GetDirection() const { return glm::vec3(0.0f); };
 			virtual void SetDirection(const glm::vec3& dir) {};
 
-			virtual const glm::vec3& GetColor() const { return glm::vec3(0.0f); };
-			virtual void SetColor(const glm::vec3& color) {};
+			virtual const glm::vec3& GetPosition() const { return glm::vec3(0.0f); };
+			virtual void SetPosition(const glm::vec3& pos) {};
+
+			virtual const Color3f& GetColor() const;
+			virtual void SetColor(const Color3f& color);
+
+			const glm::mat4& GetLightPVM() const;
+			virtual void ComputeLightPVM() {}
 
 		protected:
 			LightType mLightType;
+
+			Color3f mColor;
+
+			glm::mat4 mLightPVM;
 
 		private:
 			NO_COPY_NO_MOVE_CLASS(Light)

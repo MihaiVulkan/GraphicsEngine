@@ -69,13 +69,8 @@ void GADRUniformBuffer::Destroy()
 	GE_FREE(mpVulkanBuffer);
 }
 
-void GADRUniformBuffer::UpdateData(UniformBuffer* pUniformBuffer)
+void GADRUniformBuffer::UpdateData()
 {
-	if (pUniformBuffer != nullptr)
-	{
-		mpUniformBuffer = pUniformBuffer;
-	}
-
 	assert(mpVulkanBuffer != nullptr);
 	assert(mpUniformBuffer != nullptr);
 	assert(mpUniformBuffer->GetSize() <= mpVulkanBuffer->GetSize());
@@ -87,7 +82,7 @@ void GADRUniformBuffer::UpdateData(UniformBuffer* pUniformBuffer)
 
 void GADRUniformBuffer::OnBind(uint32_t currentBufferIdx)
 {
-	UpdateData(mpUniformBuffer);
+	UpdateData();
 }
 
 void GADRUniformBuffer::OnUnBind(uint32_t currentBufferIdx)

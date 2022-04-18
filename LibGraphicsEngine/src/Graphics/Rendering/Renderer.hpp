@@ -20,8 +20,9 @@ namespace GraphicsEngine
 	namespace Graphics
 	{
 		// Graphics API Independent Resources
-		class ScenePass;
-		//class RenderFrameBuffer;
+		// Visual Pass
+		class VisualPass;
+
 		class RenderTarget;
 		class VertexFormat;
 		class VertexBuffer;
@@ -35,18 +36,19 @@ namespace GraphicsEngine
 		// Pipeline States
 		class DynamicState;
 
-		// Graphics API Dependent Resources
+		// Graphics API Dependent 
+		class GADVisualPass;
+
+		//Resources
 		class GADRVertexFormat;
 		class GADRVertexBuffer;
 		class GADRIndexBuffer;
 		class GADRUniformBuffer;
 		class GADRTexture;
 		class GADRRenderTarget;
-		//class GADRRenderFrameBuffer;
 		class GADRShader;
 		class GADRMaterial;
 		class GADRModel;
-		
 
 		class GeometryNode;
 		class LightNode;
@@ -66,8 +68,9 @@ namespace GraphicsEngine
 				GE_RT_COUNT
 			};
 
+			typedef std::unordered_map<VisualPass*, GADVisualPass*> VisualPassMap;
+
 			// Resource Types
-			//typedef std::unordered_map<RenderFrameBuffer*, GADRRenderFrameBuffer*, HashUtils::PointerHash<RenderFrameBuffer>> RenderFrameBufferMap;
 			typedef std::unordered_map<RenderTarget*, GADRTexture*, HashUtils::PointerHash<RenderTarget>> RenderTargetMap;
 			typedef std::unordered_map<VertexFormat*, GADRVertexFormat*, HashUtils::PointerHash<VertexFormat>> VertexFormatMap;
 			typedef std::unordered_map<VertexBuffer*, GADRVertexBuffer*, HashUtils::PointerHash<VertexBuffer>> VertexBufferMap;
@@ -77,6 +80,7 @@ namespace GraphicsEngine
 			typedef std::unordered_map<Shader*, GADRShader*, HashUtils::PointerHash<Shader>> ShaderMap;
 			typedef std::unordered_map<Material*, GADRMaterial*, HashUtils::PointerHash<Material>> MaterialMap;
 			typedef std::unordered_map<Model*, GADRModel*, HashUtils::PointerHash<Model>> ModelMap;
+
 
 			Renderer();
 			explicit Renderer(Platform::Window* pWindow, Renderer::RendererType type = Renderer::RendererType::GE_RT_FORWARD);
@@ -88,14 +92,12 @@ namespace GraphicsEngine
 	
 			virtual void OnWindowResize(uint32_t width = 0, uint32_t height = 0) {};
 
-			virtual void ComputeGraphicsResources(RenderQueue* pRenderQueue, ScenePass* pScenePass) {};
+			virtual void ComputeGraphicsResources(RenderQueue* pRenderQueue) {};
 
-			virtual void UpdateUniformBuffers(ScenePass* pScenePass, const RenderQueue::Renderable* pRenderable, Camera* pCamera, float32_t crrTime) {};
-			virtual void UpdateDynamicStates(ScenePass* pScenePass, const DynamicState& dynamicState, uint32_t currentBufferIdx) {};
+			virtual void BindLight(VisualPass* pVisualPass, const LightNode* pLightNode, GeometryNode* pGeoNode) {};
 
-			virtual void DrawObject(ScenePass* pScenePass, const RenderQueue::Renderable* pRenderable, uint32_t currentBufferIdx) {};
-
-			virtual void BindLight(ScenePass* pScenePass, const LightNode* pLightNode, GeometryNode* pGeoNode) {};
+			virtual void DrawNode(VisualPass* pVisualPass, GeometryNode* pGeoNode, uint32_t currentBufferIdx) {}
+			virtual void UpdateNode(VisualPass* pVisualPass, GeometryNode* pGeoNode, Camera* pCamera, float32_t crrTime) {}
 
 			// cleanup Graphics API Independed Resources
 			virtual void CleanUpGAIR();
@@ -107,7 +109,12 @@ namespace GraphicsEngine
 
 			bool_t IsPrepared() { return mIsPrepared; }
 
+			RenderQueue* GetRenderQueue() { return mpRenderQueue; }
+
 			///////////////////////////
+
+			GADVisualPass* Get(VisualPass* pVisualPass);
+
 
 			GADRVertexFormat* Bind(VertexFormat* pVertexFormat);
 			void UnBind(VertexFormat* pVertexFormat);
@@ -139,11 +146,6 @@ namespace GraphicsEngine
 
 			GADRTexture* Get(RenderTarget* pRenderTarget);
 
-			//GADRRenderFrameBuffer* Bind(RenderFrameBuffer* pRenderFrameBuffer);
-			//void UnBind(RenderFrameBuffer* pRenderFrameBuffer);
-
-			//GADRRenderFrameBuffer* Get(RenderFrameBuffer* pRenderFrameBuffer);
-
 			GADRShader* Bind(Shader* pShader);
 			void UnBind(Shader* pShader);
 
@@ -158,6 +160,7 @@ namespace GraphicsEngine
 			void UnBind(Model* pModel);
 
 			GADRModel* Get(Model* pModel);
+
 
 		protected:
 
@@ -175,13 +178,14 @@ namespace GraphicsEngine
 
 			// Resource Management - TODO - to move to a ResourceManager
 			// Graphics API Dependent Resource Maps
+			VisualPassMap mVisualPassMap;
+
 			VertexFormatMap mVertexFormatMap;
 			VertexBufferMap mVertexBufferMap;
 			IndexBufferMap mIndexBufferMap;
 			UniformBufferMap mUniformBufferMap;
 			TextureMap mTextureMap;
 			RenderTargetMap mRenderTargetMap;
-			//RenderFrameBufferMap mRenderFrameBufferMap;
 			ShaderMap mShaderMap;
 			MaterialMap mMaterialMap;
 			ModelMap mModelMap;

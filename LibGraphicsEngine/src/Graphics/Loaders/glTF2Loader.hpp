@@ -23,11 +23,17 @@ namespace GraphicsEngine
 			GE_RTTI(GraphicsEngine::Graphics::glTF2Loader)
 
 		public:
-			enum FileLoadingFlags {
-				None = 0x00000000,
-				PreTransformVertices = 0x00000001,
-				PreMultiplyVertexColors = 0x00000002
+			enum LoadingFlags
+			{
+				GE_LF_NONE = 0,
+				GE_LF_TRANSFORM_POS = 1,
+				GE_LF_COLORED = 2,
+				GE_LF_TEXTURED = 4,
+				GE_LF_LIT = 8,
+				GE_LF_DEFAULT = GE_LF_NONE
+				// Others
 			};
+
 
 			/*
 			Attribute order convention:
@@ -84,7 +90,7 @@ namespace GraphicsEngine
 			};
 
 			glTF2Loader();
-			explicit glTF2Loader(const std::string& filePath, uint32_t loadingFlags = glTF2Loader::FileLoadingFlags::None);
+			explicit glTF2Loader(const std::string& filePath, uint32_t loadingFlags = glTF2Loader::LoadingFlags::GE_LF_DEFAULT);
 			virtual ~glTF2Loader();
 
 			void Draw(std::function<void(uint32_t indexCount, uint32_t firstIndex)> onDrawCB);

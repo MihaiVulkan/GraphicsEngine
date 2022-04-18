@@ -77,8 +77,6 @@ namespace GraphicsEngine
             void SetStencilReference(uint32_t ref);
 
         private:
-            //NO_COPY_NO_MOVE_CLASS(DepthStencilState)
-
             bool_t      mIsDepthEnabled;
             bool_t      mIsDepthWritable;
             CompareOp   mDepthCompareOp;

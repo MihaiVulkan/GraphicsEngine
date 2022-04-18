@@ -37,8 +37,10 @@ void Model::Create(const std::string& filePath, uint32_t loadingFlags)
 
 	auto* pVertexFormat = GE_ALLOC(VertexFormat)(vertexAttribs.pos, vertexAttribs.normal,
 		vertexAttribs.tangent, vertexAttribs.color, vertexAttribs.uv);
+	assert(pVertexFormat != nullptr);
 
-	auto* pVertexBuffer = GE_ALLOC(VertexBuffer)(pVertexFormat, Buffer::BufferUsage::GE_BU_STATIC, VertexBuffer::VertexInputRate::GE_VIR_VERTEX, (void*)vertexBuf.data(), vertexBuf.size() * sizeof(float32_t));
+	auto* pVertexBuffer = GE_ALLOC(VertexBuffer)(pVertexFormat, Buffer::BufferUsage::GE_BU_STATIC, (void*)vertexBuf.data(), vertexBuf.size() * sizeof(float32_t));
+	assert(pVertexBuffer != nullptr);
 	SetVertexBuffer(pVertexBuffer);
 
 	auto& indexBuff = mpLoader->GetIndexBuffer();
@@ -51,11 +53,6 @@ void Model::Create(const std::string& filePath, uint32_t loadingFlags)
 	// Default face winding
 	// GL - CCW
 	// Vulkan - CW
-
-	//TODO - face winding usually is dependent on the model data
-	SetTopology(GeometricPrimitive::PrimitiveTopology::GE_PT_TRIANGLE_LIST);
-	SetFaceWinding(GeometricPrimitive::FaceWinding::GE_FW_COUNTER_CLOCKWISE);
-	SetPolygonMode(GeometricPrimitive::PolygonMode::GE_PM_FILL);
 
 	SetIsModel(true); //TODO - for now used for rendering submeshes
 }

@@ -13,8 +13,8 @@ endif()
 # disable ZERO_CHECK proj generation
 set(CMAKE_SUPPRESS_REGENERATION true)
 
-# source code
 file(GLOB_RECURSE SOURCE_LIST
+	# source code
 	${PROJECT_SOURCE_DIR}/src/Applications/*.hpp
 	${PROJECT_SOURCE_DIR}/src/Applications/*.cpp
 	${PROJECT_SOURCE_DIR}/src/Core/*.hpp
@@ -39,16 +39,20 @@ file(GLOB_RECURSE SOURCE_LIST
 	${PROJECT_SOURCE_DIR}/src/Graphics/Rendering/Backends/Vulkan/Internal/*.cpp
 	${PROJECT_SOURCE_DIR}/src/Graphics/Rendering/Backends/Vulkan/Resources/*.hpp
 	${PROJECT_SOURCE_DIR}/src/Graphics/Rendering/Backends/Vulkan/Resources/*.cpp
-	${PROJECT_SOURCE_DIR}/src/Graphics/Rendering/Backends/Vulkan/ScenePasses/*.hpp
-	${PROJECT_SOURCE_DIR}/src/Graphics/Rendering/Backends/Vulkan/ScenePasses/*.cpp
+	${PROJECT_SOURCE_DIR}/src/Graphics/Rendering/Backends/Vulkan/VisualPasses/*.hpp
+	${PROJECT_SOURCE_DIR}/src/Graphics/Rendering/Backends/Vulkan/VisualPasses/*.cpp
 	${PROJECT_SOURCE_DIR}/src/Graphics/Rendering/Backends/Vulkan/*.hpp
 	${PROJECT_SOURCE_DIR}/src/Graphics/Rendering/Backends/Vulkan/*.cpp
 	${PROJECT_SOURCE_DIR}/src/Graphics/Rendering/PipelineStates/*.hpp
 	${PROJECT_SOURCE_DIR}/src/Graphics/Rendering/PipelineStates/*.cpp
-	${PROJECT_SOURCE_DIR}/src/Graphics/Rendering/RenderPasses/*.hpp
-	${PROJECT_SOURCE_DIR}/src/Graphics/Rendering/RenderPasses/*.cpp
-	${PROJECT_SOURCE_DIR}/src/Graphics/Rendering/ScenePasses/*.hpp
-	${PROJECT_SOURCE_DIR}/src/Graphics/Rendering/ScenePasses/*.cpp
+	${PROJECT_SOURCE_DIR}/src/Graphics/Rendering/VisualEffects/*.hpp
+	${PROJECT_SOURCE_DIR}/src/Graphics/Rendering/VisualEffects/*.cpp
+	${PROJECT_SOURCE_DIR}/src/Graphics/Rendering/VisualEffects/LitEffects/*.hpp
+	${PROJECT_SOURCE_DIR}/src/Graphics/Rendering/VisualEffects/LitEffects/*.cpp
+	${PROJECT_SOURCE_DIR}/src/Graphics/Rendering/VisualEffects/UnlitEffects/*.hpp
+	${PROJECT_SOURCE_DIR}/src/Graphics/Rendering/VisualEffects/UnlitEffects/*.cpp
+	${PROJECT_SOURCE_DIR}/src/Graphics/Rendering/VisualPasses/*.hpp
+	${PROJECT_SOURCE_DIR}/src/Graphics/Rendering/VisualPasses/*.cpp
 	${PROJECT_SOURCE_DIR}/src/Graphics/Rendering/Resources/*.hpp
 	${PROJECT_SOURCE_DIR}/src/Graphics/Rendering/Resources/*.cpp
 	${PROJECT_SOURCE_DIR}/src/Graphics/Rendering/*.hpp
@@ -67,6 +71,13 @@ file(GLOB_RECURSE SOURCE_LIST
 	${PROJECT_SOURCE_DIR}/src/Graphics/*.cpp
 	${PROJECT_SOURCE_DIR}/src/Input/*.hpp
 	${PROJECT_SOURCE_DIR}/src/Input/*.cpp
+	
+	# resources
+	${PROJECT_SOURCE_DIR}/res/shaders/VisualEffects/LitEffects/*.vert
+	${PROJECT_SOURCE_DIR}/res/shaders/VisualEffects/LitEffects/*.frag
+	${PROJECT_SOURCE_DIR}/res/shaders/VisualEffects/UnlitEffects/*.vert
+	${PROJECT_SOURCE_DIR}/res/shaders/VisualEffects/UnlitEffects/*.frag
+	${PROJECT_SOURCE_DIR}/res/textures/*.ktx2
 )
 
 # our target is a static lib
@@ -86,3 +97,6 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 if (${CMAKE_CXX_COMPILER_ID} STREQUAL MSVC)
 	add_definitions(-DUNICODE -D_UNICODE)
 endif()
+
+# Asset path
+add_definitions(-DGE_ASSET_PATH=\"${PROJECT_SOURCE_DIR}/res/\")

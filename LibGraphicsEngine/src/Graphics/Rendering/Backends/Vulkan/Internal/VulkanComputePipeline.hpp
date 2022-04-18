@@ -29,6 +29,7 @@ namespace GraphicsEngine
 											VkPipelineCreateFlags flags = 0);
 			virtual ~VulkanComputePipeline();
 
+			void Bind(VkCommandBuffer commandBufferHandle, VkPipelineBindPoint pipelineBindPoint);
 
 			const VkPipeline& GetHandle() const;
 

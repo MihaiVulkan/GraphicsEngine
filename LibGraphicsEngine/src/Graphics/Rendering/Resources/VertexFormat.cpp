@@ -19,9 +19,13 @@ const VertexFormat VertexFormat::VF_P3_UV2(3, 0, 0, 0, 2);
 
 
 VertexFormat::VertexFormat()
+	: mVertexTotalStride(0)
+	, mVertexInputRate(VertexInputRate::GE_VIR_VERTEX) // default
 {}
 
 VertexFormat::VertexFormat(uint8_t position, uint8_t normal, uint8_t tangent, uint8_t color, uint8_t texCoord)
+	: mVertexTotalStride(0)
+	, mVertexInputRate(VertexInputRate::GE_VIR_VERTEX) // default
 {
 	Create(position, normal, tangent, color, texCoord);
 }
@@ -81,6 +85,8 @@ void VertexFormat::Create(uint8_t position, uint8_t normal, uint8_t tangent, uin
 	{
 		mVertexAttributes[VertexAttribute::GE_VA_TEXTURE_COORD] = texCoord;
 	}
+
+	ComputeVertexTotalStride();
 }
 
 void VertexFormat::Copy(const VertexFormat& format)
@@ -88,6 +94,7 @@ void VertexFormat::Copy(const VertexFormat& format)
 	if (this != &format)
 	{
 		mVertexAttributes = format.GetVertexAttributes();
+		mVertexInputRate = format.mVertexInputRate;
 	}
 }
 
@@ -96,12 +103,23 @@ void VertexFormat::Move(VertexFormat&& format)
 	if (this != &format)
 	{
 		mVertexAttributes = format.GetVertexAttributes();
+		mVertexInputRate = format.mVertexInputRate;
 	}
 }
 
 void VertexFormat::Destroy()
 {
 	mVertexAttributes.clear();
+}
+
+void VertexFormat::ComputeVertexTotalStride()
+{
+	mVertexTotalStride =
+		GetVertexAttributeStride(VertexAttribute::GE_VA_POSITION) +
+		GetVertexAttributeStride(VertexAttribute::GE_VA_NORMAL) +
+		GetVertexAttributeStride(VertexAttribute::GE_VA_TANGENT) +
+		GetVertexAttributeStride(VertexAttribute::GE_VA_COLOR) +
+		GetVertexAttributeStride(VertexAttribute::GE_VA_TEXTURE_COORD);
 }
 
 // TODO - for now we work with float data as it is the most inclusive attribute type
@@ -157,17 +175,20 @@ uint32_t VertexFormat::GetVertexAttributeOffset(const VertexFormat::VertexAttrib
 
 uint32_t VertexFormat::GetVertexTotalStride() const
 {
-	uint32_t stride = 
-		GetVertexAttributeStride(VertexAttribute::GE_VA_POSITION) +
-	    GetVertexAttributeStride(VertexAttribute::GE_VA_NORMAL) +
-		GetVertexAttributeStride(VertexAttribute::GE_VA_TANGENT) +
-		GetVertexAttributeStride(VertexAttribute::GE_VA_COLOR) +
-		GetVertexAttributeStride(VertexAttribute::GE_VA_TEXTURE_COORD);
-
-	return stride;
+	return mVertexTotalStride;
 }
 
 const VertexFormat::VertexAttributeMap& VertexFormat::GetVertexAttributes() const
 {
 	return mVertexAttributes;
+}
+
+void VertexFormat::SetVertexInputRate(VertexFormat::VertexInputRate inputRate)
+{
+	mVertexInputRate = inputRate;
+}
+
+const VertexFormat::VertexInputRate& VertexFormat::GetVertexInputRate() const
+{
+	return mVertexInputRate;
 }

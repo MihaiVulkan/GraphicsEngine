@@ -22,7 +22,7 @@ int main()
 	// light setup - light dir in world space, inverted on Y compared to OpenGL as Vulkan has a different coordinate system
 	// in VUlkan to get -1.0 dir on OY I actually need to specify +1.0 (-1 * -1.0f)
 	auto dirLight = GE_ALLOC(DirectionalLight)(glm::vec3(0.0f, +1.0f, 0.65f), glm::vec3(1.0f));
-	auto lightNode = GE_ALLOC(LightNode);
+	auto lightNode = GE_ALLOC(LightNode)("Light");
 	lightNode->SetLight(dirLight);
 
 
@@ -30,74 +30,58 @@ int main()
 
 	///////// SKYBOX ////////////
 
-	auto skybox = GE_ALLOC(Model)(std::string() + GE_ASSET_PATH + "models/cube.gltf", glTF2Loader::FileLoadingFlags::PreTransformVertices);
-
-	auto vsSkybox = GE_ALLOC(Shader)(std::string() + GE_ASSET_PATH + "shaders/skybox.vert");
-	auto fsSkybox = GE_ALLOC(Shader)(std::string() + GE_ASSET_PATH + "shaders/skybox.frag"); 
+	auto skybox = GE_ALLOC(Model)(std::string() + GE_ASSET_PATH + "models/cube.gltf",
+		glTF2Loader::LoadingFlags::GE_LF_TRANSFORM_POS | glTF2Loader::LoadingFlags::GE_LF_TEXTURED);
 
 	auto skyboxTexture = GE_ALLOC(TextureCubeMap)(std::string() + GE_ASSET_PATH + "textures/cubemap.ktx2");
 
 	//TODO - add check support for all enabled features (physical device)
 
 	//TODO - enable anisotropic filtering - via physical device enabled features
-	auto skyboxNode = GE_ALLOC(GeometryNode);
-
+	auto skyboxNode = GE_ALLOC(GeometryNode)("Skybox");
 	skyboxNode->SetGeometry(skybox);
-	skyboxNode->GetComponent<VisualComponent>()->AddShader(vsSkybox);
-	skyboxNode->GetComponent<VisualComponent>()->AddShader(fsSkybox);
-	skyboxNode->GetComponent<VisualComponent>()->AddTexture(skyboxTexture, Shader::ShaderStage::GE_SS_FRAGMENT);
-
-	// respected vertex shader order of elements in UBO
-//	skyboxNode->GetComponent<VisualComponent>()->GetUniformBuffer(Shader::ShaderStage::GE_SS_VERTEX)->AddUniform(GLSLShaderTypes::UniformType::GE_UT_PV_CUBEMAP_MATRIX4); 	// special case for cubemaps
-	skyboxNode->GetComponent<VisualComponent>()->GetUniformBuffer(ScenePass::PassType::GE_PT_STANDARD, Shader::ShaderStage::GE_SS_VERTEX)->AddUniform(GLSLShaderTypes::UniformType::GE_UT_MODEL_MATRIX4);
 	skyboxNode->SetModelMatrix(glm::scale(glm::mat4(1.0f), glm::vec3(20.0f)));
 
-	skyboxNode->GetComponent<VisualComponent>()->GetCullFaceState().SetCullMode(CullFaceState::CullMode::GE_CM_FRONT);
+	auto cubemapVisualEffect = GE_ALLOC(UnlitCubemapTextureVisualEffect)(skyboxTexture);
+
+	// add the impacted node
+	cubemapVisualEffect->SetTargetNode(skyboxNode);
+	skyboxNode->GetComponent<VisualComponent>()->SetVisualEffect(cubemapVisualEffect);
 
 	////////// VENUS MODEL - ENVIRONMENT REFLECTION ////////////
 
-	auto venus = GE_ALLOC(Model)(std::string() + GE_ASSET_PATH + "models/venus.gltf", glTF2Loader::FileLoadingFlags::PreTransformVertices);
+	auto venus = GE_ALLOC(Model)(std::string() + GE_ASSET_PATH + "models/venus.gltf",
+		glTF2Loader::GE_LF_TRANSFORM_POS | glTF2Loader::GE_LF_TEXTURED | glTF2Loader::GE_LF_LIT);
 
-	auto vsLit = GE_ALLOC(Shader)(std::string() + GE_ASSET_PATH + "shaders/litmodel.vert");
-	auto fsReflect = GE_ALLOC(Shader)(std::string() + GE_ASSET_PATH + "shaders/reflect.frag");
-
-	auto venusReflectNode = GE_ALLOC(GeometryNode);
-	venusReflectNode->SetIsLit(true); // lit node !
-
+	auto venusReflectNode = GE_ALLOC(GeometryNode)("Reflective model");
 	venusReflectNode->SetGeometry(venus);
-	venusReflectNode->GetComponent<VisualComponent>()->AddShader(vsLit);
-	venusReflectNode->GetComponent<VisualComponent>()->AddShader(fsReflect);
-	venusReflectNode->GetComponent<VisualComponent>()->AddTexture(skyboxTexture, Shader::ShaderStage::GE_SS_FRAGMENT);
-
-	// respected vertex shader order of elements in UBO
-	venusReflectNode->GetComponent<VisualComponent>()->GetUniformBuffer(ScenePass::PassType::GE_PT_STANDARD, Shader::ShaderStage::GE_SS_VERTEX)->AddUniform(GLSLShaderTypes::UniformType::GE_UT_MODEL_MATRIX4);
-	venusReflectNode->GetComponent<VisualComponent>()->GetUniformBuffer(ScenePass::PassType::GE_PT_STANDARD, Shader::ShaderStage::GE_SS_VERTEX)->AddUniform(GLSLShaderTypes::UniformType::GE_UT_NORMAL_MATRIX4);
-	venusReflectNode->GetComponent<VisualComponent>()->GetUniformBuffer(ScenePass::PassType::GE_PT_STANDARD, Shader::ShaderStage::GE_SS_VERTEX)->AddUniform(GLSLShaderTypes::UniformType::GE_UT_CAMERA_POS);
 	venusReflectNode->SetModelMatrix(glm::translate(glm::mat4(1.0f), glm::vec3(-2.0f, 0.0f, 0.0f)));
+
+
+	auto envMappingReflectVisualEffect = GE_ALLOC(LitEnvironmentMappingTextureVisualEffect)(skyboxTexture, 
+		LitEnvironmentMappingTextureVisualEffect::MappingType::GE_MT_REFLECTIVE);
+
+	// add the impacted node
+	envMappingReflectVisualEffect->SetTargetNode(venusReflectNode);
+	venusReflectNode->GetComponent<VisualComponent>()->SetVisualEffect(envMappingReflectVisualEffect);
+
 
 	////////// VENUS MODEL - ENVIRONMENT REFRACTION ////////////
 
-	auto fsRefract = GE_ALLOC(Shader)(std::string() + GE_ASSET_PATH + "shaders/refract.frag");
-
-	auto venusRefractNode = GE_ALLOC(GeometryNode);
+	auto venusRefractNode = GE_ALLOC(GeometryNode)("Refractive model");
 	venusRefractNode->SetIsLit(true); // lit node !
-
 	venusRefractNode->SetGeometry(venus);
-	venusRefractNode->GetComponent<VisualComponent>()->AddShader(vsLit);
-	venusRefractNode->GetComponent<VisualComponent>()->AddShader(fsRefract);
-	venusRefractNode->GetComponent<VisualComponent>()->AddTexture(skyboxTexture, Shader::ShaderStage::GE_SS_FRAGMENT);
-
-	// respected vertex shader order of elements in UBO
-	venusRefractNode->GetComponent<VisualComponent>()->GetUniformBuffer(ScenePass::PassType::GE_PT_STANDARD, Shader::ShaderStage::GE_SS_VERTEX)->AddUniform(GLSLShaderTypes::UniformType::GE_UT_MODEL_MATRIX4);
-	venusRefractNode->GetComponent<VisualComponent>()->GetUniformBuffer(ScenePass::PassType::GE_PT_STANDARD, Shader::ShaderStage::GE_SS_VERTEX)->AddUniform(GLSLShaderTypes::UniformType::GE_UT_NORMAL_MATRIX4);
-	venusRefractNode->GetComponent<VisualComponent>()->GetUniformBuffer(ScenePass::PassType::GE_PT_STANDARD, Shader::ShaderStage::GE_SS_VERTEX)->AddUniform(GLSLShaderTypes::UniformType::GE_UT_CAMERA_POS);
 	venusRefractNode->SetModelMatrix(glm::translate(glm::mat4(1.0f), glm::vec3(+2.0f, 0.0f, 0.0f)));
 
 
-	/////////////////////////////
+	auto envMappingRefractVisualEffect = GE_ALLOC(LitEnvironmentMappingTextureVisualEffect)(skyboxTexture,
+		LitEnvironmentMappingTextureVisualEffect::MappingType::GE_MT_REFRACTIVE);
 
-	// custom clear color for the default color framebuffer
-	app->GetGraphicsSystem()->GetMainScenePass()->Data().clearColor = { 0.0f, 0.0f, 0.2f, 1.0f };
+	// add the impacted node
+	envMappingRefractVisualEffect->SetTargetNode(venusRefractNode);
+	venusRefractNode->GetComponent<VisualComponent>()->SetVisualEffect(envMappingRefractVisualEffect);
+
+	/////////////////////////////
 
 	// camera- TODO - to be moved as cull camera as part of the scene graph
 	app->GetGraphicsSystem()->GetMainCamera()->SetPosition(glm::vec3(0.0f, 0.0f, 15.0f));

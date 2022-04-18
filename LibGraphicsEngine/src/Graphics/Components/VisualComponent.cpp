@@ -1,5 +1,5 @@
 #include "Graphics/Components/VisualComponent.hpp"
-#include "Graphics/Rendering/Resources/UniformBuffer.hpp"
+#include "Graphics/Rendering/VisualEffects/VisualEffect.hpp"
 #include "Foundation/MemoryManagement/MemoryOperations.hpp"
 #include <cassert>
 
@@ -8,12 +8,14 @@ using namespace GraphicsEngine::Graphics;
 
 VisualComponent::VisualComponent()
 	: NodeComponent()
+	, mpVisualEffect(nullptr)
 {
 	Create();
 }
 
 VisualComponent::VisualComponent(const std::string& name)
 	: NodeComponent(name)
+	, mpVisualEffect(nullptr)
 {
 	Create();
 }
@@ -26,52 +28,11 @@ VisualComponent::~VisualComponent()
 void VisualComponent::Create()
 {
 	SetName(GetClassName_());
-
-	//set default values for the pipeline states
-	CullFaceState cull_s(true);
-	cull_s.SetCullMode(CullFaceState::CullMode::GE_CM_BACK);
-	SetCullFaceState(cull_s);
-
-	DepthStencilState depthStencil_s(true);
-	depthStencil_s.SetIsDepthEnabled(true);
-	depthStencil_s.SetIsDepthWritable(true);
-	depthStencil_s.SetDepthCompareOp(DepthStencilState::CompareOp::GE_CO_LESS_OR_EQUAL);
-
-	depthStencil_s.SetIsStencilEnabled(false);
-	SetDepthStencilState(depthStencil_s);
-
-	ColorBlendState colorBlend_s(true);
-	colorBlend_s.SetIsBlendEnabled(false);
-	colorBlend_s.SetSrcColorBlendFactor(ColorBlendState::BlendFactor::GE_BF_ZERO);
-	colorBlend_s.SetDstColorBlendFactor(ColorBlendState::BlendFactor::GE_BF_ZERO);
-	colorBlend_s.SetColorBlendOp(ColorBlendState::BlendOp::GE_BO_ADD);
-	colorBlend_s.SetSrcAlphaBlendFactor(ColorBlendState::BlendFactor::GE_BF_ZERO);
-	colorBlend_s.SetDstAlphaBlendFactor(ColorBlendState::BlendFactor::GE_BF_ZERO);
-	colorBlend_s.SetAlphaBlendOp(ColorBlendState::BlendOp::GE_BO_ADD);
-	colorBlend_s.SetColorWriteMask(0x0f);
-	SetColorBlendState(colorBlend_s);
-
-	DynamicState dynamic_s;
-	dynamic_s.Add(DynamicState::State::GE_DS_VIEWPORT);
-	dynamic_s.Add(DynamicState::State::GE_DS_SCISSOR);
-	SetDynamicState(dynamic_s);
 }
 
 void VisualComponent::Destroy()
 {
-	mShaderMap.clear();
-	mTextureMap.clear();
-
-	for (auto it = mUniformBufferMap.begin(); it != mUniformBufferMap.end(); ++it)
-	{
-		auto& ubaVector = it->second;
-		for (auto& uba : ubaVector)
-		{
-			GE_FREE(uba.pUniformBuffer);
-		}
-		ubaVector.clear();
-	}
-	mUniformBufferMap.clear();
+	GE_FREE(mpVisualEffect);
 }
 
 void VisualComponent::Start()
@@ -94,150 +55,12 @@ void VisualComponent::OnDettach()
 	//TODO
 }
 
-void VisualComponent::AddShader(Shader* pShader)
+VisualEffect* VisualComponent::GetVisualEffect()
 {
-	assert(pShader != nullptr);
-
-	mShaderMap[pShader->GetShaderStage()] = pShader;
+	return mpVisualEffect;
 }
 
-Shader* VisualComponent::GetShader(Shader::ShaderStage stage)
+void VisualComponent::SetVisualEffect(VisualEffect* pEffect)
 {
-	auto iter = mShaderMap.find(stage);
-
-	if (iter != mShaderMap.end())
-		return iter->second;
-
-	return nullptr;
-}
-
-void VisualComponent::SetShaders(const VisualComponent::ShaderMap& shaders)
-{
-	assert(shaders.empty() == false);
-
-	mShaderMap = shaders;
-}
-
-const VisualComponent::ShaderMap& VisualComponent::GetShaders() const
-{
-	return mShaderMap;
-}
-
-bool_t VisualComponent::HasShaders() const
-{
-	return (mShaderMap.empty() == false);
-}
-
-void VisualComponent::AddTexture(Texture* pTexture, Shader::ShaderStage shaderStage)
-{
-	assert(shaderStage < Shader::ShaderStage::GE_SS_COUNT);
-	assert(pTexture != nullptr);
-
-	mTextureMap[shaderStage].push_back(pTexture);
-}
-
-bool_t VisualComponent::HasTextures() const
-{
-	return (mTextureMap.empty() == false);
-}
-
-const VisualComponent::TextureMap& VisualComponent::GetTextures() const
-{
-	return mTextureMap;
-}
-
-void VisualComponent::AddUniformBuffer(ScenePass::PassType passType, Shader::ShaderStage stage, UniformBuffer* pUniformBuffer)
-{
-	assert(passType < ScenePass::PassType::GE_PT_COUNT);
-	assert(stage < Shader::ShaderStage::GE_SS_COUNT);
-
-	// nOTE! If stage alreau exists it shall be overwritten!
-	UniformBufferData uba;
-	uba.shaderStage = stage;
-	uba.pUniformBuffer = pUniformBuffer;
-
-	auto& ubaVector = mUniformBufferMap[passType];
-	bool_t isFound = false;
-	for (auto& bufData : ubaVector)
-	{
-		if (bufData.shaderStage == stage)
-		{
-			isFound = true;
-			break;
-		}
-	}
-	if (!isFound)
-	{
-		ubaVector.push_back(uba);
-	}
-}
-
-UniformBuffer* VisualComponent::GetUniformBuffer(ScenePass::PassType passType, Shader::ShaderStage stage) const
-{
-	auto iter = mUniformBufferMap.find(passType);
-	if (iter != mUniformBufferMap.end())
-	{
-		const auto& bufDataVector = iter->second;
-
-		for (auto& bufData : bufDataVector)
-		{
-			if (bufData.shaderStage == stage)
-			{
-				return bufData.pUniformBuffer;
-			}
-		}
-	}
-
-	return nullptr;
-}
-
-bool_t VisualComponent::HasUniformBuffers(ScenePass::PassType passType) const
-{
-	auto iter = mUniformBufferMap.find(passType);
-	if (iter != mUniformBufferMap.end())
-	{
-		return (iter->second.empty() == false);
-	}
-
-	return false;
-}
-
-CullFaceState& VisualComponent::GetCullFaceState()
-{
-	return mCullFaceState;
-}
-
-void VisualComponent::SetCullFaceState(const CullFaceState& cullFaceState)
-{
-	mCullFaceState = cullFaceState;
-}
-
-DepthStencilState& VisualComponent::GetDepthStencilState()
-{
-	return mDepthStencilState;
-}
-
-void VisualComponent::SetDepthStencilState(const DepthStencilState& depthStencilState)
-{
-	mDepthStencilState = depthStencilState;
-}
-
-ColorBlendState& VisualComponent::GetColorBlendState()
-{
-	return mColorBlendState;
-}
-
-void VisualComponent::SetColorBlendState(const ColorBlendState& colorBlendState)
-{
-	mColorBlendState = colorBlendState;
-}
-
-DynamicState& VisualComponent::GetDynamicState()
-{
-	return mDynamicState;
-}
-
-void VisualComponent::SetDynamicState(const DynamicState& dynamicState)
-{
-	mDynamicState = dynamicState;
+	mpVisualEffect = pEffect;
 }

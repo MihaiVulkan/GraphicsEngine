@@ -48,6 +48,11 @@ void VulkanComputePipeline::Destroy()
 	vkDestroyPipeline(mpDevice->GetDeviceHandle(), mHandle, nullptr);
 }
 
+void VulkanComputePipeline::Bind(VkCommandBuffer commandBufferHandle, VkPipelineBindPoint pipelineBindPoint)
+{
+	vkCmdBindPipeline(commandBufferHandle, pipelineBindPoint, mHandle);
+}
+
 const VkPipeline& VulkanComputePipeline::GetHandle() const
 {
 	return mHandle;

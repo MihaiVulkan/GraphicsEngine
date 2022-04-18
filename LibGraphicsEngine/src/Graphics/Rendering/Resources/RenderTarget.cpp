@@ -8,7 +8,7 @@ using namespace GraphicsEngine::Graphics;
 
 
 RenderTarget::RenderTarget()
-	: mType(TargetType::GE_TT_COUNT)
+	: mTargetType(TargetType::GE_TT_COUNT)
 	, mOutput(TargetOutput::GE_TO_COUNT)
 	, mpTexture(nullptr)
 	, mWidth(0)
@@ -17,7 +17,7 @@ RenderTarget::RenderTarget()
 {}
 
 RenderTarget::RenderTarget(RenderTarget::TargetType type, RenderTarget::TargetOutput output, uint32_t width, uint32_t height, bool_t isFloatData)
-	: mType(type)
+	: mTargetType(type)
 	, mOutput(output)
 	, mpTexture(nullptr) 
 	, mWidth(width)
@@ -39,10 +39,13 @@ void RenderTarget::Create()
 
 	Texture::TextureFormat format = Texture::TextureFormat::GE_TF_COUNT;
 
-	switch (mType)
+	switch (mTargetType)
 	{
 	case TargetType::GE_TT_COLOR:
 		format = Texture::TextureFormat::GE_TF_R8G8B8A8_UNORM;
+		break;
+	case TargetType::GE_TT_DEPTH:
+		format = Texture::TextureFormat::GE_TF_D32;
 		break;
 	case TargetType::GE_TT_DEPTH_STENCIL:
 		format = Texture::TextureFormat::GE_TF_D32_S8;
@@ -55,6 +58,12 @@ void RenderTarget::Create()
 	mpTexture = GE_ALLOC(Texture2D)(Texture::TextureType::GE_TT_2D, format, Texture::WrapMode::GE_WM_CLAMP_TO_EDGE, Texture::FilterMode::GE_FM_LINEAR, 
 									Texture::MipMapMode::GE_MM_LINEAR, mWidth, mHeight, 1);
 	assert(mpTexture != nullptr);
+
+	mpTexture->SetUsageType(Texture::UsageType::GE_UT_RENDER_TARGET);
+
+	Texture::SamplingType samplingType = (mOutput == RenderTarget::TargetOutput::GE_TO_RENDER_SAMPLING ?
+		Texture::SamplingType::GE_ST_SAMPLING : Texture::SamplingType::GE_ST_NO_SAMPLING);
+	mpTexture->SetSamplingType(samplingType);
 }
 
 void RenderTarget::Destroy()
@@ -63,7 +72,7 @@ void RenderTarget::Destroy()
 	mHeight = 0;
 	mWidth = 0;
 	mOutput = TargetOutput::GE_TO_COUNT;
-	mType = TargetType::GE_TT_COUNT;
+	mTargetType = TargetType::GE_TT_COUNT;
 	
 	if (mpTexture)
 	{
@@ -71,9 +80,9 @@ void RenderTarget::Destroy()
 	}
 }
 
-const RenderTarget::TargetType& RenderTarget::GetType() const
+const RenderTarget::TargetType& RenderTarget::GetTargetType() const
 {
-	return mType;
+	return mTargetType;
 }
 
 const RenderTarget::TargetOutput& RenderTarget::GetOutput() const
