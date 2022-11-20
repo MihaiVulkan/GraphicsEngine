@@ -1,6 +1,7 @@
 #ifndef GRAPHICS_RENDERING_BACKENDS_VULKAN_RESOURCES_VULKAN_SHADER_HPP
 #define GRAPHICS_RENDERING_BACKENDS_VULKAN_RESOURCES_VULKAN_SHADER_HPP
 
+#if defined(VULKAN_RENDERER)
 #include "Graphics/Rendering/Backends/Vulkan/Resources/VulkanResource.hpp"
 #include "Graphics/Rendering/Resources/Shader.hpp"
 
@@ -36,5 +37,6 @@ namespace GraphicsEngine
 		};
 	}
 }
+#endif // VULKAN_RENDERER
 
 #endif // GRAPHICS_RENDERING_BACKENDS_VULKAN_RESOURCES_VULKAN_SHADER_HPP

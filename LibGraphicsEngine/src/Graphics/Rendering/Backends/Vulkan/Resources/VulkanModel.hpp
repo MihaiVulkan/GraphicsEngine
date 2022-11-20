@@ -1,6 +1,7 @@
 #ifndef GRAPHICS_RENDERING_BACKENDS_VULKAN_RESOURCES_VULKAN_MODEL_HPP
 #define GRAPHICS_RENDERING_BACKENDS_VULKAN_RESOURCES_VULKAN_MODEL_HPP
 
+#if defined(VULKAN_RENDERER)
 #include "Graphics/Rendering/Backends/Vulkan/Resources/VulkanResource.hpp"
 #include <functional>
 
@@ -35,5 +36,6 @@ namespace GraphicsEngine
 		};
 	}
 }
+#endif // VULKAN_RENDERER
 
 #endif // GRAPHICS_RENDERING_BACKENDS_VULKAN_RESOURCES_VULKAN_MODEL_HPP

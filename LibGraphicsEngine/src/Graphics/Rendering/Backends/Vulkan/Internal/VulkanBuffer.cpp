@@ -108,6 +108,8 @@ void VulkanBuffer::Destroy()
 
 VkResult VulkanBuffer::Map(VkDeviceSize size, VkDeviceSize offset, VkMemoryMapFlags flags)
 {
+	// NOTE! Mapping a buffer is more efficient as we avoid extra copying!
+
 	assert(mpDevice != nullptr);
 
 	return vkMapMemory(mpDevice->GetDeviceHandle(), mAllocation.handle, offset, size, flags, (void**)&mpMappedData);

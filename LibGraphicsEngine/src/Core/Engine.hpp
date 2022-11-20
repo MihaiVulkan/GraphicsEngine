@@ -1,7 +1,5 @@
 #ifndef CORE_ENGINE_HPP
 #define CORE_ENGINE_HPP
-
-#include "Core/AppConfig.hpp"
 #include "Foundation/Object.hpp"
 #include "Foundation/DynamicSingleton.hpp"
 #include <string>

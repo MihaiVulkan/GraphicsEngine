@@ -46,7 +46,8 @@ namespace GraphicsEngine
 				constexpr const char_t* UNIFORM_LIGHT_DIR = "lightDir"; // no 'u' in front of the name as it is part of UBO
 				constexpr const char_t* UNIFORM_LIGHT_POS = "lightPos"; // no 'u' in front of the name as it is part of UBO
 				constexpr const char_t* UNIFORM_LIGHT_COLOR = "lightColor"; // no 'u' in front of the name as it is part of UBO
-		
+				constexpr const char_t* UNIFORM_IS_GL_NDK = "isGLNDK"; // no 'u' in front of the name as it is part of UBO
+
 				constexpr const char_t* UNIFORM_2D_TEXTURE = "u2DTexture";
 				constexpr const char_t* UNIFORM_2D_COLOR_TEXTURE = "u2DColorTexture";
 				constexpr const char_t* UNIFORM_2D_NORMAL_TEXTURE = "u2DNormalTexture";
@@ -79,6 +80,9 @@ namespace GraphicsEngine
 				// floats
 				GE_UT_CRR_TIME, // timer crr time
 				GE_UT_ROUGHNESS, // surface roughness
+
+				// GL NDK detection
+				GE_UT_IS_GL_NDK,
 
 				// others
 				GE_UT_COUNT

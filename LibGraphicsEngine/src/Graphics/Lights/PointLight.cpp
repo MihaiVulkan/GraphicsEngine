@@ -49,12 +49,5 @@ void PointLight::ComputeLightPVM()
 	glm::mat4 view = glm::lookAt(mPosition, glm::vec3(0.0f), glm::vec3(0.0f, +1.0f, 0.0f));
 	// no model matrix
 
-#if defined(VULKAN_RENDERER)
-	// Vulkan clip space has inverted Y and half Z - perspective projection.
-	//1. we use GLM_FORCE_DEPTH_ZERO_TO_ONE to correct depth range (half Z)!
-	//2. the operation below inverts Y to correct it
-//	proj[1][1] *= -1.0f;
-#endif // VULKAN_RENDERER
-
 	mLightPVM = proj * view;
 }

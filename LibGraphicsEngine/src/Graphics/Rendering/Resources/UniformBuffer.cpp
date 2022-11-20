@@ -32,7 +32,7 @@ UniformBuffer::~UniformBuffer()
 
 void UniformBuffer::Create()
 {
-
+	mUsage = Buffer::BufferUsage::GE_BU_DYNAMIC;
 }
 
 void UniformBuffer::Destroy()
@@ -80,6 +80,12 @@ Variant& UniformBuffer::AddUniform(GLSLShaderTypes::UniformType type)
 		case GLSLShaderTypes::UniformType::GE_UT_CRR_TIME:
 		{
 			ref = Variant(Variant::VariantType::GE_VT_FLOAT32);
+			mSize += ref.Size(); // 0 padding, alignment with scalar type size (glsl std140 storage)
+		}
+		break;
+		case GLSLShaderTypes::UniformType::GE_UT_IS_GL_NDK:
+		{
+			ref = Variant(Variant::VariantType::GE_VT_INT32);
 			mSize += ref.Size(); // 0 padding, alignment with scalar type size (glsl std140 storage)
 		}
 		break;
@@ -172,6 +178,14 @@ void* UniformBuffer::GetData()
 			case GLSLShaderTypes::UniformType::GE_UT_CRR_TIME:
 			{
 				auto& ref = variant.Value<float32_t>();
+				::memcpy(mpData + offset, &ref, variant.Size());
+
+				offset += variant.Size(); // 0 padding, alignment with scalar type size (glsl std140 storage)
+			}
+			break;
+			case GLSLShaderTypes::UniformType::GE_UT_IS_GL_NDK:
+			{
+				auto& ref = variant.Value<int32_t>();
 				::memcpy(mpData + offset, &ref, variant.Size());
 
 				offset += variant.Size(); // 0 padding, alignment with scalar type size (glsl std140 storage)

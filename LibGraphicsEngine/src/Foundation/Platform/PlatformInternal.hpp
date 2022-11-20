@@ -6,6 +6,7 @@
 #include <functional>
 #include <string>
 
+
 namespace GraphicsEngine
 {
 	namespace Platform
@@ -22,6 +23,45 @@ namespace GraphicsEngine
 
 		private:
 			NO_COPY_NO_MOVE_CLASS(KeyMap)
+		};
+
+
+		// TODO - for now used only by the GL API
+		// as this API has a dependency on the native window!
+		class GraphicsContext : public Object
+		{
+			GE_RTTI(GraphicsEngine::Platform::GraphicsContext)
+
+		public:
+			// Flags
+			typedef enum GE_GL_CLIENT_API
+			{
+				GE_GLCA_OPENGL = 0,
+				GE_GLCA_OPENGL_ES = 1
+			} GE_GL_CLIENT_API;
+
+			typedef enum GE_GL_SOURCE_API
+			{
+				GE_GLSA_NATIVE = 0,
+				GE_GLSA_WGL = 1,
+				GE_GLSA_EGL = 2
+			} GE_GL_SOURCE_API;
+
+			typedef struct GraphicsContextState
+			{
+				GE_GL_CLIENT_API    client;
+				GE_GL_SOURCE_API    source;
+				int                 major, minor;
+			} GraphicsContextState;
+
+			GraphicsContext();
+			virtual ~GraphicsContext();
+
+		protected:
+			GraphicsContextState mState;
+
+		private:	
+			NO_COPY_NO_MOVE_CLASS(GraphicsContext)
 		};
 
 		class Window : public Object
@@ -43,7 +83,8 @@ namespace GraphicsEngine
 				GE_WF_COUNT
 			} GE_WindowFlags;
 
-			typedef struct WindowState {
+			typedef struct WindowState
+			{
 				std::string title;
 				uint32_t flags;
 				uint32_t width;
@@ -116,6 +157,9 @@ namespace GraphicsEngine
 			virtual void WaitEvents() {}
 			virtual void WaitEventsTimeout(float64_t timeout) {}
 
+			/////////////// GL API //////////////////
+			virtual void GLSwapBuffers() {}
+			virtual void GLContextMakeCurrent() {}
 
 			//////////////////////
 			// Register
@@ -185,7 +229,8 @@ namespace GraphicsEngine
 
 			WindowState mState;
 
-			struct {
+			struct
+			{
 				InputWindowFocusFN onWindowFocus;
 				InputWindowPosFN onWindowPos;
 				InputWindowSizeFN onWindowSize;

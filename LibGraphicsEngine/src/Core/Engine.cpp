@@ -1,4 +1,5 @@
 #include "Core/Engine.hpp"
+#include "Core/AppConfig.hpp"
 #include "Foundation/Platform/Platform.hpp"
 #include "Graphics/GraphicsSystem.hpp"
 #include "Graphics/Rendering/Renderer.hpp"
@@ -142,10 +143,18 @@ void Engine::FPSCount(float32_t deltaTime)
 		// Calculate the FPS as the number of frames divided by the duration in seconds
 		fps = frameCount / duration;
 
+		// detect renderer
+		std::string rendererName;
+#if defined(VULKAN_RENDERER)
+		rendererName = "Vulkan";
+#else define(OPENGL_RENDERER)
+		rendererName = "OpenGL";
+#endif
+
 		// update window title with FPS count
 		std::stringstream ss;
 		static std::string appName = mpWindow->GetWindowTitle();
-		ss << appName << " | FPS: " << fps << " | DeltaTime: " << deltaTime;
+		ss << appName << " | " << rendererName << " | FPS: " << fps << " | DeltaTime: " << deltaTime;
 
 		mpWindow->SetWindowTitle(ss.str().c_str());
 

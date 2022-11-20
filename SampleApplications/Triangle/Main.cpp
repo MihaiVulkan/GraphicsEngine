@@ -19,7 +19,6 @@ int main()
 	   0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f
 	};
 
-	// Vulkan - CW winding
 	std::vector<uint32_t> indexData = { 0, 1, 2 };
 
 	auto vFormat = GE_ALLOC(VertexFormat)(3, 0, 0, 3, 0); //P3 C3

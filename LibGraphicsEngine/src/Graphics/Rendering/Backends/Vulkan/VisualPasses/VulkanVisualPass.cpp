@@ -1,3 +1,4 @@
+#if defined(VULKAN_RENDERER)
 #include "Graphics/Rendering/Backends/Vulkan/VisualPasses/VulkanVisualPass.hpp"
 #include "Graphics/Rendering/Backends/Vulkan/Common/VulkanCommon.hpp"
 #include "Graphics/Rendering/Backends/Vulkan/Common/VulkanUtils.hpp"
@@ -34,7 +35,6 @@ using namespace std::placeholders;  // for _1, _2, _3...
 
 GADVisualPass::GADVisualPass()
 	: mpVulkanRenderer(nullptr)
-	//, mpRenderPass(nullptr)
 	, mpDescriptorPool(nullptr)
 	, mpDescriptorSetLayout(nullptr)
 	, mpDescriptorSet(nullptr)
@@ -123,7 +123,7 @@ void GADVisualPass::SetupDescriptorSets()
 				VkDescriptorType descriptorType = VkDescriptorType::VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 
 				AddWriteDescriptorSet(shaderStage, pParser->GetUniformBlock().setId, pParser->GetUniformBlock().binding,
-					descriptorType, nullptr, &(pGadrUniformBuffer->GetVKBuffer()->GetDescriptorInfo()));
+					descriptorType, nullptr, &(pGadrUniformBuffer->GetVkBuffer()->GetDescriptorInfo()));
 			}
 
 			// texture sampler(s) are present
@@ -153,7 +153,7 @@ void GADVisualPass::SetupDescriptorSets()
 							assert(gadrTexture != nullptr);
 
 							AddWriteDescriptorSet(shaderStage, unifIter->second.setId, unifIter->second.binding,
-								descriptorType, &(gadrTexture->GetDescriptorInfo()), nullptr);
+								descriptorType, &(gadrTexture->GetVkDescriptorInfo()), nullptr);
 						}
 						else if (pTexture->GetUsageType() == Texture::UsageType::GE_UT_RENDER_TARGET)
 						{
@@ -199,7 +199,7 @@ void GADVisualPass::SetupDescriptorSets()
 								assert(gadrTexture != nullptr);
 
 								AddWriteDescriptorSet(shaderStage, unifIter->second.setId, unifIter->second.binding,
-									descriptorType, &(gadrTexture->GetDescriptorInfo()), nullptr);
+									descriptorType, &(gadrTexture->GetVkDescriptorInfo()), nullptr);
 							}
 						}
 					}
@@ -454,7 +454,6 @@ void GADVisualPass::SetupVertexInputState(VkPipelineVertexInputStateCreateInfo& 
 	std::vector<VkVertexInputAttributeDescription> updatedShaderAttribs(shaderAttribs.size());
 
 	size_t index = 0;
-	auto shaderAttIter = shaderAttribs.begin();
 	for (auto shaderAttIter = shaderAttribs.begin(); shaderAttIter != shaderAttribs.end(); ++shaderAttIter)
 	{
 		auto& refAtt = updatedShaderAttribs[index];
@@ -728,3 +727,4 @@ void GADVisualPass::UpdateNode(Camera* pCamera, float32_t crrTime)
 	// at this point all processed nodes are allowed for this visual pass !
 	mpVulkanRenderer->UpdateNode(mpVisualPass, pGeoNode, pCamera, crrTime);
 }
+#endif // VULKAN_RENDERER

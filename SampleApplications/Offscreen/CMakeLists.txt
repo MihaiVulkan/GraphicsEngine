@@ -36,11 +36,6 @@ source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SOURCE_LIST})
 # the libs we need for our project
 # make LibGraphicsEngine dependency for ${PROJECT_NAME} target so that it is rebuild automatically if it's the case
 target_link_libraries(${PROJECT_NAME} PRIVATE LibGraphicsEngine)
-			
-# as cmake can't link static libs to other static libs when generating VS projs we link those to the app directly
-target_link_libraries(${PROJECT_NAME} PRIVATE
-	${Vulkan_Lib_Dir}
-)
 
 #defines
 # Asset path

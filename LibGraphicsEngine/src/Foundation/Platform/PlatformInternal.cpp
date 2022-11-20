@@ -12,8 +12,15 @@ KeyMap::~KeyMap()
 
 ///////////////////////////////////////////
 
+GraphicsContext::GraphicsContext()
+{}
+
+GraphicsContext::~GraphicsContext()
+{}
+
+///////////////////////////////////////////
+
 Window::Window()
-//	: mpKeyMap(nullptr)
 {}
 
 Window::~Window()

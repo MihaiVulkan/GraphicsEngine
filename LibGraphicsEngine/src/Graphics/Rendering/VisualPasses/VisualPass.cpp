@@ -11,7 +11,11 @@
 #include <cassert>
 #if defined(VULKAN_RENDERER)
 #include "Graphics/Rendering/Backends/Vulkan/VisualPasses/VulkanVisualPass.hpp"
-#endif
+#define IS_GL_NDK 0
+#elif defined(OPENGL_RENDERER)
+#include "Graphics/Rendering/Backends/OpenGL/VisualPasses/OpenGLVisualPass.hpp"
+#define IS_GL_NDK 1
+#endif //
 
 using namespace GraphicsEngine;
 using namespace GraphicsEngine::Graphics;
@@ -229,6 +233,14 @@ void VisualPass::SetupUniforms()
 			AddUniformBuffer(Shader::ShaderStage::GE_SS_VERTEX, pUB);
 		}
 	}
+	else
+	{
+		// NOTE! In debug mode we can have shaders like debugShadowRT.vert which don't have a UBO
+		if (false == GetIsDebug())
+		{
+			LOG_ERROR("Vertex shader UniformBlock is invalid!");
+		}
+	}
 
 	////////// SETUP LIGHT UNIFORMS FOR LIT EFFECTS
 	if (mpVisualEffect->GetEffectType() != VisualEffect::EffectType::GE_ET_LIT &&
@@ -277,6 +289,17 @@ void VisualPass::SetupUniforms()
 		{
 			LOG_ERROR("Camera pos uniform not found in shader: %s! Abort!", pVertexShader->GetSourcePath().c_str());
 			return;
+		}
+
+		// some lighting effect need this flag, but not all effect
+		it = uboMembers.find(GLSLShaderTypes::Constants::UNIFORM_IS_GL_NDK);
+		if (it != uboMembers.end() && it->second.type == GLSLShaderTypes::Constants::INT_TYPE)
+		{
+			// NOTE! Vulkan NDK is in [0, 1], OpenGL NDK is in [-1, 1]
+			// we need the shadow coords in [0, 1] texture space
+			// in case of OpenGL we transform the coords in [-1, 1] to [0, 1]
+
+			pUB->AddUniform(GLSLShaderTypes::UniformType::GE_UT_IS_GL_NDK, IS_GL_NDK);
 		}
 	}
 
@@ -374,7 +397,7 @@ void VisualPass::SetupShadowUniforms()
 
 	assert(false == mShaderMap.empty());
 
-	///////// SETUP PVM MATRIX 
+	///////// SETUP LIGHT PVM MATRIX 
 	auto it = mShaderMap.find(Shader::ShaderStage::GE_SS_VERTEX);
 	assert(it != mShaderMap.end());
 

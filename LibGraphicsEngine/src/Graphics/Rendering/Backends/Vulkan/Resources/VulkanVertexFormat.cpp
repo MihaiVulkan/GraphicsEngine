@@ -1,3 +1,4 @@
+#if defined(VULKAN_RENDERER)
 #include "Graphics/Rendering/Backends/Vulkan/Resources/VulkanVertexFormat.hpp"
 #include "Graphics/Rendering/Backends/Vulkan/Common/VulkanCommon.hpp"
 #include "Graphics/Rendering/Backends/Vulkan/Common/VulkanUtils.hpp"
@@ -84,3 +85,4 @@ const VkVertexInputBindingDescription& GADRVertexFormat::GetVkInputBinding() con
 {
 	return mInputBinding;
 }
+#endif // VULKAN_RENDERER

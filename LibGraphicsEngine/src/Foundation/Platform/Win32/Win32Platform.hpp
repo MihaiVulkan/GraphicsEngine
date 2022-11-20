@@ -4,6 +4,10 @@
 #include "Foundation/Platform/PlatformInternal.hpp"
 #include <windows.h>
 
+#if defined(OPENGL_RENDERER)
+#include "Foundation/Platform/GLLoader/GLLoader.hpp"
+#endif // OPENGL_RENDERER
+
 namespace GraphicsEngine
 {
 	namespace Platform
@@ -37,9 +41,42 @@ namespace GraphicsEngine
 			PlatformData mPlatformData;
 		};
 
+		class WindowWin32;
+
+		class GraphicsContextWin32 : public GraphicsContext
+		{
+			GE_RTTI(GraphicsEngine::Platform::GraphicsContextWin32)
+
+			friend WindowWin32;
+
+		public:
+			typedef struct PlatformData
+			{
+				HDC       dc;
+				HGLRC     handle;
+
+			} PlatformData;
+
+			GraphicsContextWin32();
+			virtual ~GraphicsContextWin32();
+
+		private:
+			NO_COPY_NO_MOVE_CLASS(GraphicsContextWin32)
+
+			bool_t CreateContextWGL(Window* pWindow);
+
+			static void MakeCurrentWGL(WindowWin32* pWindow);
+			static void SwapBuffersWGL(WindowWin32* pWindow);
+			static void DestroyWGL(WindowWin32* pWindow);
+
+			PlatformData mPlatformData;
+		};
+
 		class WindowWin32 : public Window
 		{
 			GE_RTTI(GraphicsEngine::Platform::WindowWin32)
+
+			friend GraphicsContextWin32;
 
 		public:
 			typedef struct PlatformData
@@ -86,6 +123,10 @@ namespace GraphicsEngine
 			virtual void WaitEvents() override;
 			virtual void WaitEventsTimeout(float64_t timeout) override;
 
+			/////////////// GL API //////////////////
+			virtual void GLSwapBuffers() override;
+			virtual void GLContextMakeCurrent() override;
+
 			////////////////////////////////
 
 			virtual int32_t GetKeyScancodeNative(int32_t key) override;
@@ -93,6 +134,7 @@ namespace GraphicsEngine
 			const WindowWin32::PlatformData& GetPlatformData() const;
 
 			KeyMapWin32* GetKeyMap() const;
+			GraphicsContextWin32* GetGraphicsContext() const;
 
 		private:
 			NO_COPY_NO_MOVE_CLASS(WindowWin32)
@@ -107,7 +149,13 @@ namespace GraphicsEngine
 			DWORD GetWindowStyle();
 			DWORD GetWindowExStyle();
 
+			// GL API
+			void GLRegisterDebugCallback();
+			void GLUnRegisterDebugCallback();
+			//
+
 			KeyMapWin32* mpKeyMap;
+			GraphicsContextWin32* mpGraphicsContext;
 
 			PlatformData mPlatformData;
 		};

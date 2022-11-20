@@ -1,3 +1,4 @@
+#if defined(VULKAN_RENDERER)
 #include "Graphics/Rendering/Backends/Vulkan/Resources/VulkanUniformBuffer.hpp"
 #include "Graphics/Rendering/Backends/Vulkan/Common/VulkanCommon.hpp"
 #include "Graphics/Rendering/Backends/Vulkan/VulkanRenderer.hpp"
@@ -42,6 +43,8 @@ void GADRUniformBuffer::Create(Renderer* pRenderer)
 
 	VulkanDevice* pDevice = pVulkanRenderer->GetDevice();
 	assert(pDevice != nullptr);
+
+	//TODO - use Buffer::BufferUsage 
 
 	// uniform buffer - visible to host (CPU) as we will update it per frame
 	mpVulkanBuffer = GE_ALLOC(VulkanBuffer)
@@ -90,7 +93,8 @@ void GADRUniformBuffer::OnUnBind(uint32_t currentBufferIdx)
 
 }
 
-VulkanBuffer* GADRUniformBuffer::GetVKBuffer() const
+VulkanBuffer* GADRUniformBuffer::GetVkBuffer() const
 {
 	return mpVulkanBuffer;
 }
+#endif // VULKAN_RENDERER

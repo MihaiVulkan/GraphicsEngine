@@ -35,11 +35,6 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 # the libs we need for our project
 # make LibGraphicsEngine dependency for ${PROJECT_NAME} target so that it is rebuild automatically if it's the case
 target_link_libraries(${PROJECT_NAME} PRIVATE LibGraphicsEngine)
-			
-# as cmake can't link static libs to other static libs when generating VS projs we link those to the app directly
-target_link_libraries(${PROJECT_NAME} PRIVATE
-	${Vulkan_Lib_Dir}
-)
 
 #defines
 # Asset path

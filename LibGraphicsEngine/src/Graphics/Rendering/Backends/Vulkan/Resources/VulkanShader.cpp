@@ -1,3 +1,4 @@
+#if defined(VULKAN_RENDERER)
 #include "Graphics/Rendering/Backends/Vulkan/Resources/VulkanShader.hpp"
 #include "Graphics/Rendering/Backends/Vulkan/Common/VulkanUtils.hpp"
 #include "Graphics/Rendering/Backends/Vulkan/VulkanRenderer.hpp"
@@ -46,7 +47,7 @@ void GADRShader::Create(Renderer* pRenderer)
 	mpVulkanShaderModule = GE_ALLOC(VulkanShaderModule)
 	(
 		pDevice,
-		vulkanType, mpShader->GetSourcePath().c_str()
+		vulkanType, mpShader->GetSourcePath()
 	);
 	assert(mpVulkanShaderModule != nullptr);
 }
@@ -70,3 +71,4 @@ VulkanShaderModule* GADRShader::GetVkShaderModule() const
 {
 	return mpVulkanShaderModule;
 }
+#endif // VULKAN_RENDERER

@@ -86,7 +86,10 @@ bool_t Texture::LoadFromFile(const std::string& texturePath)
 			return false;
 		}
 
+		// NOTE! We don't want to depend on utils of a specific graphics api
+		// still, the ktx texture format depends on vulkan types
 		mTextureMetaData.format = VulkanUtils::VulkanFormatToTextureFormat(pKtxTexture->vkFormat);
+		//
 
 		mTextureMetaData.width = pKtxTexture->baseWidth;
 		mTextureMetaData.height = pKtxTexture->baseHeight;
@@ -120,7 +123,7 @@ bool_t Texture::LoadFromFile(const std::string& texturePath)
 
 					size_t imageOffset = ktxLoader.ComputeImageOffset(level, layer, face);
 
-					mipmapRef.width = glm::max(1u, mTextureMetaData.width >> level);
+					mipmapRef.width = glm::max(1u, mTextureMetaData.width >> level); // 'dim >> level' == dim / 2^level
 					mipmapRef.height = glm::max(1u, mTextureMetaData.height >> level);
 					mipmapRef.offset = imageOffset;
 				}

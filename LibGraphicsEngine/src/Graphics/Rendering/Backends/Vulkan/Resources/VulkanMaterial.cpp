@@ -1,3 +1,4 @@
+#if defined(VULKAN_RENDERER)
 #include "Graphics/Rendering/Backends/Vulkan/Resources/VulkanMaterial.hpp"
 #include "Graphics/Rendering/Backends/Vulkan/VulkanRenderer.hpp"
 #include "Graphics/Rendering/Resources/Material.hpp"
@@ -48,5 +49,6 @@ void GADRMaterial::Destroy()
 
 void GADRMaterial::Bind(uint32_t currentBufferIdx)
 {
-
+	//
 }
+#endif // VULKAN_RENDERER

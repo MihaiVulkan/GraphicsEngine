@@ -5,9 +5,11 @@ layout (location = 0) out vec4 outFragColor;
 layout (std140, set = 0, binding = 1) uniform UniformBuffer 
 {
 	vec4 color;
-} uUBO;
+} uUBOColor;
+// a diferent name for this UBO compared to vertes shader 
+// as OpenGL doesn't allow the same UBO name across shader stages even if Vulkan does !!!
 
 void main() 
 {
-	outFragColor = uUBO.color;
+	outFragColor = uUBOColor.color;
 }

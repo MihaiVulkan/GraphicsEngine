@@ -126,7 +126,6 @@ namespace GraphicsEngine
 
 				default:
 					LOG_ERROR("Invalid primitive topology!");
-					;
 				}
 
 				return vulkanTopology;
@@ -281,6 +280,9 @@ namespace GraphicsEngine
 					break;
 				case VkFormat::VK_FORMAT_D32_SFLOAT_S8_UINT:
 					textureFormat = Texture::TextureFormat::GE_TF_D32_S8;
+					break;
+				case VkFormat::VK_FORMAT_D32_SFLOAT:
+					textureFormat = Texture::TextureFormat::GE_TF_D32;
 					break;
 					// TODO - other formats
 				case VkFormat::VK_FORMAT_MAX_ENUM:
@@ -464,6 +466,7 @@ namespace GraphicsEngine
 				VkImageMemoryBarrier imageMemoryBarrier = VulkanInitializers::ImageMemoryBarrier(srcAccessMask, dstAccessMask, oldImageLayout, newImageLayout, 
 										VK_QUEUE_FAMILY_IGNORED, VK_QUEUE_FAMILY_IGNORED, imageHandle, subresourceRange);
 
+#if defined(VULKAN_RENDERER)
 				// Insert a memory dependency at the proper pipeline stages that will execute the image layout transition
 				vkCmdPipelineBarrier(
 					commandBufferHandle,
@@ -473,6 +476,7 @@ namespace GraphicsEngine
 					0, nullptr,
 					0, nullptr,
 					1, &imageMemoryBarrier);
+#endif // VULKAN_RENDERER
 			}
 
 			VkShaderStageFlagBits ShaderStageToVulkanShaderStage(const Shader::ShaderStage& stage)

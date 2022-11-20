@@ -1,6 +1,7 @@
 #ifndef GRAPHICS_RENDERING_BACKENDS_VULKAN_RESOURCES_VULKAN_UNIFORM_BUFFER_HPP
 #define GRAPHICS_RENDERING_BACKENDS_VULKAN_RESOURCES_VULKAN_UNIFORM_BUFFER_HPP
 
+#if defined(VULKAN_RENDERER)
 #include "Graphics/Rendering/Backends/Vulkan/Resources/VulkanResource.hpp"
 
 namespace GraphicsEngine
@@ -29,7 +30,7 @@ namespace GraphicsEngine
 			virtual void OnUnBind(uint32_t currentBufferIdx = 0) override;
 
 			//
-			VulkanBuffer* GetVKBuffer() const;
+			VulkanBuffer* GetVkBuffer() const;
 
 		private:
 			void Create(Renderer* pRenderer);
@@ -41,5 +42,6 @@ namespace GraphicsEngine
 		};
 	}
 }
+#endif // VULKAN_RENDERER
 
 #endif // GRAPHICS_RENDERING_BACKENDS_VULKAN_RESOURCES_VULKAN_UNIFORM_BUFFER_HPP

@@ -1,3 +1,4 @@
+#if defined(VULKAN_RENDERER)
 #include "Graphics/Rendering/Backends/Vulkan/VulkanRenderer.hpp"
 
 #include "Foundation/Platform/Platform.hpp"
@@ -545,11 +546,14 @@ void VulkanRenderer::SetupFrameBuffers(VisualPass* pVisualPass, VulkanRenderPass
 
 			// prepare color + depth image views as attachments for the framebuffer
 			frameBufferAttachments.resize(ATT_COUNT);
-			frameBufferAttachments[COLOR_ATT] = pColorRT->GetImageView()->GetHandle();
-			frameBufferAttachments[DEPTH_ATT] = pDepthRT->GetImageView()->GetHandle();
+			frameBufferAttachments[COLOR_ATT] = pColorRT->GetVkImageView()->GetHandle();
+			frameBufferAttachments[DEPTH_ATT] = pDepthRT->GetVkImageView()->GetHandle();
 
 			// get RT width and height for the framebuffer size
-			const auto& extent3D = pColorRT->GetImage()->GetData().extent;
+			const auto& extent3D = pColorRT->GetVkImage()->GetData().extent;
+
+			assert(extent3D.width > 0);
+			assert(extent3D.height > 0);
 
 			extent.width = extent3D.width;
 			extent.height = extent3D.height;
@@ -591,10 +595,13 @@ void VulkanRenderer::SetupFrameBuffers(VisualPass* pVisualPass, VulkanRenderPass
 
 			// prepare depth image view as attachment for the framebuffer
 			frameBufferAttachments.resize(1);
-			frameBufferAttachments[0] = pDepthRT->GetImageView()->GetHandle();
+			frameBufferAttachments[0] = pDepthRT->GetVkImageView()->GetHandle();
 
 			// get RT width and height for the framebuffer size
-			const auto& extent3D = pDepthRT->GetImage()->GetData().extent;
+			const auto& extent3D = pDepthRT->GetVkImage()->GetData().extent;
+
+			assert(extent3D.width > 0);
+			assert(extent3D.height > 0);
 
 			extent.width = extent3D.width;
 			extent.height = extent3D.height;
@@ -730,7 +737,7 @@ void VulkanRenderer::SetupPipelineStats()
 }
 
 // Retrieves the results of the pipeline statistics query submitted to the command buffer
-void VulkanRenderer::GetQueryResults()// VisualPass::PassType passType)
+void VulkanRenderer::GetQueryResults()
 {
 #ifdef PIPELINE_STATS
 	assert(false == mPipelineStatsMap.empty());
@@ -1189,7 +1196,21 @@ void VulkanRenderer::BindLight(VisualPass* pVisualPass, const LightNode* pLightN
 				if (pGeoNode->IsPassAllowed(VisualPass::PassType::GE_PT_SHADOWS))
 				{
 					if (pVertUBO)
-						pVertUBO->SetUniform(GLSLShaderTypes::UniformType::GE_UT_LIGHT_PVM_MATRIX4, pLight->GetLightPVM());
+					{
+						//NOTE! For the Vulkan renderer we also need a biasMat
+						// The biasMat  is not specific to shadow mapping,
+						// it just makes it so that the resulting projection considers 
+						// the particularities of how the Vulkan coordinate system is defined 
+						// (Y axis is inversed, Z range is halved).
+						const glm::mat4 biasMat = glm::mat4(
+							0.5, 0.0, 0.0, 0.0,
+							0.0, 0.5, 0.0, 0.0,
+							0.0, 0.0, 1.0, 0.0,
+							0.5, 0.5, 0.0, 1.0
+						);
+
+						pVertUBO->SetUniform(GLSLShaderTypes::UniformType::GE_UT_LIGHT_PVM_MATRIX4, biasMat * pLight->GetLightPVM());
+					}
 				}
 
 				if (pFragUBO)
@@ -1241,7 +1262,7 @@ void VulkanRenderer::DrawSceneToCommandBuffer()
 
 		// Begin command buffer recording
 		VK_CHECK_RESULT(mDrawCommandBuffers[i]->Begin());
-;
+
 		DrawNodes(i);
 
 		// End command buffer recording
@@ -1327,15 +1348,21 @@ void VulkanRenderer::DrawNode(VisualPass* pVisualPass, GeometryNode* pGeoNode, u
 
 	Bind(pVertexBuffer, currentBufferIdx);
 
-	// bind index buffer
+	// bind index buffer (if available)
+	bool isIndexedDrawing = pGeometry->IsIndexed();
 	auto* pIndexBuffer = pGeometry->GetIndexBuffer();
-	if (pGeometry->IsIndexed())
+	if (nullptr == pIndexBuffer)
+	{
+		isIndexedDrawing = false; // failsafe
+	}
+
+	if (isIndexedDrawing)
 	{
 		Bind(pIndexBuffer, currentBufferIdx);
 	}
 
 	uint32_t count = 0;
-	if (pGeometry->IsIndexed())
+	if (isIndexedDrawing)
 	{
 		if (pIndexBuffer)
 			count = pIndexBuffer->GetIndexCount();
@@ -1349,7 +1376,6 @@ void VulkanRenderer::DrawNode(VisualPass* pVisualPass, GeometryNode* pGeoNode, u
 	assert(pVertexFormat != nullptr);
 
 	uint32_t instanceCount = (pVertexFormat->GetVertexInputRate() == VertexFormat::VertexInputRate::GE_VIR_VERTEX ? 1 : 0); //TODO
-	bool isIndexedDrawing = pGeometry->IsIndexed();
 
 	// in case of model loading
 	if (pGeometry->IsModel())
@@ -1471,10 +1497,9 @@ void VulkanRenderer::EndRenderPass(const VisualPassData& visualPassData, uint32_
 	// NOTE! Explicit synchronization is not required between the render pass, as this is done implicit via sub pass dependencies
 }
 
-void VulkanRenderer::AddVisualPass(VisualPass* pVisualPass)//, GeometryNode* pGeoNode)
+void VulkanRenderer::AddVisualPass(VisualPass* pVisualPass)
 {
 	assert(pVisualPass != nullptr);
-	//assert(pGeoNode != nullptr);
 
 	auto* pGeoNode = pVisualPass->GetNode();
 	assert(pGeoNode != nullptr);
@@ -1557,3 +1582,4 @@ VulkanRenderPass* VulkanRenderer::GetRenderPass(VisualPass* pVisualPass)
 
 	return nullptr;
 }
+#endif // VULKAN_RENDERER

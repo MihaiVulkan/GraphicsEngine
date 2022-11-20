@@ -23,7 +23,17 @@
 #include "Graphics/Rendering/Backends/Vulkan/Resources/VulkanShader.hpp"
 #include "Graphics/Rendering/Backends/Vulkan/Resources/VulkanMaterial.hpp"
 #include "Graphics/Rendering/Backends/Vulkan/Resources/VulkanModel.hpp"
-#endif // VULKAN_RENDERER
+#elif defined(OPENGL_RENDERER)
+#include "Graphics/Rendering/Backends/OpenGL/VisualPasses/OpenGLVisualPass.hpp"
+#include "Graphics/Rendering/Backends/OpenGL/Resources/OpenGLVertexFormat.hpp"
+#include "Graphics/Rendering/Backends/OpenGL/Resources/OpenGLVertexBuffer.hpp"
+#include "Graphics/Rendering/Backends/OpenGL/Resources/OpenGLIndexBuffer.hpp"
+#include "Graphics/Rendering/Backends/OpenGL/Resources/OpenGLUniformBuffer.hpp"
+#include "Graphics/Rendering/Backends/OpenGL/Resources/OpenGLTexture.hpp"
+#include "Graphics/Rendering/Backends/OpenGL/Resources/OpenGLShader.hpp"
+#include "Graphics/Rendering/Backends/OpenGL/Resources/OpenGLMaterial.hpp"
+#include "Graphics/Rendering/Backends/OpenGL/Resources/OpenGLModel.hpp"
+#endif //
 
 #include "Foundation/Platform/Platform.hpp"
 #include "Foundation/MemoryManagement/MemoryOperations.hpp"

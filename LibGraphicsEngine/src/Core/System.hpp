@@ -1,7 +1,6 @@
 #ifndef CORE_SYSTEM_HPP
 #define CORE_SYSTEM_HPP
 
-#include "Core/AppConfig.hpp"
 #include "Foundation/Object.hpp"
 
 namespace GraphicsEngine

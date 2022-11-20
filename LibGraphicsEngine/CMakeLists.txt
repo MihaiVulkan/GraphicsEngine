@@ -25,6 +25,8 @@ file(GLOB_RECURSE SOURCE_LIST
 	${PROJECT_SOURCE_DIR}/src/Foundation/Platform/Win32/*.cpp
 	${PROJECT_SOURCE_DIR}/src/Foundation/Platform/*.hpp
 	${PROJECT_SOURCE_DIR}/src/Foundation/Platform/*.cpp
+	${PROJECT_SOURCE_DIR}/src/Foundation/Platform/GLLoader/*.hpp
+	${PROJECT_SOURCE_DIR}/src/Foundation/Platform/GLLoader/*.cpp
 	${PROJECT_SOURCE_DIR}/src/Foundation/*.hpp
 	${PROJECT_SOURCE_DIR}/src/Foundation/*.cpp
 	${PROJECT_SOURCE_DIR}/src/Graphics/Cameras/*.hpp
@@ -43,6 +45,16 @@ file(GLOB_RECURSE SOURCE_LIST
 	${PROJECT_SOURCE_DIR}/src/Graphics/Rendering/Backends/Vulkan/VisualPasses/*.cpp
 	${PROJECT_SOURCE_DIR}/src/Graphics/Rendering/Backends/Vulkan/*.hpp
 	${PROJECT_SOURCE_DIR}/src/Graphics/Rendering/Backends/Vulkan/*.cpp
+	${PROJECT_SOURCE_DIR}/src/Graphics/Rendering/Backends/OpenGL/Common/*.hpp
+	${PROJECT_SOURCE_DIR}/src/Graphics/Rendering/Backends/OpenGL/Common/*.cpp
+	${PROJECT_SOURCE_DIR}/src/Graphics/Rendering/Backends/OpenGL/Internal/*.hpp
+	${PROJECT_SOURCE_DIR}/src/Graphics/Rendering/Backends/OpenGL/Internal/*.cpp
+	${PROJECT_SOURCE_DIR}/src/Graphics/Rendering/Backends/OpenGL/Resources/*.hpp
+	${PROJECT_SOURCE_DIR}/src/Graphics/Rendering/Backends/OpenGL/Resources/*.cpp
+	${PROJECT_SOURCE_DIR}/src/Graphics/Rendering/Backends/OpenGL/VisualPasses/*.hpp
+	${PROJECT_SOURCE_DIR}/src/Graphics/Rendering/Backends/OpenGL/VisualPasses/*.cpp
+	${PROJECT_SOURCE_DIR}/src/Graphics/Rendering/Backends/OpenGL/*.hpp
+	${PROJECT_SOURCE_DIR}/src/Graphics/Rendering/Backends/OpenGL/*.cpp
 	${PROJECT_SOURCE_DIR}/src/Graphics/Rendering/PipelineStates/*.hpp
 	${PROJECT_SOURCE_DIR}/src/Graphics/Rendering/PipelineStates/*.cpp
 	${PROJECT_SOURCE_DIR}/src/Graphics/Rendering/VisualEffects/*.hpp
@@ -90,6 +102,12 @@ source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SOURCE_LIST})
 target_include_directories(${PROJECT_NAME} PRIVATE
 	${PROJECT_SOURCE_DIR}/src
 	${PROJECT_SOURCE_DIR}/dep/include
+)
+
+# cmake can't link a static lib to another static lib,
+# so this lib will actually link to each sample app as dependency
+target_link_libraries(${PROJECT_NAME} PRIVATE
+	${Graphics_Lib_Path}
 )
 
 #defines

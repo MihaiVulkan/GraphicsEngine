@@ -149,7 +149,7 @@ namespace GraphicsEngine
 
 				uint32_t width, height, depth;
 				uint32_t mipLevels;
-				std::vector<MipMapMetaData> mipmaps;
+				std::vector<Texture::MipMapMetaData> mipmaps;
 				uint32_t layerCount;
 				uint32_t faceCount;
 

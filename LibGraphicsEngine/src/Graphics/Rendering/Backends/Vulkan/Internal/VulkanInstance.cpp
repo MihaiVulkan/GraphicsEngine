@@ -132,9 +132,9 @@ void VulkanInstance::Create(const char_t* pTitle)
 
 	// attempt to add the needed extensions
 	bool_t isAvailableKHRSurface = false;
-#if defined(_WIN32)
+#if defined(VK_USE_PLATFORM_WIN32_KHR)
 	bool_t isAvailableKHRWin32Surface = false;
-#endif //_WIN32
+#endif //VK_USE_PLATFORM_WIN32_KHR
 	bool_t isAvailableDebugExtension = false;
 
 	for (const VkExtensionProperties& extension : supportedInstanceExtensions)
@@ -146,13 +146,13 @@ void VulkanInstance::Create(const char_t* pTitle)
 		}
 
 		// Enable surface extensions depending on os
-#if defined(_WIN32)
+#if defined(VK_USE_PLATFORM_WIN32_KHR)
 		if (std::string(extension.extensionName) == VK_KHR_WIN32_SURFACE_EXTENSION_NAME)
 		{
 			neededInstanceExtensions.push_back(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
 			isAvailableKHRWin32Surface = true;
 		}
-#endif // _WIN32
+#endif // VK_USE_PLATFORM_WIN32_KHR
 
 		if (mEnableValidation)
 		{
@@ -170,13 +170,13 @@ void VulkanInstance::Create(const char_t* pTitle)
 		LOG_ERROR("%s extension is not supported! Abort!", VK_KHR_SURFACE_EXTENSION_NAME);
 		return;
 	}
-#if defined(_WIN32)
+#if defined(VK_USE_PLATFORM_WIN32_KHR)
 	if (false == isAvailableKHRWin32Surface)
 	{
 		LOG_ERROR("%s extension is not supported! Abort!", VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
 		return;
 	}
-#endif //_WIN32
+#endif //VK_USE_PLATFORM_WIN32_KHR
 	if (mEnableValidation)
 	{
 		if (false == isAvailableDebugExtension)

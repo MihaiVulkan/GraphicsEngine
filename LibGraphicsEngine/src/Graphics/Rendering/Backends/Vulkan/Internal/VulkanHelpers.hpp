@@ -26,7 +26,6 @@ namespace GraphicsEngine
 #define OFFSETOF(s,m) ((::size_t)&reinterpret_cast<char const volatile&>((((s*)0)->m)))
 
 			std::string GetVulkanVersionStr(uint32_t version);
-			//const char* GetVulkanVersionStr(uint32_t version);
 
 			std::string ErrorString(VkResult errorCode);
 

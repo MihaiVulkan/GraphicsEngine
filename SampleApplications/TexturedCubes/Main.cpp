@@ -6,7 +6,10 @@
 using namespace GraphicsEngine;
 using namespace GraphicsEngine::Graphics;
 
-#define FLIPY -1.0f // Vulkan Renderer setup, TODO - for the other renderers
+#define VK_Y -1
+#define GL_Y 1
+
+#define FLIPY VK_Y // Vulkan Renderer setup, TODO - for the other renderers
 
 int main()
 {
@@ -69,7 +72,7 @@ int main()
 	// face widing - counter clock-wise
 	std::vector<uint32_t> indexDataRoom
 	{
-	#ifdef FLIPY
+	#if FLIPY == VK_Y
 		// right face (+X)
 		13, 14, 12, 14, 15, 12,
 		// left face (-X)
@@ -160,6 +163,19 @@ int main()
 		  -1.0f, -1.0f * FLIPY, 1.0f,   0.0f, 1.0f, //21
 		  1.0f, -1.0f * FLIPY, 1.0f,   1.0f, 1.0f, //22
 		  1.0f, -1.0f * FLIPY, -1.0f,   1.0f, 0.0f, //23
+
+
+
+		 //-1.0f, 1.0f, 1.0f, //0
+		 //1.0f, 1.0, 1.0f, //1
+		 //-1.0f, 1.0f, -1.0f, //2
+		 //1.0f, 1.0, -1.0f, //3
+
+		 //-1.0f, -1.0f, 1.0f, //0
+		 //1.0f, -1.0, 1.0f, //1
+		 //-1.0f, -1.0f, -1.0f, //2
+		 //1.0f, -1.0, -1.0f, //3
+
 	};
 
 	// Winding default:
@@ -169,7 +185,7 @@ int main()
 	// face widing - counter clock-wise
 	std::vector<uint32_t> indexDataCube
 	{
-	#ifdef FLIPY
+	#if FLIPY == VK_Y
 		// front face
 		1, 2, 0, 2, 3, 0,
 		// back face
@@ -194,8 +210,22 @@ int main()
 		// top face
 		16, 19, 17, 19, 18, 17,
 		// bottom face
-			20, 23, 21, 23, 22, 21
+		20, 23, 21, 23, 22, 21
 	#endif
+
+		// GL - CCW
+		// front face
+		//0, 4, 5, 0, 5, 1,
+		//// back face
+		//3, 7, 6, 3, 6, 2,
+		//// left face
+		//2, 6, 4, 2, 4, 0,
+		//// right face
+		//1, 5, 7, 1, 7, 3,
+		//// top face
+		//2, 0, 1, 2, 1, 3,
+		//// bottom face
+		//7, 5, 4, 7, 4, 6
 	};
 
 
@@ -251,7 +281,7 @@ int main()
 	/////////////////////////////
 
 	// camera- TODO - to be moved as cull camera as part of the scene graph
-	app->GetGraphicsSystem()->GetMainCamera()->SetPosition(glm::vec3(0.0f, 0.0f, 15.0f));
+	app->GetGraphicsSystem()->GetMainCamera()->SetPosition(glm::vec3(0.0f, 0.0f, 5.0f));
 	app->GetGraphicsSystem()->GetMainCamera()->SetFOV(60.0f);
 	app->GetGraphicsSystem()->GetMainCamera()->SetZNear(0.1f);
 	app->GetGraphicsSystem()->GetMainCamera()->SetZFar(1000.0f);

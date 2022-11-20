@@ -2,7 +2,9 @@
 #include "Foundation/Platform/Platform.hpp"
 #if defined(VULKAN_RENDERER)
 #include "Graphics/Rendering/Backends/Vulkan/VulkanRenderer.hpp"
-#endif // VULKAN_RENDERER
+#elif defined(OPENGL_RENDERER)
+#include "Graphics/Rendering/Backends/OpenGL/OpenGLRenderer.hpp"
+#endif // 
 #include "Graphics/Rendering/RenderQueue.hpp"
 #include "Graphics/SceneGraph/Node.hpp"
 #include "Graphics/SceneGraph/Visitors/ComputeRenderQueueVisitor.hpp"
@@ -42,9 +44,11 @@ void GraphicsSystem::Init(Platform::Window* pWindow)
 	// use Vulkan renderer
 #if defined(VULKAN_RENDERER)
 	mpRenderer = GE_ALLOC(VulkanRenderer)(pWindow);
+#elif defined(OPENGL_RENDERER)
+	mpRenderer = GE_ALLOC(OpenGLRenderer)(pWindow);
 #else
 	// other
-#endif // VULKAN_RENDERER
+#endif // 
 	assert(mpRenderer != nullptr);
 
 	mpMainCamera = GE_ALLOC(FPSCamera)("MainCamera"); //TODO - use FPSCamera by default
@@ -91,7 +95,9 @@ void GraphicsSystem::RenderFrame()
 #if defined(VULKAN_RENDERER)
 	// The scene has already been rendered !!!
 	// Nothing to do here for the Vulkan API
-#endif // VULKAN_RENDERER
+#elif defined(OPENGL_RENDERER)
+	mpRenderer->RenderFrame(mpRenderQueue);
+#endif // 
 }
 
 void GraphicsSystem::UpdateFrame(float32_t crrTime)
@@ -100,7 +106,9 @@ void GraphicsSystem::UpdateFrame(float32_t crrTime)
 
 #if defined(VULKAN_RENDERER)
 	mpRenderer->UpdateFrame(mpMainCamera, crrTime);
-#endif // VULKAN_RENDERER
+#elif defined(OPENGL_RENDERER)
+	mpRenderer->UpdateFrame(mpMainCamera, crrTime);
+#endif // 
 }
 
 void GraphicsSystem::SubmitFrame()
@@ -110,7 +118,9 @@ void GraphicsSystem::SubmitFrame()
 #if defined(VULKAN_RENDERER)
 	// here we just submit & present the frame to GPU
 	mpRenderer->SubmitFrame();
-#endif // VULKAN_RENDERER
+#elif defined(OPENGL_RENDERER)
+	mpRenderer->SubmitFrame();
+#endif //
 }
 
 void GraphicsSystem::ComputeRenderQueue()
@@ -142,7 +152,7 @@ void GraphicsSystem::ComputeGraphicsResources()
 	// NOTE! If window is resizable then this will not work, as we need the resources on window resize
 	if (mpWindow->IsWindowResizable() == false)
 	{
-		mpRenderer->CleanUpGAIR();
+//		mpRenderer->CleanUpGAIR();
 	}
 
 	// NOTE! We can not free the scene graph here as we still need it to update the objects/components each frame!

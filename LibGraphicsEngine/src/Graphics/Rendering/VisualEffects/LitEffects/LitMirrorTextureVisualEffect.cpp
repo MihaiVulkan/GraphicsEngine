@@ -72,7 +72,7 @@ void LitMirrorTextureVisualEffect::InitCustomEffect()
 			auto* pVisualEffect = pGeoNode->GetComponent<VisualComponent>()->GetVisualEffect();
 			assert(pVisualEffect != nullptr);
 
-			//TODO - improve this id the effect has several passes!
+			//TODO - improve this if the effect has several passes!
 			auto& passMap = pVisualEffect->GetPasses();
 			auto itStd = passMap.find(VisualPass::PassType::GE_PT_STANDARD);
 			if (itStd != passMap.end())

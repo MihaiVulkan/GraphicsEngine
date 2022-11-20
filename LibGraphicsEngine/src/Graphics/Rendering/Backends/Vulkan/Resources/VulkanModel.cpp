@@ -1,3 +1,4 @@
+#if defined(VULKAN_RENDERER)
 #include "Graphics/Rendering/Backends/Vulkan/Resources/VulkanModel.hpp"
 #include "Graphics/Rendering/Backends/Vulkan/VulkanRenderer.hpp"
 #include "Graphics/Rendering/Resources/Model.hpp"
@@ -45,3 +46,4 @@ void GADRModel::Draw(std::function<void(uint32_t indexCount, uint32_t firstIndex
 
 	mpModel->Draw(onDrawCB);
 }
+#endif // VULKAN_RENDERER

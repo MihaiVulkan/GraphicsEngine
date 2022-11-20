@@ -1,12 +1,7 @@
 #ifndef GRAPHICS_RENDERING_BACKENDS_VULKAN_VULKAN_RENDERER_HPP
 #define GRAPHICS_RENDERING_BACKENDS_VULKAN_VULKAN_RENDERER_HPP
 
-//#ifdef _WIN32
-//#ifndef VK_USE_PLATFORM_WIN32_KHR
-//#define VK_USE_PLATFORM_WIN32_KHR
-//#endif // VK_USE_PLATFORM_WIN32_KHR
-//#endif // _WIN32
-
+#if defined(VULKAN_RENDERER)
 #include "Core/AppConfig.hpp"
 
 #include "Graphics/Rendering/Backends/Vulkan/Common/VulkanObject.hpp"
@@ -101,6 +96,10 @@ namespace GraphicsEngine
 
 			struct VisualPassData
 			{
+				VisualPassData()
+					: pRenderPass(nullptr)
+				{}
+
 				VisualPassBeginData passBeginData;
 
 				VulkanRenderPass* pRenderPass;
@@ -194,6 +193,10 @@ namespace GraphicsEngine
 			//  pipeline statistics results
 			struct PipelineStatsData
 			{
+				PipelineStatsData()
+					: pQueryPool(nullptr)
+				{}
+
 				VulkanQueryPool* pQueryPool;
 				std::vector<uint64_t> pipelineStats;
 				std::vector<std::string> pipelineStatNames;
@@ -202,20 +205,9 @@ namespace GraphicsEngine
 			std::map<VisualPass::PassType, PipelineStatsData> mPipelineStatsMap;
 
 			//////////////////////////////////////////
-
-			// Example settings that can be changed e.g. by command line arguments
-			struct {
-				/** @brief Activates validation layers (and message output) when set to true */
-				bool validation = false;
-				/** @brief Set to true if fullscreen mode has been requested via command line */
-				bool fullscreen = false;
-				/** @brief Set to true if v-sync will be forced for the swapchain */
-				bool vsync = false;
-				/** @brief Enable UI overlay */
-				bool overlay = false;
-			} mSettings;
 		};
 	}
 }
+#endif // VULKAN_RENDERER
 
 #endif /* GRAPHICS_RENDERING_BACKENDS_VULKAN_VULKAN_RENDERER_HPP */

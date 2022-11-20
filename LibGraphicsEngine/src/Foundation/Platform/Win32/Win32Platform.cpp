@@ -1,8 +1,16 @@
 #include "Foundation/Platform/Win32/Win32Platform.hpp"
+#include "Graphics/Rendering/Backends/OpenGL/Internal/OpenGLDebug.hpp"
 #include "Foundation/MemoryManagement/MemoryOperations.hpp"
 #include "Foundation/Logger.hpp"
 #include <windows.h>
 #include <cassert>
+
+#if defined(OPENGL_RENDERER)
+#include "Foundation/Platform/GLLoader/GLLoader.hpp"
+// WGL specifics
+#include "gl/wglext.h"
+#endif // OPENGL_RENDERER
+
 // Window
 #if !defined(GE_WNDCLASSNAME)
 #define GE_WNDCLASSNAME L"GE_WND_CN"
@@ -185,11 +193,251 @@ const KeyMapWin32::PlatformData& KeyMapWin32::GetPlatformData() const
 
 /////////////////////////
 
+GraphicsContextWin32::GraphicsContextWin32()
+	: GraphicsContext()
+{
+
+}
+GraphicsContextWin32::~GraphicsContextWin32()
+{
+
+}
+
+bool_t GraphicsContextWin32::CreateContextWGL(Window* pWindow)
+{
+#if defined(OPENGL_RENDERER)
+	// NOTE! A fake rendering context is needed to be able
+	// to load the proper context wgl function pointers (wglChoosePixelFormatARB and wglCreateContextAttribsARB)
+	// which are later on used to create the real rendering context 
+	// For more info see: https://mariuszbartosik.com/opengl-4-x-initialization-in-windows-without-a-framework/
+
+
+	assert(pWindow != nullptr);
+
+	WindowWin32* pWindowWin32 = dynamic_cast<WindowWin32*>(pWindow);
+	assert(pWindowWin32 != nullptr);
+
+	// create temporary window
+	DWORD style = 0;
+
+	// create a fake window
+	// it is needed later on to create the fake rendering context
+	HWND fakeWND = ::CreateWindow(
+		GE_WNDCLASSNAME,
+		L"Fake Window",
+		style,
+		0, 0,						// position x, y
+		1, 1,						// width, height
+		NULL, NULL,					// parent window, menu
+		pWindowWin32->GetPlatformData().instance, // 
+		NULL);			// instance, param
+
+	if (NULL == fakeWND)
+	{
+		LOG_ERROR("Failed to create dummy window!");
+		return false;
+	}
+
+	// retrieve teh fake device context based on the fake window
+	HDC fakeDC = ::GetDC(fakeWND);
+	if (NULL == fakeDC)
+	{
+		LOG_ERROR("Failed to retrieve the dummy device context!");
+		return false;
+	}
+
+	PIXELFORMATDESCRIPTOR fakePFD;
+	::ZeroMemory(&fakePFD, sizeof(fakePFD));
+	fakePFD.nSize = sizeof(fakePFD);
+	fakePFD.nVersion = 1;
+	fakePFD.dwFlags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER;
+	fakePFD.iPixelType = PFD_TYPE_RGBA;
+	fakePFD.cColorBits = 32;
+	fakePFD.cAlphaBits = 8;
+	fakePFD.cDepthBits = 24;
+
+	// setup pixel format on the fake device context 
+	const int fakePFDID = ::ChoosePixelFormat(fakeDC, &fakePFD);
+	if (NULL == fakePFDID) 
+	{
+		LOG_ERROR("Failed to choose a dummy pixel format!");
+		return false;
+	}
+
+	if (false == ::SetPixelFormat(fakeDC, fakePFDID, &fakePFD))
+	{
+		LOG_ERROR("Failed to set the dummy pixel format!");
+		return false;
+	}
+
+	// create a fake rendering context
+	HGLRC fakeRC = ::wglCreateContext(fakeDC);
+	if (NULL == fakeRC)
+	{
+		LOG_ERROR("Failed to create the dummy rendering context!");
+		return false;
+	}
+
+	// make current the fake rendering context
+	if (false == ::wglMakeCurrent(fakeDC, fakeRC))
+	{
+		LOG_ERROR("Failed to create the dummy rendering context!");
+		return false;
+	}
+
+
+	// get pointers to functions (or init opengl loader here)
+
+	PFNWGLCHOOSEPIXELFORMATARBPROC wglChoosePixelFormatARB = nullptr;
+	wglChoosePixelFormatARB = reinterpret_cast<PFNWGLCHOOSEPIXELFORMATARBPROC>(::wglGetProcAddress("wglChoosePixelFormatARB"));
+	if (nullptr  == wglChoosePixelFormatARB)
+	{
+		LOG_ERROR("Failed to get the address of wglChoosePixelFormatARB!");
+		return false;
+	}
+
+	PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB = nullptr;
+	wglCreateContextAttribsARB = reinterpret_cast<PFNWGLCREATECONTEXTATTRIBSARBPROC>(::wglGetProcAddress("wglCreateContextAttribsARB"));
+	if (nullptr == wglCreateContextAttribsARB)
+	{
+		LOG_ERROR("Failed to get the address of wglCreateContextAttribsARB!");
+		return false;
+	}
+
+	// real gl context setup
+	const int pixelAttribs[] = {
+		WGL_DRAW_TO_WINDOW_ARB, GL_TRUE,
+		WGL_SUPPORT_OPENGL_ARB, GL_TRUE,
+		WGL_DOUBLE_BUFFER_ARB, GL_TRUE,
+		WGL_PIXEL_TYPE_ARB, WGL_TYPE_RGBA_ARB,
+		WGL_ACCELERATION_ARB, WGL_FULL_ACCELERATION_ARB,
+		WGL_COLOR_BITS_ARB, OPENGL_COLOR_BITS,
+		WGL_ALPHA_BITS_ARB, OPENGL_ALPHA_BITS,
+		WGL_DEPTH_BITS_ARB, OPENGL_DEPTH_BITS,
+		WGL_STENCIL_BITS_ARB, OPENGL_STENCIL_BITS,
+		WGL_SAMPLE_BUFFERS_ARB, GL_TRUE,
+		WGL_SAMPLES_ARB, OPENGL_SAMPLE_COUNT,
+		0
+		};
+
+	// retrieve teh device context
+	mPlatformData.dc = ::GetDC(pWindowWin32->GetPlatformData().handle);
+	if (NULL == mPlatformData.dc)
+	{
+		LOG_ERROR("Failed to retrieve the device context!");
+		return false;
+	}
+
+
+	int pixelFormatID = 0; UINT numFormats = 0;
+	const bool status = wglChoosePixelFormatARB(mPlatformData.dc, pixelAttribs, NULL, 1, &pixelFormatID, &numFormats);
+
+	if (status == false || numFormats == 0)
+	{
+		LOG_ERROR("Failed to choose the pixel format!");
+		return false;
+	}
+
+	PIXELFORMATDESCRIPTOR PFD;
+	if (0 == ::DescribePixelFormat(mPlatformData.dc, pixelFormatID, sizeof(PFD), &PFD))
+	{
+		LOG_ERROR("Failed to retrieve the info on the selected pixel format!");
+		return false;
+	}
+
+	if (false == ::SetPixelFormat(mPlatformData.dc, pixelFormatID, &PFD))
+	{
+		LOG_ERROR("Failed to set the pixel format!");
+		return false;
+	}
+
+	const int contextAttribs[] = {
+		WGL_CONTEXT_MAJOR_VERSION_ARB, OPENGL_MAJOR_VER,
+		WGL_CONTEXT_MINOR_VERSION_ARB, OPENGL_MINOR_VER,
+#if OPENGL_PROFILE == OPENGL_COMPATIBILITY_PROFILE
+		WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB,
+#elif OPENGL_PROFILE == OPENGL_CORE_PROFILE
+		WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
+#endif // OPENGL_PROFILE
+#if defined(OPENGL_DEBUG)
+		WGL_CONTEXT_FLAGS_ARB, WGL_CONTEXT_DEBUG_BIT_ARB,
+#endif // OPENGL_DEBUG
+		0
+	};
+
+	// crete the rendering context asociated with the window
+	mPlatformData.handle = wglCreateContextAttribsARB(mPlatformData.dc, 0, contextAttribs);
+	if (NULL == mPlatformData.handle)
+	{
+		LOG_ERROR("Failed to create the rendering context!");
+		return false;
+	}
+
+	// delete the temporary resources - dummy window, dummy device context and dummy rendering context
+	::wglMakeCurrent(NULL, NULL);
+	::wglDeleteContext(fakeRC);
+	::ReleaseDC(fakeWND, fakeDC);
+	::DestroyWindow(fakeWND);
+
+#endif // OPENGL_RENDERER
+
+	return true;
+}
+
+void GraphicsContextWin32::MakeCurrentWGL(WindowWin32* pWindow)
+{
+#if defined(OPENGL_RENDERER)
+	assert(pWindow != nullptr);
+	assert(pWindow->mpGraphicsContext != nullptr);
+
+	if (false == ::wglMakeCurrent(pWindow->mpGraphicsContext->mPlatformData.dc, pWindow->mpGraphicsContext->mPlatformData.handle))
+	{
+		LOG_ERROR("Failed to make current the rendering context!");
+	}
+#endif // OPENGL_RENDERER
+}
+
+void GraphicsContextWin32::SwapBuffersWGL(WindowWin32* pWindow)
+{
+#if defined(OPENGL_RENDERER)
+	assert(pWindow != nullptr);
+	assert(pWindow->mpGraphicsContext != nullptr);
+
+	if (false == ::SwapBuffers(pWindow->mpGraphicsContext->mPlatformData.dc))
+	{
+		LOG_ERROR("Failed to swap buffers for the current the rendering context!");
+	}
+#endif // OPENGL_RENDERER
+}
+
+void GraphicsContextWin32::DestroyWGL(WindowWin32* pWindow)
+{
+#if defined(OPENGL_RENDERER)
+	assert(pWindow != nullptr);
+	assert(pWindow->mpGraphicsContext != nullptr);
+
+	if (false == ::wglDeleteContext(pWindow->mpGraphicsContext->mPlatformData.handle))
+	{
+		LOG_ERROR("Failed to delete the current rendering context!");
+	}
+	pWindow->mpGraphicsContext->mPlatformData.handle = NULL;
+#endif // OPENGL_RENDERER
+}
+
+/////////////////////////
+
 WindowWin32::WindowWin32()
 	: Window()
+	, mpKeyMap(nullptr)
+	, mpGraphicsContext(nullptr)
 {
 	mpKeyMap = GE_ALLOC(KeyMapWin32);
 	assert(mpKeyMap != nullptr);
+
+#if defined(OPENGL_RENDERER)
+	mpGraphicsContext = GE_ALLOC(GraphicsContextWin32);
+	assert(mpGraphicsContext != nullptr);
+#endif // OPENGL_RENDERER
 }
 
 WindowWin32::WindowWin32(const std::string& title, uint32_t width, uint32_t height, uint32_t flags)
@@ -201,13 +449,36 @@ WindowWin32::WindowWin32(const std::string& title, uint32_t width, uint32_t heig
 	{
 		DestroyWindowNative();
 		LOG_ERROR("Failed to create native window!");
+		return;
 	}
+
+#if defined(OPENGL_RENDERER)
+	assert(mpGraphicsContext != nullptr);
+
+	if (false == mpGraphicsContext->CreateContextWGL(this))
+	{
+		LOG_ERROR("Failed to create WGL context!");
+		return;
+	}
+
+	GLContextMakeCurrent();
+
+	GLLoader::LoadGL();
+
+#if defined(OPENGL_DEBUG)
+	WindowWin32::GLRegisterDebugCallback();
+#endif // OPENGL_DEBUG
+#endif // OPENGL_RENDERER
 
 	UpdateWindowFlags(flags);
 }
 
 WindowWin32::~WindowWin32()
 {
+#if defined(OPENGL_DEBUG)
+	WindowWin32::GLUnRegisterDebugCallback();
+#endif // OPENGL_DEBUG
+
 	DestroyWindowNative();
 
 	GE_FREE(mpKeyMap);
@@ -249,7 +520,7 @@ bool_t WindowWin32::CreateWindowNative(const std::string& title, uint32_t width,
 		{
 			if (ChangeDisplaySettings(&dmScreenSettings, CDS_FULLSCREEN) != DISP_CHANGE_SUCCESSFUL)
 			{
-				if (MessageBox(nullptr, (LPCWSTR)"Fullscreen Mode not supported!\n Switch to window mode?", (LPCWSTR)"Error", MB_YESNO | MB_ICONEXCLAMATION) == IDYES)
+				if (::MessageBox(nullptr, (LPCWSTR)"Fullscreen Mode not supported!\n Switch to window mode?", (LPCWSTR)"Error", MB_YESNO | MB_ICONEXCLAMATION) == IDYES)
 				{
 					//mSettings.fullscreen = false;
 				}
@@ -318,6 +589,16 @@ void WindowWin32::DestroyWindowNative()
 
 	if (mPlatformData.handle)
 	{
+#if defined(OPENGL_RENDERER)
+		assert(mpGraphicsContext != nullptr);
+		/*if (mpGraphicsContext->mCallbacks.onDestroy)
+		{
+			mpGraphicsContext->mCallbacks.onDestroy(this);
+		}*/
+
+		mpGraphicsContext->DestroyWGL(this);
+#endif // OPENGL_RENDERER
+
 		::DestroyWindow(mPlatformData.handle);
 
 		if (false == UnRegisterWindowClass())
@@ -617,6 +898,51 @@ void WindowWin32::WaitEventsTimeout(float64_t timeout)
 	PollEvents();
 }
 
+/////////////// GL API //////////////////
+
+void WindowWin32::GLSwapBuffers()
+{
+#if defined(OPENGL_RENDERER)
+	assert(mpGraphicsContext != nullptr);
+
+	mpGraphicsContext->SwapBuffersWGL(this);
+#endif // OPENGL_RENDERER
+}
+
+void WindowWin32::GLContextMakeCurrent()
+{
+#if defined(OPENGL_RENDERER)
+	assert(mpGraphicsContext != nullptr);
+
+	mpGraphicsContext->MakeCurrentWGL(this);
+#endif // OPENGL_RENDERER
+}
+
+void WindowWin32::GLRegisterDebugCallback()
+{
+#if defined(OPENGL_DEBUG)
+//	GLContextMakeCurrent();
+
+	glEnable(GL_DEBUG_OUTPUT);
+	//  Synchronous debug output
+	glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+
+	glDebugMessageCallback(&Graphics::OpenGLDebug::DebugCallback, NULL);
+#endif // OPENGL_DEBUG
+}
+
+void WindowWin32::GLUnRegisterDebugCallback()
+{
+#if defined(OPENGL_DEBUG)
+//	GLContextMakeCurrent();
+
+	glDebugMessageCallback(NULL, NULL);
+#endif // OPENGL_DEBUG
+}
+
+
+///////////////////////////////////////////////
+
 int32_t WindowWin32::GetKeyScancodeNative(int32_t key)
 {
 	assert(mpKeyMap != nullptr);
@@ -632,6 +958,11 @@ const WindowWin32::PlatformData& WindowWin32::GetPlatformData() const
 KeyMapWin32* WindowWin32::GetKeyMap() const
 {
 	return mpKeyMap;
+}
+
+GraphicsContextWin32* WindowWin32::GetGraphicsContext() const
+{
+	return mpGraphicsContext;
 }
 
 //////////////////////////////////////////////

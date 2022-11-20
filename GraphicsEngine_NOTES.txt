@@ -1,5 +1,14 @@
 TODO
 
+OpenGL API (>= 4.0)
+
+https://sites.google.com/site/opengltutorialsbyaks/introduction-to-opengl-4-1---tutorial-05
+
+
+
+
+---------------------------------------------------
+
 NOTE! Regarding the Vulkan backend we have:
 - command pools and command buffers
 - descritpor pools and descriptor sets

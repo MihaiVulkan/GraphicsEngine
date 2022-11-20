@@ -139,8 +139,8 @@ void InputSystem::UpdateFPSInput(float32_t deltaTime)
 	{
 		///////// KEYBOARD ///////////
 		//TODO - put key speed in config
-		const float32_t KeySpeed = 0.005f;
-		float32_t deltaVal = KeySpeed;// *deltaTime;
+		const float32_t KeySpeed = 5.0f;// 0.005f;
+		float32_t deltaVal = KeySpeed * deltaTime;
 
 		if (mpWindow->GetState().keys[GE_KEY_W] || mpWindow->GetState().keys[GE_KEY_UP])
 		{

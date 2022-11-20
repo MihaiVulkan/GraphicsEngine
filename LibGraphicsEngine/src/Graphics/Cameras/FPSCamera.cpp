@@ -1,4 +1,5 @@
 #include "Graphics/Cameras/FPSCamera.hpp"
+#include "Foundation/Logger.hpp"
 #include "glm/gtc/matrix_transform.hpp" // glm::lookAt()
 #include "glm/gtc/constants.hpp" // glm::pi(), glm::half_pi()
 
@@ -80,9 +81,9 @@ void FPSCamera::UpdateOrientationWithMouse(float32_t dx, float32_t dy)
 	mUp = glm::cross(mForward, mRight);
 #endif // RIGHT_HAND_COORDINATES
 
-	//	LOG("FORWARD x: %f y: %f z: %f", mForward.x, mForward.y, mForward.z);
-	//	LOG("RIGHT x: %f y: %f z: %f", mRight.x, mRight.y, mRight.z);
-	//	LOG("UP x: %f y: %f z: %f", mUp.x, mUp.y, mUp.z);
+//	LOG_DEBUG("FORWARD x: %f y: %f z: %f", mForward.x, mForward.y, mForward.z);
+//	LOG_DEBUG("RIGHT x: %f y: %f z: %f", mRight.x, mRight.y, mRight.z);
+//	LOG_DEBUG("UP x: %f y: %f z: %f", mUp.x, mUp.y, mUp.z);
 }
 
 void FPSCamera::UpdatePositionWithKeyboard(float32_t value, const Camera::CAMERA_DIRECTIONS& dir)
@@ -98,7 +99,7 @@ void FPSCamera::UpdatePositionWithKeyboard(float32_t value, const Camera::CAMERA
 
 	mPosition += deltaMove;
 
-	//	LOG("Camera POS x: %f y: %f z: %f", mPosition.x, mPosition.y, mPosition.z);
+//	LOG_DEBUG("Camera POS x: %f y: %f z: %f", mPosition.x, mPosition.y, mPosition.z);
 }
 
 float32_t FPSCamera::GetPitch() const

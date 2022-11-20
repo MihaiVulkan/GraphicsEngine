@@ -88,6 +88,7 @@ GLSLShaderParser::~GLSLShaderParser()
 {
 	mStage = Shader::ShaderStage::GE_SS_COUNT;
 	mVersion = {};
+
 	mUniformBlock = {};
 
 	mInputMap.clear();
@@ -109,9 +110,9 @@ bool_t GLSLShaderParser::Parse(const std::string& shaderSourcePath)
 		}
 	}
 
-	std::string shaderCode;
-	FileUtils::ReadTextFile(shaderSourcePath, shaderCode);
-	if (shaderCode.empty())
+	std::string shaderSourceCode;
+	FileUtils::ReadTextFile(shaderSourcePath, shaderSourceCode);
+	if (shaderSourceCode.empty())
 	{
 		LOG_ERROR("Failed to read shader: %s", shaderSourcePath.c_str());
 		return false;
@@ -121,7 +122,7 @@ bool_t GLSLShaderParser::Parse(const std::string& shaderSourcePath)
 	// then we pasrse by the 'layout' keyword instead of new line to get the layout info
 	// this approach helps us we can have uniform blocks defined on multiple lines
 
-	if (ParseSource(shaderCode) == false)
+	if (ParseSource(shaderSourceCode) == false)
 	{
 		LOG_ERROR("Error in shader: %s", shaderSourcePath.c_str());
 		return false;
@@ -177,8 +178,10 @@ bool_t GLSLShaderParser::ParseSource(const std::string& shaderCode)
 	if (shaderCode.empty())
 		return false;
 
+	size_t lineIter = 0;
+
 	// parse version
-	size_t lineIter = shaderCode.find(DELIMITER_LINE_NAME);
+	lineIter = shaderCode.find(DELIMITER_LINE_NAME);
 	std::string versionInfo = shaderCode.substr(0, lineIter);
 	if (versionInfo.empty())
 		return false;
@@ -204,8 +207,6 @@ bool_t GLSLShaderParser::ParseSource(const std::string& shaderCode)
 
 	mVersion = tempVersionInfo;
 
-	////////////////////////
-
 	size_t crrLayoutIter = 0, nextLayoutIter = 0;
 
 	// remove comments
@@ -227,7 +228,19 @@ bool_t GLSLShaderParser::ParseSource(const std::string& shaderCode)
 	while(true)
 	{
 		nextLayoutIter = tempShaderCode.find(LAYOUT_NAME, crrLayoutIter);
-		std::string tempLayoutInfo = tempShaderCode.substr(crrLayoutIter, nextLayoutIter - crrLayoutIter);
+
+		std::string tempLayoutInfo;
+		if (nextLayoutIter == 0) // at the start
+		{
+			nextLayoutIter = tempShaderCode.find(DELIMITER_LINE_NAME, crrLayoutIter);
+
+			// without the 'layout' keyword itself
+			tempLayoutInfo = tempShaderCode.substr(LAYOUT_NAME_SIZE + 1, nextLayoutIter - (LAYOUT_NAME_SIZE + 1));
+		}
+		else
+		{
+			tempLayoutInfo = tempShaderCode.substr(crrLayoutIter, nextLayoutIter - crrLayoutIter);
+		}
 
 		crrLayoutIter = nextLayoutIter + LAYOUT_NAME_SIZE + 1; //layout info without the layout token itself
 		if (tempLayoutInfo.empty())

@@ -32,7 +32,7 @@ void VulkanSurface::Create()
 	assert(mpDevice != nullptr);
 
 	// TODO - improve this or move to Platform
-#if defined(_WIN32)
+#if defined(_WIN32) && defined(VULKAN_RENDERER)
 	Platform::WindowWin32* pWindow = dynamic_cast<Platform::WindowWin32*>(mpDevice->GetWindow());
 	assert(pWindow != nullptr);
 

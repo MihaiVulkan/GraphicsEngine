@@ -28,9 +28,17 @@ endif()
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-
-#chooce Vulkan lib according to toolchain architecture: 32bit or 64bit
-set(Vulkan_Lib_Dir ${Lib_Dir}/dep/lib/$ENV{ARCH}/vulkan-1.lib)
+# chhose the graphics api/renderer to be used based on the build.sh input
+if (${RENDERER} STREQUAL "Vulkan")
+	#chooce Vulkan lib according to toolchain architecture: 32bit or 64bit
+	set(Graphics_Lib_Path ${Lib_Dir}/dep/lib/$ENV{ARCH}/vulkan-1.lib)
+	add_definitions(-DVULKAN_RENDERER)
+elseif (${RENDERER} STREQUAL "OpenGL")
+	#chooce OpenGL lib according to toolchain architecture: 32bit or 64bit
+	#on Windows both versions of the lib are called opengl32.lib  (for perting purposes)
+	set(Graphics_Lib_Path opengl32.lib)
+	add_definitions(-DOPENGL_RENDERER)
+endif()
 
 # subdirectories
 add_subdirectory(${Lib_Dir})

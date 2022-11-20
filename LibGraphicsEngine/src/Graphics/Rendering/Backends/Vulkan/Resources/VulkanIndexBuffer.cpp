@@ -1,3 +1,4 @@
+#if defined(VULKAN_RENDERER)
 #include "Graphics/Rendering/Backends/Vulkan/Resources/VulkanIndexBuffer.hpp"
 #include "Graphics/Rendering/Backends/Vulkan/Common/VulkanUtils.hpp"
 #include "Graphics/Rendering/Backends/Vulkan/VulkanRenderer.hpp"
@@ -56,6 +57,8 @@ void GADRIndexBuffer::Create(Renderer* pRenderer)
 		mpIndexBuffer->GetSize(), mpIndexBuffer->GetData()
 	);
 	assert(pStagingIndices != nullptr);
+
+	//TODO - use Buffer::BufferUsage 
 
 	// Create a device local buffer to which the (host local) vertex data will be copied and which will be used for rendering
 	mpVulkanBuffer = GE_ALLOC(VulkanBuffer)
@@ -118,3 +121,4 @@ const IndexBuffer::IndexType& GADRIndexBuffer::GetIndexType() const
 
 	return mpIndexBuffer->GetIndexType();
 }
+#endif // VULKAN_RENDERER

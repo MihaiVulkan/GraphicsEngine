@@ -9,17 +9,11 @@ namespace GraphicsEngine
 		namespace VulkanHelpers
 		{
 			std::string GetVulkanVersionStr(uint32_t version)
-				//const char* GetVulkanVersionStr(uint32_t version) //memory leak = no free
 			{
 				std::stringstream ss;
 				ss << VK_VERSION_MAJOR(version) << "." << VK_VERSION_MINOR(version) << "." << VK_VERSION_PATCH(version);
 
 				return ss.str();
-
-				/*size_t size = ss.str().length();
-				char* pCStr = new char[size + 1];
-				::strcpy_s(pCStr, size + 1, ss.str().c_str());
-				return pCStr;*/
 			}
 
 			std::string ErrorString(VkResult errorCode)

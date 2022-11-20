@@ -1,3 +1,4 @@
+#if defined(VULKAN_RENDERER)
 #include "Graphics/Rendering/Backends/Vulkan/Resources/VulkanVertexBuffer.hpp"
 #include "Graphics/Rendering/Backends/Vulkan/Common/VulkanCommon.hpp"
 #include "Graphics/Rendering/Backends/Vulkan/Common/VulkanUtils.hpp"
@@ -59,6 +60,8 @@ void GADRVertexBuffer::Create(Renderer* pRenderer)
 
 	assert(pStagingVertices != nullptr);
 
+	//TODO - use Buffer::BufferUsage 
+
 	// Create a device local buffer to which the (host local) vertex data will be copied and which will be used for rendering
 	mpVulkanBuffer = GE_ALLOC(VulkanBuffer)
 	(
@@ -110,7 +113,7 @@ void GADRVertexBuffer::OnBind(uint32_t currentBufferIdx)
 
 void GADRVertexBuffer::OnUnBind(uint32_t currentBufferIdx)
 {
-
+	//
 }
 
 const Buffer::BufferUsage& GADRVertexBuffer::GetBufferUsage() const
@@ -119,3 +122,4 @@ const Buffer::BufferUsage& GADRVertexBuffer::GetBufferUsage() const
 
 	return mpVertexBuffer->GetBufferUsage();
 }
+#endif // VULKAN_RENDERER

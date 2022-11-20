@@ -1,3 +1,4 @@
+#if defined(VULKAN_RENDERER)
 #include "Graphics/Rendering/Backends/Vulkan/Resources/VulkanTexture.hpp"
 #include "Graphics/Rendering/Backends/Vulkan/VulkanRenderer.hpp"
 #include "Graphics/Rendering/Backends/Vulkan/Internal/VulkanDevice.hpp"
@@ -22,16 +23,16 @@ GADRTexture::GADRTexture()
 	: mpVulkanImage(nullptr)
 	, mpVulkanImageView(nullptr)
 	, mpVulkanSampler(nullptr)
+	, mVulkanDescriptorInfo{}
 	, mpTexture(nullptr)
-	, mDefaultDescriptorInfo{}
 {}
 
 GADRTexture::GADRTexture(Renderer* pRenderer, Texture* pTexture)
 	: mpVulkanImage(nullptr)
 	, mpVulkanImageView(nullptr)
 	, mpVulkanSampler(nullptr)
+	, mVulkanDescriptorInfo{}
 	, mpTexture(pTexture)
-	, mDefaultDescriptorInfo{}
 {
 	Create(pRenderer);
 }
@@ -245,7 +246,7 @@ void GADRTexture::Create(Renderer* pRenderer)
 
 void GADRTexture::Destroy()
 {
-	mDefaultDescriptorInfo = {};
+	mVulkanDescriptorInfo = {};
 
 	GE_FREE(mpVulkanSampler);
 	GE_FREE(mpVulkanImageView);
@@ -268,15 +269,15 @@ void GADRTexture::UpdateDecriptorInfo()
 	assert(mpVulkanImageView != nullptr);
 
 	VkSampler samplerHandle = (mpTexture->GetSamplingType() == Texture::SamplingType::GE_ST_SAMPLING ? mpVulkanSampler->GetHandle() : VK_NULL_HANDLE);
-	mDefaultDescriptorInfo.sampler = samplerHandle;
-	mDefaultDescriptorInfo.imageView = mpVulkanImageView->GetHandle();
+	mVulkanDescriptorInfo.sampler = samplerHandle;
+	mVulkanDescriptorInfo.imageView = mpVulkanImageView->GetHandle();
 
 	VkImageLayout imageLayout = VkImageLayout::VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL; //default
 	if (mpTexture->IsDepthFormat() && mpTexture->GetSamplingType() == Texture::SamplingType::GE_ST_SAMPLING)
 	{
 		imageLayout = VkImageLayout::VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
 	}
-	mDefaultDescriptorInfo.imageLayout = imageLayout;
+	mVulkanDescriptorInfo.imageLayout = imageLayout;
 }
 
 Texture* GADRTexture::GetTexture()
@@ -284,22 +285,23 @@ Texture* GADRTexture::GetTexture()
 	return mpTexture;
 }
 
-VulkanImage* GADRTexture::GetImage()
+VulkanImage* GADRTexture::GetVkImage()
 {
 	return mpVulkanImage;
 }
 
-VulkanImageView* GADRTexture::GetImageView()
+VulkanImageView* GADRTexture::GetVkImageView()
 {
 	return mpVulkanImageView;
 }
 
-VulkanSampler* GADRTexture::GetSampler()
+VulkanSampler* GADRTexture::GetVkSampler()
 {
 	return mpVulkanSampler;
 }
 
-const VkDescriptorImageInfo& GADRTexture::GetDescriptorInfo() const
+const VkDescriptorImageInfo& GADRTexture::GetVkDescriptorInfo() const
 {
-	return mDefaultDescriptorInfo;
+	return mVulkanDescriptorInfo;
 }
+#endif // VULKAN_RENDERER

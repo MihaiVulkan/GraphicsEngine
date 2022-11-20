@@ -1,6 +1,7 @@
 #ifndef GRAPHICS_RENDERING_BACKENDS_VULKAN_VISUAL_PASSES_VULKAN_VISUAL_PASS_HPP
 #define GRAPHICS_RENDERING_BACKENDS_VULKAN_VISUAL_PASSES_VULKAN_VISUAL_PASS_HPP
 
+#if defined(VULKAN_RENDERER)
 #include "Graphics/Rendering/Backends/Vulkan/Common/VulkanObject.hpp"
 #include "Graphics/Rendering/VisualPasses/VisualPass.hpp"
 #include <vector>
@@ -84,5 +85,6 @@ namespace GraphicsEngine
 		};
 	}
 }
+#endif // VULKAN_RENDERER
 
 #endif // GRAPHICS_RENDERING_BACKENDS_VULKAN_VISUAL_PASSES_VULKAN_VISUAL_PASS_HPP

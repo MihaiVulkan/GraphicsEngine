@@ -14,18 +14,25 @@ fi
 if [ "$2" != "32bit" ] && [ "$2" != "64bit" ]
 then
     echo "Please specify build type: x86 or x64"
-    echo "Example: ./build.sh Unix 32bit Debug"
+    echo "Example: ./build.sh Unix 32bit Debug Vulkan"
     exit 1
 fi
 
 if [ "$3" != "Debug" ] && [ "$3" != "Release" ]
 then
     echo "Please specify build type: Debug or Release"
-    echo "Example: ./build.sh Win 64bit Release"
+    echo "Example: ./build.sh Win 64bit Release OpenGL"
     exit 1
 fi
 
-export BUILD_DIR="build_$1_$2_$3"
+if [ "$4" != "Vulkan" ] && [ "$4" != "OpenGL" ]
+then
+    echo "Please specify renderer type: Vulkan or OpenGL"
+    echo "Example: ./build.sh Win 64bit Release Vulkan"
+    exit 1
+fi
+
+export BUILD_DIR="build_$1_$2_$3_$4"
 export ARCH=$2
 export BUILD_CONFIG=$3
 
@@ -41,12 +48,12 @@ then
 	fi
 fi
 
-if [ "$4" != "-b" ] && [ "$5" != "-b" ]
+if [ "$5" != "-b" ] && [ "$6" != "-b" ]
 then
 	echo "No -b provided, so the script shall not build the code!"
 fi
 
-if [ "$4" != "-cs" ] && [ "$5" != "-cs" ]
+if [ "$5" != "-cs" ] && [ "$6" != "-cs" ]
 then
 	echo "No -cs provided, so the script shall not compile the shaders!"
 fi
@@ -56,15 +63,16 @@ echo "IDE: " $IDE
 echo "Arch: " $ARCH
 echo "VS Arch: " $VS_ARCH
 echo "Build config: " $BUILD_CONFIG
+echo "Renderer: " $4
 
-cmake -DCMAKE_BUILD_TYPE=$BUILD_CONFIG -G "$IDE" -A $VS_ARCH -S . -B $BUILD_DIR
+cmake -DCMAKE_BUILD_TYPE=$BUILD_CONFIG -DRENDERER=$4 -G "$IDE" -A $VS_ARCH -S . -B $BUILD_DIR
 
-if [ "$4" == "-b" ] || [ "$5" == "-b" ]
+if [ "$5" == "-b" ] || [ "$6" == "-b" ]
 then
 	cmake --build $BUILD_DIR --parallel 4
 fi
 
-if [ "$4" == "-cs" ] || [ "$5" == "-cs" ]
+if [ "$5" == "-cs" ] || [ "$6" == "-cs" ]
 then
 	./setupShaders.sh -c
 fi

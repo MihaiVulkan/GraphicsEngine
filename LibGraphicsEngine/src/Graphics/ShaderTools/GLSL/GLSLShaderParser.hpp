@@ -131,7 +131,6 @@ namespace GraphicsEngine
 			Shader::ShaderStage mStage;
 			std::string mVersion;
 
-
 			// maybe use maps for easier and faster access
 			InputMap mInputMap;
 			VertexAttributeMap mVertexAttributeMap;

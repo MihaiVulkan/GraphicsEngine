@@ -146,6 +146,9 @@ bool_t VertexFormat::HasVertexAttribute(const VertexFormat::VertexAttribute& att
 
 uint32_t VertexFormat::GetVertexAttributeOffset(const VertexFormat::VertexAttribute& att) const
 {
+	assert((att >= VertexFormat::VertexAttribute::GE_VA_POSITION) && (att < VertexFormat::VertexAttribute::GE_VA_COUNT));
+	assert(mVertexAttributes.empty() == false);
+
 	uint32_t offset = 0;
 
 	switch (att)
